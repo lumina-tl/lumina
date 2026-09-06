@@ -1,6 +1,8 @@
-# Lumina — Illuminating every story
+# Lumina — Illuminate every story
 
-Lumina is a desktop application for manga, manhwa, and manhua translation. It automates the core pipeline — text detection, OCR, translation, inpainting, and typesetting — but every step stays editable: full automation is rarely accurate enough, so a light human pass is expected to polish the final result. All models run locally through ONNX Runtime; translation is the only step that calls external AI APIs.
+Lumina is a free, open-source desktop app for translating manga, manhwa, and manhua. It automates the full pipeline — text detection, OCR, translation, inpainting, and typesetting — while keeping every step editable. All models run locally on ONNX Runtime; translation is the only step that calls external AI APIs.
+
+See the [documentation website](https://lumina.navierr.dev/) for guides and details.
 
 ![Lumina main interface](showcase/screenshot.png)
 

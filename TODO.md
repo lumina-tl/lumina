@@ -49,6 +49,6 @@
 - [ ] fix undo/redo blinking 
 - [x] better translation's secret key loading
 - [ ] add masking tool for cleanup mask
-- [ ] installer CUDA variant? soon~
-- [ ] documentation website
+- [x] installer CUDA variant? soon~
+- [x] documentation website
 - [ ] testing and hunt another bugs

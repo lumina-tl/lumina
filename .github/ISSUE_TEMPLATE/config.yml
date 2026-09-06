@@ -1,0 +1,7 @@
+contact_links:
+  - name: ⚠️ Website issue
+    url: https://github.com/lumina-tl/website/issues/new/choose
+    about: Issues and requests about the Lumina website (lumina.navierr.dev) should be opened in the lumina-tl/website repository instead
+  - name: 📚 Lumina documentation
+    url: https://lumina.navierr.dev/
+    about: Guides, troubleshooting, and answers to common questions
