@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 07-09-2026
+
+### Fixed
+
+- **CUDA runtime download failed after finishing (then re-downloaded on every launch)**: the downloaded archive was never finalized to its final name, so verification always failed and the app restarted the download from scratch. The download is now finalized correctly and verified before the runtime is used — a failed download no longer forces a re-download on the next launch.
+
 ## [0.3.1] - 07-09-2026
 
 ### Changed

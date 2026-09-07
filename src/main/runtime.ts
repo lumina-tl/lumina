@@ -211,37 +211,68 @@ function fetchBuffer(url: string, redirects = 5): Promise<Buffer> {
 /**
  * Download a file to `dest` (.part), streaming with progress.
  * Follows redirects (GitHub release assets 302 to the CDN).
+ *
+ * Robustness notes (first-run CUDA runtime download):
+ * - Every cleanup / rename is guarded — a missing .part must never throw
+ *   (createWriteStream opens the file asynchronously, so the file may not
+ *   exist yet when a 3xx response arrives).
+ * - `settled` prevents double resolve/reject when multiple events race.
+ * - `res` errors are handled too, otherwise a mid-transfer network drop
+ *   would leave the promise hanging forever (no toast, silent stall).
  */
 function downloadFile(url: string, dest: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const part = dest + ".part";
+    // Reset any stale .part before starting.
+    try {
+      fs.rmSync(part, { force: true });
+    } catch {
+      /* ignore */
+    }
     const out = fs.createWriteStream(part);
     const mod = url.startsWith("https:") ? https : http;
+    let settled = false;
+
+    const cleanup = (): void => {
+      try {
+        fs.rmSync(part, { force: true });
+      } catch {
+        /* ignore */
+      }
+    };
+    const fail = (e: Error): void => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(e);
+    };
+
     const req = mod.get(
       url,
-      { headers: { "User-Agent": "Lumina/0.3.0" } },
+      { headers: { "User-Agent": "Lumina/0.3.1" } },
       (res) => {
         if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400) {
           res.resume();
           const loc = res.headers.location;
           if (!loc) {
-            reject(new Error(`Redirect without location for ${url}`));
+            fail(new Error(`Redirect without location for ${url}`));
             return;
           }
           const next = new URL(loc, url).toString();
-          // Close the stream first, then retry on the new URL (unlinking a
-          // still-open stream hits EBUSY on Windows).
+          // Hop to the next URL. Nothing was written to this stream yet —
+          // close it and let the recursive call create a fresh .part.
           out.close(() => {
-            fs.unlinkSync(part);
-            resolve(downloadFile(next, dest));
+            if (settled) return;
+            downloadFile(next, dest).then(resolve, fail);
           });
           return;
         }
         if (res.statusCode !== 200) {
-          reject(new Error(`HTTP ${res.statusCode} for ${url}`));
           res.resume();
+          fail(new Error(`HTTP ${res.statusCode} for ${url}`));
           return;
         }
+        res.on("error", fail);
         const total = Number(res.headers["content-length"] || 0);
         let done = 0;
         res.on("data", (chunk) => {
@@ -262,23 +293,27 @@ function downloadFile(url: string, dest: string): Promise<void> {
         res.pipe(out);
       },
     );
-    req.on("error", (e) => {
-      out.destroy();
-      fs.unlinkSync(part);
-      reject(e);
-    });
+    req.on("error", fail);
     out.on("finish", () => {
       out.close(() => {
-        // .part -> final: downloadFile() callers expect the file at `dest`.
-        fs.rmSync(dest, { force: true }); // stale leftover from a crash
-        fs.renameSync(part, dest);
-        resolve();
+        if (settled) return;
+        settled = true;
+        try {
+          // .part -> final: callers expect the file at `dest`.
+          fs.rmSync(dest, { force: true }); // stale leftover from a crash
+          fs.renameSync(part, dest);
+          resolve();
+        } catch (e) {
+          cleanup();
+          reject(
+            new Error(
+              `failed to finalize download: ${String((e as Error)?.message || e)}`,
+            ),
+          );
+        }
       });
     });
-    out.on("error", (e) => {
-      fs.unlinkSync(part);
-      reject(e);
-    });
+    out.on("error", fail);
   });
 }
 
@@ -305,7 +340,9 @@ function sevenZrPath(): string | null {
   return candidates.find((c) => fs.existsSync(c)) || null;
 }
 
-/** Extract the runtime archive with 7zr.exe (async — 1.2GB, don't freeze UI). */
+/** Extract the runtime archive with 7zr.exe (async — 1.2GB, don't freeze UI).
+ *  `windowsHide` suppresses the terminal window that would otherwise pop up
+ *  for the spawned 7zr.exe on Windows. */
 function extract7z(archive: string, dest: string): Promise<void> {
   const exe = sevenZrPath();
   if (!exe)
@@ -313,7 +350,8 @@ function extract7z(archive: string, dest: string): Promise<void> {
   fs.mkdirSync(dest, { recursive: true });
   return new Promise((resolve, reject) => {
     const p = spawn(exe, ["x", archive, `-o${dest}`, "-y"], {
-      stdio: "inherit",
+      windowsHide: true,
+      stdio: "ignore",
     });
     p.on("error", (e) => reject(e));
     p.on("exit", (code) => {
@@ -371,7 +409,11 @@ async function _ensureCudaRuntime(): Promise<void> {
       throw new Error(`sha512 mismatch: expected ${info.sha512}, got ${got}`);
     }
     await extract7z(archive, CUDA_DIR());
-    fs.unlinkSync(archive);
+    try {
+      fs.unlinkSync(archive); // best-effort — retried next launch
+    } catch {
+      /* Defender/indexer may hold a handle; the marker decides readiness */
+    }
     const marker: RuntimeMarker = {
       version: info.version,
       sha512: info.sha512,
