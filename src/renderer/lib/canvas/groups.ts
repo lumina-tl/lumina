@@ -54,10 +54,13 @@ function _syncBboxFromGroup(
   const group = groups[idx];
   const det = dets[idx];
   if (!group || !det) return;
-  det.bbox.x = Math.round((group.x() - off.x) / sr);
-  det.bbox.y = Math.round((group.y() - off.y) / sr);
-  det.bbox.w = Math.round((group.width() * group.scaleX()) / sr);
-  det.bbox.h = Math.round((group.height() * group.scaleY()) / sr);
+  // Use the axis-aligned client rect — after a rotation the group's own
+  // x/y/width/height are the LOCAL (rotated) frame, not the page footprint.
+  const cr = group.getClientRect();
+  det.bbox.x = Math.round((cr.x - off.x) / sr);
+  det.bbox.y = Math.round((cr.y - off.y) / sr);
+  det.bbox.w = Math.round(cr.width / sr);
+  det.bbox.h = Math.round(cr.height / sr);
 }
 
 function _syncTextBboxFromGroup(

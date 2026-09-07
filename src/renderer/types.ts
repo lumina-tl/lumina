@@ -30,6 +30,9 @@ export interface BBox {
   y: number;
   w: number;
   h: number;
+  /** Clockwise degrees the box is rotated on the page (0 = axis-aligned).
+   *  Optional for backward compatibility with older .lmi files. */
+  rotation?: number;
 }
 
 export interface BaseDetection {

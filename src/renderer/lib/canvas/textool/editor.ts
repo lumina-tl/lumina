@@ -225,5 +225,14 @@ export function syncEditorBox(): void {
   ta.style.height = Math.max(30, lay.bbox.h * sr) + "px";
   const fs = (lay.typography.fontSize || Math.max(8, lay.bbox.h * 0.6)) * sr;
   ta.style.fontSize = fs + "px";
+  // Match the box rotation — spin the textarea around its center so it
+  // sits exactly over the rotated box (same geometry as the node glyphs).
+  const rot = lay.bbox.rotation || lay.typography.rotation || 0;
+  if (rot !== 0) {
+    ta.style.transformOrigin = "center center";
+    ta.style.transform = "rotate(" + rot + "deg)";
+  } else {
+    ta.style.transform = "";
+  }
   _fitLineHeight(ta);
 }

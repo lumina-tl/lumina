@@ -28,11 +28,16 @@ export function makeNode(layer: PageLayer, text: string): Konva.Group {
   // Transformer tracks the BOX (not the measured text) and the whole box
   // is hit-testable. The rect stays invisible — selection is shown by the
   // transformer's own border, so no duplicate outline appears.
+  //
+  // The group is rotated as a whole (box + glyphs together, Photoshop-style)
+  // around its top-left corner; glyphs sit centered in the box so the
+  // visual rotation is around the box center.
   const group = new Konva.Group({
     name: "layer-text",
     layerId: layer.id,
     x: p.x,
     y: p.y,
+    rotation: layer.typography.rotation || 0,
   });
 
   group.add(
@@ -48,15 +53,12 @@ export function makeNode(layer: PageLayer, text: string): Konva.Group {
   group.add(
     new Konva.Text({
       name: "layer-text-glyphs",
-      // Center the text in the box so rotation spins around the box
-      // center (Konva rotates around (x,y) − offset).
       x: lw / 2,
       y: lh / 2,
       width: lw,
       height: lh,
       offsetX: lw / 2,
       offsetY: lh / 2,
-      rotation: typo.rotation || 0,
       text: text,
       fontSize: imgFontSize * sr,
       fontFamily: typo.fontFamily || "Arial, sans-serif",

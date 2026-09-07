@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Fresh new app icon**: the Lumina icon has been redesigned with a cleaner, more modern look.
 - **Resize detection boxes from any side**: previously you could only drag the corners to resize a detection box; now the edges work too, so you can adjust width or height on their own just like the text tool's boxes.
+- **Text boxes now rotate with their content**: rotating a text box now tilts the whole box together with the text, like in Photoshop, without resizing or jumping it.
+- **Enter commits text edits in the layer list**: pressing Enter in the original/translation editor saves your change; use Shift+Enter to insert a newline.
+- **Undo/redo works while editing text**: pressing Ctrl+Z/Y right inside the original/translation editor undoes/redoes your change and keeps the editor open, so you can keep typing.
 
 ## [0.2.1] - 05-09-2026
 

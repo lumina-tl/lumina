@@ -821,6 +821,9 @@ export const typeSection = {
       return;
     }
     Object.assign(layer.typography, patch);
+    // The box rotates WITH the text (Photoshop-style) — keep the bbox
+    // rotation in sync so nodeFactory spins the whole group identically.
+    if (patch.rotation !== undefined) layer.bbox.rotation = patch.rotation;
     canvas.render();
     history.snapshot();
     typeSection.refresh(); // keep toggles/segments/alerts in sync

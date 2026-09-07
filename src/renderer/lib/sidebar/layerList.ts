@@ -8,6 +8,7 @@ import * as i18n from "../i18n";
 import { canvas } from "../canvas/index";
 import { state } from "../state";
 import { translate } from "../pipeline/translate";
+import { history } from "../history";
 import type { Page, PageLayer } from "../../types";
 import { esc } from "./_esc";
 
@@ -432,6 +433,47 @@ export function wireEvents(): void {
       });
       ta.addEventListener("keydown", function (e) {
         if (e.key === "Escape") ta.blur();
+        // Enter commits the change and collapses the editor; Shift+Enter
+        // inserts a newline.
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          ta.blur(); // commits via the blur handler
+          canvas.selectLayer(null); // collapse the editor
+        }
+        // The global shortcut handler ignores keydown while a textarea is
+        // focused, so Ctrl+Z/Y must be handled here: commit the pending
+        // edit first, then undo/redo, then refocus the rebuilt textarea so
+        // the user stays in edit mode.
+        const _undoRedo = function (fn: () => void): void {
+          const row = ta.closest(".layer-row") as HTMLElement | null;
+          const id = row?.getAttribute("data-layer-id") ?? null;
+          const field = ta.getAttribute("data-field") as string | null;
+          ta.blur(); // commits via the blur handler
+          fn();
+          if (id && field) {
+            const row2 = document.querySelector<HTMLElement>(
+              '.layer-row[data-layer-id="' + id + '"]',
+            );
+            const ta2 = row2?.querySelector<HTMLTextAreaElement>(
+              '.layer-editor-textarea[data-field="' + field + '"]',
+            );
+            if (ta2) {
+              ta2.focus();
+              const len = ta2.value.length;
+              ta2.setSelectionRange(len, len);
+            }
+          }
+        };
+        if ((e.ctrlKey || e.metaKey) && !e.altKey) {
+          const k = e.key.toLowerCase();
+          if (k === "z") {
+            e.preventDefault();
+            _undoRedo(e.shiftKey ? () => history.redo() : () => history.undo());
+          } else if (k === "y") {
+            e.preventDefault();
+            _undoRedo(() => history.redo());
+          }
+        }
       });
     });
 

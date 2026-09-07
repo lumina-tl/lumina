@@ -74,6 +74,9 @@ export function renderLayerTextNodes(): void {
       canvas.getLayer()?.draw();
     });
     node.on("dragend", function () {
+      // Dragging moves the whole group; node.x()/y() is its local top-left
+      // (already rotated with the group) — commit directly. Using the AABB
+      // would shift the box for non-cardinal rotations.
       const img = stageToImg(node.x(), node.y());
       const target = page.layers.find(function (l) {
         return l.id === (node.getAttr("layerId") as string);

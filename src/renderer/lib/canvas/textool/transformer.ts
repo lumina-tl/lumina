@@ -24,6 +24,10 @@ function ensureTransformer(): void {
     // anchors, colored border) — but all 8 anchors so the text box can be
     // resized in width, height, or both. padding keeps the handles outside
     // the editor textarea while typing.
+    //
+    // Konva's rotater rotates the box around its center WITHOUT writing
+    // scale (rotateAroundCenter only changes rotation/x/y), so a pure
+    // rotation keeps the local box size — auto-fit font stays stable.
     transformer = new Konva.Transformer({
       rotateEnabled: true,
       enabledAnchors: [
@@ -97,35 +101,40 @@ export function onNodeTransformEnd(node: Konva.Group): void {
 
   const sx = node.scaleX();
   const sy = node.scaleY();
-  node.scaleX(1);
-  node.scaleY(1);
 
-  // Rotation: the Transformer rotates the group around the box center
-  // (each gesture starts at group rotation 0), so the applied delta stacks
-  // on top of the text's own typo.rotation. Commit the total and reset.
-  const deltaRot = node.rotation();
-  node.rotation(0);
-  if (deltaRot !== 0) {
-    lay.typography.rotation = normalizeRotation(
-      (lay.typography.rotation || 0) + deltaRot,
-    );
-  }
+  // The Transformer rotates the GROUP as a whole (box + glyphs together,
+  // Photoshop-style) and writes the total rotation to the node. The node's
+  // rotation IS the final angle — commit it directly (no reset), so the
+  // box rotates visually.
+  const rot = normalizeRotation(node.rotation() || 0);
 
   const sr = canvas.getScaleRatio();
-  const p = stageToImg(node.x(), node.y());
-  const rect = node.findOne<Konva.Rect>(".layer-text-box");
-  const baseW = rect ? rect.width() : 0;
-  const baseH = rect ? rect.height() : 0;
+  const pureRotate = Math.abs(sx - 1) < 0.001 && Math.abs(sy - 1) < 0.001;
 
-  // Commit the actual rendered box — position AND size. The Transformer only
-  // writes x/y/scaleX/scaleY (never width/height), so reading them here
-  // (before the reset) captures the real dragged size.
+  // Box size: bbox.w/h are LOCAL box dimensions (the box is rotated via
+  // bbox.rotation), so derive them from the un-rotated local rect scaled
+  // by the transform. The AABB (getClientRect) grows with rotation — using
+  // it here would inflate a rotated box on every resize.
+  const rect = node.findOne<Konva.Rect>(".layer-text-box");
+  const localW = rect ? (rect.width() * sx) / sr : lay.bbox.w;
+  const localH = rect ? (rect.height() * sy) / sr : lay.bbox.h;
+
+  // Position: node.x()/y() is the LOCAL top-left (frame parent, before
+  // rotation — Konva applies translate → rotate → scale), which is exactly
+  // what nodeFactory reconstructs from bbox.x/y + bbox.rotation. For pure
+  // rotation Konva moves x/y around the box center; for resize it tracks
+  // the dragged top-left. Committing the AABB (getClientRect) here would
+  // shift the box whenever rotation ≠ 0.
+  const p = stageToImg(node.x(), node.y());
   lay.bbox.x = p.x;
   lay.bbox.y = p.y;
-  lay.bbox.w = Math.max(8, Math.round((baseW * sx) / sr));
-  lay.bbox.h = Math.max(8, Math.round((baseH * sy) / sr));
+  lay.bbox.w = Math.max(8, Math.round(localW));
+  lay.bbox.h = Math.max(8, Math.round(localH));
+  lay.bbox.rotation = rot;
+  // Keep the box rotation and the glyph rotation in sync.
+  lay.typography.rotation = rot;
 
-  if (state.activeTool === "select") {
+  if (state.activeTool === "select" && !pureRotate) {
     // Free transform (Move tool): box AND font scale together.
     if (lay.typography.fontSize !== null) {
       const ratio = Math.sqrt(Math.abs(sx * sy));
