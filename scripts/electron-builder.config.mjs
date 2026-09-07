@@ -54,9 +54,8 @@ const config = {
     ],
   },
   nsis: {
-    oneClick: false,
+    oneClick: true,
     perMachine: false,
-    allowToChangeInstallationDirectory: true,
     artifactName: "Lumina-Setup-DML-${version}.exe",
   },
 };

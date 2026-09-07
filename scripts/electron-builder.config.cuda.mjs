@@ -53,9 +53,8 @@ const config = {
     ],
   },
   nsis: {
-    oneClick: false,
+    oneClick: true,
     perMachine: false,
-    allowToChangeInstallationDirectory: true,
     artifactName: "Lumina-Setup-CUDA-${version}.exe",
     // No runtime extraction at setup anymore — the app fetches it at first
     // run. Small installer => differential app updates.

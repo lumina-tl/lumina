@@ -130,9 +130,8 @@ export function registerUpdaterIpc(win: BrowserWindow | null): void {
   ipcMain.removeHandler(IPC.installUpdate);
   ipcMain.handle(IPC.installUpdate, () => {
     if (!_downloadedVersion) return;
-    // Non-silent installer: keeps the "choose install dir" page of the
-    // NSIS wizard, and relaunches the app when it finishes.
-    autoUpdater.quitAndInstall(false, true);
+    // One-click NSIS installer: silent per-user install, relaunch on finish.
+    autoUpdater.quitAndInstall();
   });
 
   ipcMain.removeHandler(IPC.openUpdateUrl);
