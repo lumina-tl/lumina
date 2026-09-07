@@ -22,10 +22,11 @@
  * site-packages; run_backend.py prepends the ORT dir via LUMINA_PYTHONPATH.
  */
 import { spawnSync } from "child_process";
+import { createHash } from "crypto";
 import {
   createWriteStream,
-  createHash,
   createReadStream,
+  rmSync,
   mkdirSync,
   readdirSync,
   readFileSync,
