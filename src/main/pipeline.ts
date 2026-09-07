@@ -5,6 +5,7 @@ import http from "http";
 import { IPC } from "../shared/bridge";
 import { backendSourceDir, MAIN_DIR } from "./paths";
 import { recordRecent } from "./recents";
+import { withDownloadMutex } from "./runtime";
 
 const PYTHON_PORT = 8765;
 
@@ -118,39 +119,45 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   });
 
   ipcMain.handle(IPC.downloadModel, async (_event, models: string[] = []) => {
-    try {
-      // Kick off background download in Python backend (empty = all missing)
-      await apiPost("/model/download", { models });
-    } catch (err) {
-      return { error: String(err) };
-    }
+    // Hold the mutex for the WHOLE download (start + progress polling), not
+    // just the POST — otherwise the CUDA runtime download could slip in
+    // between them and race on the same network pipe. Runtime download gets
+    // the queue first at startup; every model download (incl. AngleNet/aux)
+    // waits behind it.
+    return withDownloadMutex(async () => {
+      try {
+        await apiPost("/model/download", { models });
+      } catch (err) {
+        return { error: String(err) };
+      }
 
-    // Poll progress and forward to renderer
-    const send = (msg: Record<string, unknown>) =>
-      mainWindow.webContents.send(IPC.modelDownloadProgress, msg);
+      // Poll progress and forward to renderer
+      const send = (msg: Record<string, unknown>) =>
+        mainWindow.webContents.send(IPC.modelDownloadProgress, msg);
 
-    return new Promise((resolve) => {
-      const poll = setInterval(async () => {
-        try {
-          const p = (await apiGet("/model/progress")) as {
-            running: boolean;
-            progress: number;
-            downloaded: number;
-            total: number;
-            done: boolean;
-            error: string | null;
-            cancelled?: boolean;
-            model?: string | null;
-          };
-          send(p);
-          if (p.done || p.error || !p.running) {
-            clearInterval(poll);
-            resolve(p.error ? { error: p.error } : { status: "ok" });
+      return new Promise<{ error?: string; status?: string }>((resolve) => {
+        const poll = setInterval(async () => {
+          try {
+            const p = (await apiGet("/model/progress")) as {
+              running: boolean;
+              progress: number;
+              downloaded: number;
+              total: number;
+              done: boolean;
+              error: string | null;
+              cancelled?: boolean;
+              model?: string | null;
+            };
+            send(p);
+            if (p.done || p.error || !p.running) {
+              clearInterval(poll);
+              resolve(p.error ? { error: p.error } : { status: "ok" });
+            }
+          } catch {
+            // backend hiccup — keep polling
           }
-        } catch {
-          // backend hiccup — keep polling
-        }
-      }, 500);
+        }, 500);
+      });
     });
   });
 

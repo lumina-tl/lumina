@@ -12,6 +12,13 @@ import { registerProjectIpc, isLumiFileArg } from "./project";
 import { registerExportIpc } from "./export";
 import { registerTempCacheIpc } from "./tempCache";
 import { registerUpdaterIpc } from "./updater";
+import {
+  registerRuntimeIpc,
+  ensureCudaRuntime,
+  installerVariant,
+  isCudaRuntimeReady,
+  runtimeStatus,
+} from "./runtime";
 import { registerRecentsIpc } from "./recents";
 import { MAIN_DIR } from "./paths";
 
@@ -66,7 +73,18 @@ function createWindow(): void {
   registerExportIpc();
   registerTempCacheIpc();
   registerUpdaterIpc(mainWindow);
+  registerRuntimeIpc(mainWindow);
   registerRecentsIpc();
+
+  // CUDA runtime status (pull) + busy events (push) for the Models tab.
+  ipcMain.removeHandler(IPC.runtimeStatus);
+  ipcMain.handle(IPC.runtimeStatus, () => runtimeStatus());
+  ipcMain.removeHandler(IPC.runtimeBusy);
+  ipcMain.handle(IPC.runtimeBusy, (_e, busy: boolean) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send(IPC.runtimeBusy, busy);
+    }
+  });
 
   // First .lmi path at launch — pulled once by the renderer
   ipcMain.removeHandler(IPC.pendingOpenPath);
@@ -121,6 +139,20 @@ app.whenReady().then(async () => {
   prepareCacheDir();
   await spawnPythonBackend();
   createWindow();
+
+  // CUDA installers ship WITHOUT the runtime — fetch it once into userData.
+  // The backend starts first (models unavailable until ready); the download
+  // runs in the background and the backend is restarted when it completes.
+  if (installerVariant() === "cuda" && !isCudaRuntimeReady()) {
+    await ensureCudaRuntime();
+    // Restart the backend so it picks up the new ORT folder via
+    // LUMINA_PYTHONPATH, then tell the renderer the models are back.
+    stopPythonBackend();
+    await spawnPythonBackend();
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send(IPC.checkModel);
+    }
+  }
 });
 
 app.on("window-all-closed", () => {

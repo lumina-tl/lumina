@@ -19,6 +19,9 @@ export type {
   RecentEntry,
   RecentKind,
   RecentsData,
+  RuntimeInfo,
+  RuntimeProgress,
+  RuntimeState,
 } from "../shared/bridge";
 
 export type DetectionStatus = "auto" | "adjusted" | "rejected";

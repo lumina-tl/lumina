@@ -58,6 +58,16 @@ const api: LuminaAPI = {
     ipcRenderer.on(IPC.updateProgress, (_e, msg) => cb(msg));
   },
   openUpdateUrl: (url: string) => ipcRenderer.invoke(IPC.openUpdateUrl, url),
+  getRuntimeStatus: () => ipcRenderer.invoke(IPC.runtimeStatus),
+  onRuntimeProgress: (cb) => {
+    ipcRenderer.on(IPC.runtimeProgress, (_e, msg) => cb(msg));
+  },
+  onRuntimeBusy: (cb) => {
+    ipcRenderer.on(IPC.runtimeBusy, (_e, busy: boolean) => cb(busy));
+  },
+  onCheckModel: (cb) => {
+    ipcRenderer.on(IPC.checkModel, () => cb());
+  },
 };
 
 contextBridge.exposeInMainWorld("lumina", api);

@@ -2,8 +2,9 @@
  * electron-builder config for the Lumina CUDA installer.
  *
  * Builds dist/cuda/Lumina-Setup-CUDA-<version>.exe (CUDA 12 EP, NVIDIA-only).
- * - LZMA2 maximum compression to keep the ~1.5GB NVIDIA runtime as small as
- *   possible (GitHub's 2GB per-file upload limit).
+ * The ~1.4GB onnxruntime-gpu runtime is NOT bundled — the app downloads it
+ * once at first run (into userData, verified + extracted by the app). The
+ * installer is small (~DML size), so app updates stay differential.
  * - publish.channel "cuda" -> cuda.yml feed so CUDA installs only ever
  *   update from CUDA artifacts (DML channel is separate).
  */
@@ -56,13 +57,11 @@ const config = {
     perMachine: false,
     allowToChangeInstallationDirectory: true,
     artifactName: "Lumina-Setup-CUDA-${version}.exe",
-    // Extract ort/cuda.7z into resources/ort/cuda during setup and delete
-    // the archive (~1.5GB saved) — the app never extracts at first run.
-    include: path.join(ROOT, "scripts", "nsis-cuda.nsh"),
+    // No runtime extraction at setup anymore — the app fetches it at first
+    // run. Small installer => differential app updates.
   },
-  // CUDA bundle is dominated by nvidia DLLs — solid LZMA2 maximum gives the
-  // best compression; the extra build/install time is worth staying <2GB.
-  compression: "maximum",
+  // Small payload now — default compression is plenty fast.
+  compression: "normal",
 };
 
 export default config;

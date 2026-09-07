@@ -178,9 +178,11 @@ Lumina uses ONNX Runtime with GPU support where available.
 Two Windows installers ship, one per execution provider:
 
 - **`Lumina-Setup-DML-<version>.exe`** — DirectML (CPU + DirectML), universal: runs on any DirectX 12 GPU — including NVIDIA — and falls back to CPU on machines without a compatible GPU. Choose this if you don't have an NVIDIA RTX/GTX card.
-- **`Lumina-Setup-CUDA-<version>.exe`** — CUDA 12, NVIDIA-only. **Highly recommended over the DML installer if you have an NVIDIA RTX/GTX card** — it's noticeably faster. Larger download; requires an NVIDIA GPU with a reasonably recent driver.
+- **`Lumina-Setup-CUDA-<version>.exe`** — CUDA 12, NVIDIA-only. **Highly recommended over the DML installer if you have an NVIDIA RTX/GTX card** — it's noticeably faster. Requires an NVIDIA GPU with a reasonably recent driver.
 
 Both are published as a release on the [Releases](https://github.com/lumina-tl/lumina/releases) page, together with their update feed files. Each variant uses its own update channel, so a DML install only ever updates from DML artifacts and a CUDA install only from CUDA artifacts. Updates are differential — the app downloads only the parts that changed, not the whole installer — and install on launch, so a one-time install is usually all that's needed. Release notes are taken from the matching `## [<version>]` section in [CHANGELOG.md](CHANGELOG.md); if that section is missing, notes are generated from the commits.
+
+> **CUDA note:** starting with v0.3.0, the CUDA installer no longer bundles the ~1.4 GB ONNX Runtime — the app downloads it once into your user folder on first run (shown in Settings → Models) and verifies it before use. That keeps the installer small and makes every update after this one a small differential download. If you update from an older CUDA version, this first launch downloads the runtime once; later updates won't re-download it. DML installs are unaffected — the runtime is still bundled in that installer.
 
 When running from source, pick the provider wheel yourself: `onnxruntime-directml` for universal GPU support, or `onnxruntime-gpu[cuda,cudnn]` for NVIDIA CUDA (see [Development](#development)), then start the app with `npm start`.
 

@@ -6,6 +6,7 @@ import path from "path";
 import http from "http";
 import { PROJECT_ROOT } from "./paths";
 import { resolveModelsDir } from "./storage";
+import { activeOrtDir } from "./runtime";
 
 export const CACHE_DIR = path.join(os.tmpdir(), "lumina");
 
@@ -106,22 +107,15 @@ interface PythonLaunch {
 /**
  * Resolve the active onnxruntime variant folder.
  *
- * The EP is fixed at install time (one variant is bundled per installer):
- *   - CUDA: the FULL runtime is extracted from ort/cuda.7z by the NSIS
- *     installer into <resources>/ort/cuda (setup-time extraction, archive
- *     deleted afterwards).
- *   - DML:  extracted at build time to <resources>/ort/dml — used in place.
+ * Priority:
+ *   1. userData/runtime/cuda — downloaded by the app on first run (new)
+ *   2. resources/ort/cuda   — legacy bundled CUDA (extracted by old setup)
+ *   3. resources/ort/dml    — bundled DirectML (universal installer)
  * Returns null when no variant is present — the backend then runs without
  * onnxruntime (models unavailable).
  */
-export function activeOrtDir(): string | null {
-  const has = (d: string) => fs.existsSync(path.join(d, "onnxruntime"));
-  const bundledCuda = path.join(process.resourcesPath, "ort", "cuda");
-  const bundledDml = path.join(process.resourcesPath, "ort", "dml");
-  if (has(bundledCuda)) return bundledCuda; // CUDA installer (extracted by setup)
-  if (has(bundledDml)) return bundledDml;
-  return null;
-}
+// Re-exported from runtime.ts — single source of truth.
+export { activeOrtDir };
 
 /**
  * Resolve how to launch the Python backend for this runtime mode.

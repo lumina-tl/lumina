@@ -6,19 +6,26 @@
  * Produces build/bundle-<variant>/:
  *   python/            embeddable CPython + site-packages (no onnxruntime)
  *   ort/dml/           onnxruntime-directml wheel extracted here
- *   ort/cuda.7z        FULL onnxruntime-gpu + nvidia/* runtime (LZMA-7z'd,
- *                      GitHub 2GB limit); extracted by NSIS at install,
- *                      archive deleted after setup
- *   7zr.exe            (CUDA only) 7-Zip console used by setup
+ *   7zr.exe            (CUDA only) 7-Zip console — the app uses it at first
+ *                      run to extract the runtime it downloads
  *   backend/           python/ source (main.py, services/, ...)
+ *   manifest.json      { variant, python, onnxruntime, ... }
+ *
+ * CUDA additionally produces release artifacts (NOT inside the installer —
+ * keeping the setup small so app updates stay differential):
+ *   build/cuda-runtime.7z    FULL onnxruntime-gpu + nvidia/* runtime
+ *                            (LZMA2 -mx=9, multi-threaded)
+ *   build/cuda-runtime.json  { version, url, sha512 } manifest the app
+ *                            fetches at first run to verify + extract
  *
  * The embeddable's ._pth file ignores PYTHONPATH, so it's patched to enable
  * site-packages; run_backend.py prepends the ORT dir via LUMINA_PYTHONPATH.
  */
 import { spawnSync } from "child_process";
-import { createWriteStream } from "fs";
 import {
-  rmSync,
+  createWriteStream,
+  createHash,
+  createReadStream,
   mkdirSync,
   readdirSync,
   readFileSync,
@@ -250,14 +257,20 @@ function downloadOrtWheels(variant) {
 }
 
 /**
- * Archive the CUDA runtime (onnxruntime/ + nvidia/ + dist-info) into
- * ort/cuda.7z (LZMA2, GitHub 2GB limit) — no pruning, parity with dev venv.
- * NSIS extracts it into resources/ort/cuda at setup, then deletes it.
+ * Build the CUDA runtime as a standalone release artifact — NOT installer
+ * content. Keeps the setup small so app updates stay differential.
+ *
+ *   build/cuda-runtime.7z    onnxruntime-gpu + nvidia/* (LZMA2 -mx=9)
+ *   build/cuda-runtime.json  { version, url, sha512 } manifest
+ *
+ * The app downloads it once into userData on first run, verifies sha512
+ * (streamed — the archive is >1 GB), extracts with the bundled 7zr.exe,
+ * then starts the backend against userData/runtime/cuda.
  *
  * Wheels are unpacked with bsdtar (7zr only reads 7z), then compressed with
  * the bundled 7zr.exe: multi-threaded LZMA2 with % progress (bsdtar's tar -a
  * is single-threaded and silent on a ~2.4GB payload). */
-function archiveOrtCuda(wheelDir, ortRoot) {
+async function archiveOrtCuda(wheelDir, ortRoot) {
   const wheels = listWheels(wheelDir).filter((w) =>
     w.startsWith("onnxruntime"),
   );
@@ -280,10 +293,12 @@ function archiveOrtCuda(wheelDir, ortRoot) {
     extractZip(path.join(wheelDir, w), ortRoot);
   }
   // 3. 7z the whole ortRoot (LZMA2 max, multi-threaded), then delete it
-  const sevenZip = path.join(ortRoot + ".7z");
-  rmSync(sevenZip, { force: true });
-  console.log("  7z: compressing ort/cuda.7z (LZMA2 -mx=9, multi-threaded)...");
-  run(["a", "-t7z", "-mx=9", sevenZip, "."], { cwd: ortRoot });
+  const archive = path.join(BUILD, "cuda-runtime.7z");
+  rmSync(archive, { force: true });
+  console.log(
+    "  7z: compressing cuda-runtime.7z (LZMA2 -mx=9, multi-threaded)...",
+  );
+  run(["a", "-t7z", "-mx=9", archive, "."], { cwd: ortRoot });
   // Defender/indexer can briefly hold handles -> EBUSY; retry
   rmSync(ortRoot, {
     recursive: true,
@@ -291,8 +306,34 @@ function archiveOrtCuda(wheelDir, ortRoot) {
     maxRetries: 20,
     retryDelay: 500,
   });
-  const sz = statSync(sevenZip).size / 1024 / 1024;
-  console.log(`  ort/cuda.7z: ${sz.toFixed(0)} MB`);
+
+  // 4. write the manifest the app fetches at first run
+  const ortVer = "1.24.4+cuda12";
+  const sha512 = await sha512FileSync(archive);
+  const manifest = {
+    version: ortVer,
+    // Resolved at runtime: v<app version> release asset
+    url: `cuda-runtime.7z`,
+    sha512,
+  };
+  writeFileSync(
+    path.join(BUILD, "cuda-runtime.json"),
+    JSON.stringify(manifest, null, 2),
+  );
+  const sz = statSync(archive).size / 1024 / 1024;
+  console.log(
+    `  cuda-runtime.7z: ${sz.toFixed(0)} MB (sha512 ${sha512.slice(0, 12)}…)`,
+  );
+}
+
+/**
+ * Streamed sha512 of a file (the runtime archive is >1 GB).
+ * Async: createReadStream yields via for-await, not a sync iterator.
+ */
+async function sha512FileSync(file) {
+  const h = createHash("sha512");
+  for await (const chunk of createReadStream(file)) h.update(chunk);
+  return h.digest("hex");
 }
 
 function fixPth(pythonDir) {
@@ -363,18 +404,18 @@ async function main() {
     extractZip(path.join(wheelDir, w), sitePkgs);
   }
 
-  // 3. onnxruntime variant — DML: extracted to ort/dml/; CUDA: FULL runtime
-  // archived as ort/cuda.7z (LZMA), extracted by NSIS customInstall during
-  // setup. 7zr.exe ships alongside so the installer can extract without
-  // relying on the host having 7-Zip installed.
+  // 3. onnxruntime variant — DML: extracted to ort/dml/; CUDA: the runtime
+  // is a SEPARATE release artifact (cuda-runtime.7z + manifest) the app
+  // downloads at first run — nothing in the installer keeps it small.
+  // 7zr.exe still ships so the app can extract the downloaded archive.
   const ortWheel = listWheels(wheelDir).find((w) =>
     w.startsWith("onnxruntime"),
   );
   if (!ortWheel) throw new Error(`onnxruntime wheel not found in ${wheelDir}`);
   const ortRoot = path.join(out, "ort", variant);
   if (variant === "cuda") {
-    archiveOrtCuda(wheelDir, ortRoot);
-    // ship 7zr.exe next to the archive for the installer to extract with
+    await archiveOrtCuda(wheelDir, ortRoot);
+    // ship 7zr.exe for the app's first-run extraction
     copyFileSync(SEVENZR_EXE, path.join(out, "7zr.exe"));
   } else {
     extractZip(path.join(wheelDir, ortWheel), ortRoot);
@@ -410,8 +451,9 @@ async function main() {
     [path.join(sitePkgs, "numpy"), "numpy in site-packages"],
   ];
   if (variant === "cuda") {
-    checks.push([path.join(out, "ort", "cuda.7z"), "ort/cuda.7z archive"]);
     checks.push([path.join(out, "7zr.exe"), "7zr.exe extractor"]);
+    checks.push([path.join(BUILD, "cuda-runtime.7z"), "cuda-runtime.7z"]);
+    checks.push([path.join(BUILD, "cuda-runtime.json"), "cuda-runtime.json"]);
   } else {
     checks.push([
       path.join(ortRoot, "onnxruntime"),
@@ -437,14 +479,14 @@ async function main() {
   console.log(`\n=== Done: ${out} ===`);
   console.log(`  python:  ${mb(path.join(out, "python"))} MB`);
   if (variant === "cuda") {
-    const a = path.join(out, "ort", "cuda.7z");
+    const a = path.join(BUILD, "cuda-runtime.7z");
     console.log(
-      `  ort/cuda.7z: ${(statSync(a).size / 1024 / 1024).toFixed(0)} MB`,
+      `  cuda-runtime.7z (release asset): ${(statSync(a).size / 1024 / 1024).toFixed(0)} MB`,
     );
   } else {
     console.log(`  ort/${variant}: ${mb(path.join(out, "ort", variant))} MB`);
   }
-  console.log(`  total:   ${mb(out)} MB`);
+  console.log(`  total:   ${mb(out)} MB (installer content)`);
 }
 
 main();

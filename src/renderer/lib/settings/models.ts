@@ -17,6 +17,8 @@ import type {
   DownloadProgress,
   ModelInfo,
   ModelsPathState,
+  RuntimeInfo,
+  RuntimeProgress,
 } from "../../types";
 
 const SECTIONS: Array<[string, string]> = [
@@ -50,6 +52,19 @@ export const modelsTab = {
     // Device info changes (GPU toggle here, startup fetch, backend restart)
     // → refresh the per-model GPU badges without rebuilding the whole pane.
     models.onDeviceChange(() => this._refreshGpuBadges(pane));
+    // CUDA runtime download → gate the model download buttons + GPU card.
+    models.onRuntimeProgress?.((p) => {
+      if (p.state === "downloading") {
+        this._setDownloadButtonsDisabled(true);
+      } else if (p.state === "ready" || p.state === "error") {
+        this._setDownloadButtonsDisabled(false);
+        this.refresh();
+      }
+      this._updateRuntimeCard(p);
+    });
+    window.lumina.onRuntimeBusy?.((busy) => {
+      this._setDownloadButtonsDisabled(busy);
+    });
   },
 
   /** Called on every close path (Done, X, overlay click) — keep buttons fresh. */
@@ -65,6 +80,28 @@ export const modelsTab = {
 
   _render(pane: HTMLElement, list: ModelInfo[]): void {
     pane.innerHTML = "";
+    // CUDA runtime status card (hidden for DML installs).
+    const rt = document.createElement("div");
+    rt.id = "runtime-card";
+    rt.className = "model-gpu";
+    rt.hidden = true;
+    const rtInfo = document.createElement("div");
+    rtInfo.className = "model-gpu-info";
+    const rtName = document.createElement("div");
+    rtName.className = "model-gpu-name";
+    const rtEp = document.createElement("div");
+    rtEp.className = "model-gpu-ep";
+    rtInfo.append(rtName, rtEp);
+    const rtBadge = document.createElement("span");
+    rtBadge.className = "model-gpu-badge";
+    rt.append(rtInfo, rtBadge);
+    pane.appendChild(rt);
+    void window.lumina.getRuntimeStatus().then((s) => {
+      const card = document.getElementById("runtime-card");
+      if (!card) return;
+      this._renderRuntimeCard(card, s);
+    });
+
     pane.appendChild(this._gpuCard());
     pane.appendChild(this._locationCard());
     pane.appendChild(hintEl());
@@ -357,13 +394,77 @@ export const modelsTab = {
 
   /** Start a model download and disable the triggering button. */
   _download(btn: HTMLButtonElement, modelId: string): void {
-    if (!modelId) return;
+    if (!modelId || models.isBusy()) return;
     btn.disabled = true;
     btn.textContent = i18n.t("models.downloading");
     models.download([modelId]).catch(() => {
       btn.disabled = false;
       btn.textContent = i18n.t("models.download");
     });
+  },
+
+  /** Disable every model download button while the CUDA runtime installs. */
+  _setDownloadButtonsDisabled(disabled: boolean): void {
+    const pane = document.getElementById("tab-models");
+    if (!pane) return;
+    pane.querySelectorAll<HTMLButtonElement>(".model-dl").forEach((b) => {
+      if (disabled) {
+        b.dataset.prevText = b.textContent || "";
+        b.disabled = true;
+        b.textContent = i18n.t("models.runtimeBusy");
+      } else if (b.dataset.prevText !== undefined) {
+        b.disabled = false;
+        b.textContent = b.dataset.prevText;
+        delete b.dataset.prevText;
+      }
+    });
+  },
+
+  /** Fill the CUDA runtime status card from a runtime-status payload. */
+  _renderRuntimeCard(card: HTMLElement, s: RuntimeInfo): void {
+    card.hidden = s.variant !== "cuda" || s.state === "ready";
+    const name = card.querySelector<HTMLElement>(".model-gpu-name");
+    const ep = card.querySelector<HTMLElement>(".model-gpu-ep");
+    const badge = card.querySelector<HTMLElement>(".model-gpu-badge");
+    if (name) {
+      name.textContent =
+        s.state === "downloading"
+          ? i18n.t("settings.runtimeInstalling")
+          : s.state === "error"
+            ? i18n.t("settings.runtimeError")
+            : i18n.t("settings.runtimeMissing");
+    }
+    if (ep) {
+      ep.textContent =
+        s.state === "downloading"
+          ? i18n.t("settings.runtimeProgress", {
+              pct: String(s.progress ?? 0),
+            })
+          : "";
+    }
+    if (badge) {
+      badge.textContent =
+        s.state === "downloading"
+          ? i18n.t("settings.runtimeDownloading")
+          : i18n.t("settings.runtimeNotReady");
+      badge.classList.toggle("on", s.state === "downloading");
+    }
+  },
+
+  /** Live-update the card from a progress push (progress % changes). */
+  _updateRuntimeCard(p: RuntimeProgress): void {
+    const card = document.getElementById("runtime-card");
+    if (!card || card.hidden) return;
+    const ep = card.querySelector<HTMLElement>(".model-gpu-ep");
+    if (ep && p.state === "downloading" && p.percent != null) {
+      ep.textContent = i18n.t("settings.runtimeProgress", {
+        pct: String(p.percent),
+      });
+    }
+    const badge = card.querySelector<HTMLElement>(".model-gpu-badge");
+    if (badge && p.state === "downloading") {
+      badge.classList.add("on");
+    }
   },
 
   /** Re-sync list highlight + description panel to the active model. */

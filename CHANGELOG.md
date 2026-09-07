@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Fresh new app icon**
+- **CUDA installer is now small**: the ~1.4 GB ONNX Runtime is no longer bundled in the installer. The app downloads it once into your user folder on first run (progress shown in Settings → Models) and verifies it before use — making every update after this one a small differential download. **CUDA users updating to this version will download the runtime once; later updates won't re-download it.** DML installs are unaffected.
 - **Resize detection boxes from any edge**: the edges now work too, not just the corners.
 - **Text boxes rotate with their content**: the whole box tilts with the text, like in Photoshop.
 - **Enter to commit text edits**: pressing Enter in the layer list editor saves; Shift+Enter inserts a newline.

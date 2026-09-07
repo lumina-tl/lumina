@@ -17,12 +17,15 @@ import {
   describeGpu as describeGpuDynamic,
 } from "./models/descriptions";
 import type { DeviceInfo, DownloadProgress, ModelInfo } from "../types";
+import type { RuntimeProgress } from "../types";
 
 let _models: ModelInfo[] = [];
 let _hasImage = false;
 let _downloading = false;
+let _runtimeBusy = false;
 let _device: DeviceInfo | null = null;
 const _progressCbs: Array<(p: DownloadProgress) => void> = [];
+const _runtimeCbs: Array<(p: RuntimeProgress) => void> = [];
 const _deviceCbs: Array<(d: DeviceInfo | null) => void> = [];
 
 const SELECTED_KEY = "lumina:selectedModels";
@@ -238,9 +241,34 @@ export const models = {
     };
   },
 
+  /** Subscribe to CUDA runtime download progress. */
+  onRuntimeProgress(cb: (p: RuntimeProgress) => void): () => void {
+    const fn = (p: RuntimeProgress) => cb(p);
+    _runtimeCbs.push(fn);
+    return function () {
+      const i = _runtimeCbs.indexOf(fn);
+      if (i >= 0) _runtimeCbs.splice(i, 1);
+    };
+  },
+
   /** True while a model download is in flight (auto-save skips). */
   isDownloading(): boolean {
     return _downloading;
+  },
+
+  /** True while any download (model / CUDA runtime / app update) runs. */
+  isBusy(): boolean {
+    return _downloading || _runtimeBusy;
+  },
+
+  /** CUDA runtime install state (pull once; live via onRuntimeProgress). */
+  async refreshRuntime(): Promise<void> {
+    try {
+      const s = await window.lumina.getRuntimeStatus();
+      _runtimeBusy = s.state === "downloading";
+    } catch {
+      _runtimeBusy = false;
+    }
   },
 };
 
@@ -269,4 +297,38 @@ window.lumina.onDownloadProgress((p) => {
     else if (p.cancelled)
       ui.toast(i18n.t("toast.downloadCancelled"), "info", 3000);
   }
+});
+
+// CUDA runtime download — same toast, highest priority. While it runs,
+// model downloads and the app update queue behind it.
+window.lumina.onRuntimeProgress((p) => {
+  _runtimeBusy = p.state === "downloading";
+  if (p.state === "downloading") {
+    if (!document.getElementById("dl-toast")) {
+      ui.downloadToast(i18n.t("toast.runtimeDownloading"));
+    }
+    ui.updateDownloadToast(p.percent || 0, p.transferred || 0, p.total || 0);
+  } else if (p.state === "ready") {
+    const el = document.getElementById("dl-toast");
+    if (el) el.remove();
+    ui.toast(i18n.t("toast.runtimeInstalled"), "success", 4000);
+  } else if (p.state === "error") {
+    const el = document.getElementById("dl-toast");
+    if (el) el.remove();
+    ui.toast(i18n.t("toast.runtimeError"), "error", 8000);
+  }
+});
+
+// Main pushes busy state so the Models tab can gate its download buttons.
+window.lumina.onRuntimeBusy((busy) => {
+  _runtimeBusy = busy;
+  for (const cb of _progressCbs)
+    cb({ running: busy, progress: 0, downloaded: 0, total: 0, done: false });
+  for (const cb of _runtimeCbs) cb({ state: busy ? "downloading" : "ready" });
+});
+
+// After the CUDA runtime installs, main restarts the backend and pushes this
+// — refresh the model registry so ready flags + GPU badges come back live.
+window.lumina.onCheckModel(() => {
+  void models.check().then(() => models.refreshButtons());
 });

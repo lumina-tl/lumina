@@ -12,6 +12,7 @@ import { app, BrowserWindow, ipcMain, shell } from "electron";
 import updaterPkg from "electron-updater";
 import { IPC } from "../shared/bridge";
 import type { CheckUpdateResult, UpdateProgress } from "../shared/bridge";
+import { withDownloadMutex } from "./runtime";
 
 // electron-updater is CommonJS — esbuild keeps it external (the dynamic
 // require("fs") inside fs-extra breaks when bundled into ESM), so destructure
@@ -115,7 +116,11 @@ export function registerUpdaterIpc(win: BrowserWindow | null): void {
     if (_downloading || _downloadedVersion) return;
     _downloading = true;
     try {
-      await autoUpdater.downloadUpdate();
+      // App-update download queues behind the CUDA runtime download (if any)
+      // so the two never race on the same network pipe.
+      await withDownloadMutex(async () => {
+        await autoUpdater.downloadUpdate();
+      });
     } catch (e) {
       _downloading = false;
       _push({ state: "error", error: String((e as Error)?.message || e) });

@@ -45,6 +45,11 @@ export const IPC = {
   installUpdate: "install-update",
   updateProgress: "update-progress",
   openUpdateUrl: "open-update-url",
+  /** CUDA runtime — installed to userData by the app (not bundled in the installer) */
+  runtimeStatus: "runtime-status",
+  runtimeProgress: "runtime-progress",
+  /** Blocked model download while the runtime is downloading */
+  runtimeBusy: "runtime-busy",
 } as const;
 
 /* ── Model registry ── */
@@ -253,6 +258,35 @@ export interface FontInfo {
   italic: boolean;
 }
 
+/* ── CUDA runtime (download-on-first-run) ── */
+
+export type RuntimeState = "missing" | "downloading" | "ready" | "error";
+
+/** Installer-scoped status: which onnxruntime the app was shipped with. */
+export interface RuntimeInfo {
+  /** "cuda" | "dml" | "none" — fixed at install time */
+  variant: string;
+  /** Current install/download state of the CUDA runtime */
+  state: RuntimeState;
+  /** Version string from the runtime marker, e.g. "1.24.4+cuda12" */
+  version?: string;
+  /** 0-100 while state === "downloading" */
+  progress?: number;
+  error?: string;
+  /** True while any download (model/runtime/update) is in flight */
+  busy?: boolean;
+}
+
+/** Live progress pushed from main while the CUDA runtime downloads. */
+export interface RuntimeProgress {
+  state: RuntimeState;
+  percent?: number;
+  transferred?: number;
+  total?: number;
+  version?: string;
+  error?: string;
+}
+
 /* ── Update check result (minimal checker) ── */
 
 export interface CheckUpdateResult {
@@ -338,6 +372,14 @@ export interface LuminaAPI {
   onUpdateProgress(cb: (msg: UpdateProgress) => void): void;
   /** Open the release page in the default browser */
   openUpdateUrl(url: string): Promise<void>;
+  /** CUDA runtime: installer variant + install/download state */
+  getRuntimeStatus(): Promise<RuntimeInfo>;
+  /** Push CUDA runtime download progress from main */
+  onRuntimeProgress(cb: (msg: RuntimeProgress) => void): void;
+  /** Whether the model download button should stay disabled */
+  onRuntimeBusy(cb: (busy: boolean) => void): void;
+  /** Main re-checks models after the CUDA runtime installs + backend restarts */
+  onCheckModel(cb: () => void): void;
 }
 
 declare global {

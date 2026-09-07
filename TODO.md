@@ -51,6 +51,7 @@
 - [ ] add masking tool for cleanup mask
 - [x] installer CUDA variant? soon~
 - [x] documentation website
+- [ ] fix lazy load thumbnail
 - [ ] fix brush not saved ini .lmi file
 - [ ] sometimes undo/redo doesnt work on brush
 - [ ] when resizing detection box or deleting it, make the mask resize/delete too

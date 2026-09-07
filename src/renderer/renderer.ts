@@ -385,6 +385,8 @@ i18n.init().then(function () {
 
   // ── Model check on startup ──
   setTimeout(checkModels, 1500);
+  // CUDA runtime state (missing/ready/error) — also gates model buttons.
+  void models.refreshRuntime();
 
   // ── .lmi file association: open projects handed over by the OS ──
   // Second instance launched while the app is running → main pushes the path
