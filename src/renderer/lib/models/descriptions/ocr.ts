@@ -70,18 +70,3 @@ PaddleOCR-VL 1.6 (oleh PaddlePaddle, port ONNX oleh iaa2005) — model OCR visio
 • Sumber: huggingface.co/iaa2005/PaddleOCR-VL-1.6-ONNX`,
   },
 };
-export const OCR_GPU: ModelDescMap = {
-  // Multi-session graphs: no single PREFER value — badge is a composite.
-  manga_ocr: {
-    en: `Supported via CUDA / DirectML (decoder runs on CPU).`,
-    id: `Didukung via CUDA / DirectML (decoder berjalan di CPU).`,
-  },
-  baberu: {
-    en: `Supported via CUDA / DirectML (decoder runs on CPU).`,
-    id: `Didukung via CUDA / DirectML (decoder berjalan di CPU).`,
-  },
-  paddleocr_vl: {
-    en: `CUDA only — DirectML unsupported.`,
-    id: `Hanya CUDA — DirectML tidak didukung.`,
-  },
-};

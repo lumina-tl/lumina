@@ -76,6 +76,9 @@ export interface DeviceInfo {
   provider: string;
   /** Full ORT provider name, e.g. "DmlExecutionProvider" */
   ep: string;
+  /** Every EP the installed wheel supports, in priority order (CUDA/DML/CPU).
+   *  Older backends omit this — the renderer derives it from `ep` then. */
+  providers?: string[];
   gpus: string[];
   gpuName: string | null;
   onnxRuntime: string | null;

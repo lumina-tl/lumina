@@ -13,9 +13,8 @@ import * as i18n from "./i18n";
 import { ui } from "./ui";
 import {
   describe,
-  describeGpu,
-  describeGpuFromPrefer,
   defaultFor,
+  describeGpu as describeGpuDynamic,
 } from "./models/descriptions";
 import type { DeviceInfo, DownloadProgress, ModelInfo } from "../types";
 
@@ -123,12 +122,6 @@ export const models = {
       _models.forEach((m) => {
         const desc = describe(m.id, lang);
         if (desc) m.description = desc;
-        // Single-preference models: badge derived from backend `prefer`;
-        // multi-session OCR falls back to the explicit registry override.
-        const gpu = m.prefer
-          ? describeGpuFromPrefer(m.prefer, lang)
-          : describeGpu(m.id, lang);
-        if (gpu) m.gpu = gpu;
       });
       updateButtons();
     } catch {

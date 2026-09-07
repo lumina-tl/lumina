@@ -2399,6 +2399,37 @@ body.resizing-row {
 .model-desc-gpu-value {
   color: #9c9c9c;
 }
+/* GPU badge tone: ok = GPU EP active (green), cpu = CPU (neutral),
+   warn = model wants an EP this build can't run (orange) */
+.model-desc-gpu.ok {
+  border-color: #2d3a2d;
+  background: rgba(76, 175, 80, 0.08);
+}
+.model-desc-gpu.ok .model-desc-gpu-value {
+  color: #7fe08a;
+}
+.model-desc-gpu.cpu {
+  border-color: #2f2f2f;
+  background: rgba(120, 120, 120, 0.06);
+}
+.model-desc-gpu.cpu .model-desc-gpu-label {
+  background: #3a3a3a;
+  color: #9c9c9c;
+}
+.model-desc-gpu.cpu .model-desc-gpu-value {
+  color: #9c9c9c;
+}
+.model-desc-gpu.warn {
+  border-color: #6b4a2d;
+  background: rgba(255, 152, 0, 0.1);
+}
+.model-desc-gpu.warn .model-desc-gpu-label {
+  background: #6b4a2d;
+  color: #f0a35e;
+}
+.model-desc-gpu.warn .model-desc-gpu-value {
+  color: #f0a35e;
+}
 .model-desc-foot {
   display: flex;
   align-items: center;

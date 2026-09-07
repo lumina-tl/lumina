@@ -7,7 +7,10 @@
  */
 import * as i18n from "../i18n";
 import { models } from "../models";
-import { recommendedFor } from "../models/descriptions";
+import {
+  describeGpu as describeGpuDynamic,
+  recommendedFor,
+} from "../models/descriptions";
 import { ui } from "../ui";
 import type {
   DeviceInfo,
@@ -44,6 +47,9 @@ export const modelsTab = {
     pane.dataset.modelsTab = "1";
     // Live progress → update the matching category panel
     models.onProgress((p) => this._onProgress(pane, p));
+    // Device info changes (GPU toggle here, startup fetch, backend restart)
+    // → refresh the per-model GPU badges without rebuilding the whole pane.
+    models.onDeviceChange(() => this._refreshGpuBadges(pane));
   },
 
   /** Called on every close path (Done, X, overlay click) — keep buttons fresh. */
@@ -386,10 +392,7 @@ export const modelsTab = {
     badge.textContent = i18n.t("models.selected");
     const text = card.querySelector<HTMLElement>(".model-desc-text")!;
     text.textContent = m.description || i18n.t("models.noDescription");
-    const gpuEl = card.querySelector<HTMLElement>(".model-desc-gpu")!;
-    gpuEl.hidden = !m.gpu;
-    gpuEl.querySelector<HTMLElement>(".model-desc-gpu-value")!.textContent =
-      m.gpu || "";
+    this._updateGpuBadge(card, m, false);
     card.querySelector<HTMLElement>(".model-desc-meta")!.textContent = fmtSize(
       m.size,
     );
@@ -402,6 +405,39 @@ export const modelsTab = {
       btn.disabled = false;
       btn.textContent = i18n.t("models.download");
     }
+  },
+
+  /** Per-model GPU badge. Tone drives the colors:
+   *  ok → green (GPU EP active) · cpu → neutral gray (CPU by design / off)
+   *  warn → orange (model wants an EP this build can't run). */
+  _updateGpuBadge(card: HTMLElement, m: ModelInfo, force: boolean): void {
+    const gpuEl = card.querySelector<HTMLElement>(".model-desc-gpu")!;
+    if (!gpuEl) return;
+    const value = gpuEl.querySelector<HTMLElement>(".model-desc-gpu-value")!;
+    const badge = describeGpuDynamic(
+      m,
+      models.device(),
+      models.useGpu(),
+      i18n.lang(),
+    );
+    if (!badge) {
+      gpuEl.hidden = true;
+      return;
+    }
+    gpuEl.hidden = false;
+    value.textContent = badge.text;
+    gpuEl.classList.remove("ok", "cpu", "warn");
+    gpuEl.classList.add(badge.tone);
+    void force;
+  },
+
+  /** Re-render every visible GPU badge after a device-info change. */
+  _refreshGpuBadges(pane: HTMLElement): void {
+    pane.querySelectorAll<HTMLElement>(".model-desc").forEach((card) => {
+      const id = card.dataset.model;
+      const m = models.list().find((x) => x.id === id);
+      if (m) this._updateGpuBadge(card, m, true);
+    });
   },
 
   _onProgress(pane: HTMLElement, p: DownloadProgress): void {

@@ -279,6 +279,7 @@ def get_device_info() -> dict:
     info = {
         "provider": provider,  # "cuda" | "dml" | "cpu"
         "ep": ep,              # full ORT provider name
+        "providers": list(eps),  # every EP the wheel supports (priority order)
         "gpus": gpus,
         "gpuName": _pick_gpu(gpus, provider),
         "onnxRuntime": ort.__version__ if ort else None,

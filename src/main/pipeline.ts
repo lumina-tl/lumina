@@ -100,6 +100,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
       return {
         provider: "cpu",
         ep: "CPUExecutionProvider",
+        providers: ["CPUExecutionProvider"],
         gpus: [],
         gpuName: null,
         onnxRuntime: null,
