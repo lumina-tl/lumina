@@ -30,6 +30,7 @@ Use the FULL preceding context — not just the last line — to infer meaning, 
     - Do not front-load the full meaning into one segment and leave others as filler or repetition.
     - Do not borrow or move words across segment boundaries — each segment's translation must correspond only to that segment's own source content.
     - It is acceptable for an individual fragment to be grammatically incomplete on its own; completeness is judged across the full sequence, not per segment.
+14. If {{target_language}} is Indonesian: default to standard/neutral diction over colloquial forms — e.g. "tidak" rather than "nggak"/"gak", "kamu" rather than "kau". Only use the rougher/colloquial form when the line is shouted, angry, or the character's voice clearly calls for coarse informal speech; otherwise keep the neutral form even in casual dialogue.
 
 ## Output format
 

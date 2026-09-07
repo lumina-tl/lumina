@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Text boxes now rotate with their content**: rotating a text box now tilts the whole box together with the text, like in Photoshop, without resizing or jumping it.
 - **Enter commits text edits in the layer list**: pressing Enter in the original/translation editor saves your change; use Shift+Enter to insert a newline.
 - **Undo/redo works while editing text**: pressing Ctrl+Z/Y right inside the original/translation editor undoes/redoes your change and keeps the editor open, so you can keep typing.
+- **GPU badge in Settings → Models now reflects reality**: each model shows the GPU engine it actually runs on (CUDA or DirectML) based on your installed build, updates instantly when you flip the GPU toggle, and turns orange when a model can't use it — e.g. a CUDA-only model on the DirectML build clearly says it will run on CPU instead.
 
 ## [0.2.1] - 05-09-2026
 
