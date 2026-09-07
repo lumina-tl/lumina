@@ -41,10 +41,24 @@ export interface AppState {
   _panX: number;
   _panY: number;
 
+  /** Baked static composite (page + masks + cleanup) for the active page. */
+  _compositeCache: CompositeCache | null;
+
   getActivePage(): Page | null;
   addPage(pageObj: Page): number;
   removePage(idx: number): void;
   setActivePage(idx: number): Page | null;
+}
+
+/** Canvas static-composite cache entry (render.ts) — baked in IMAGE space,
+ * independent of zoom/pan. Rebuilt only when the page, its visibility, or
+ * any source bitmap changes (markSourcesDirty / invalidateComposite). */
+export interface CompositeCache {
+  pageId: string;
+  /** Downsample factor of the baked canvas (1 = natural resolution). */
+  ds: number;
+  bgVisible: boolean;
+  canvas: HTMLCanvasElement;
 }
 
 export const state: AppState = new (class implements AppState {
@@ -71,6 +85,8 @@ export const state: AppState = new (class implements AppState {
   _zoomLevel = 1;
   _panX = 0;
   _panY = 0;
+
+  _compositeCache: CompositeCache | null = null;
 
   getActivePage(): Page | null {
     if (this.activePageIdx === null || !this.pages[this.activePageIdx])

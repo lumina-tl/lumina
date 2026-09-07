@@ -9,14 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Fresh new app icon**.
+- **Fresh new app icon**
 - **Resize detection boxes from any edge**: the edges now work too, not just the corners.
 - **Text boxes rotate with their content**: the whole box tilts with the text, like in Photoshop.
 - **Enter to commit text edits**: pressing Enter in the layer list editor saves; Shift+Enter inserts a newline.
 - **Undo/redo while editing text**: Ctrl+Z/Y inside the editor keeps it open so you can keep typing.
 - **Live GPU badge per model**: shows the engine each model actually runs on (CUDA / DirectML / CPU).
 - **API key tutorial link in Settings → Translation**: step-by-step guide in the docs.
-- **Fixed progress toasts showing raw placeholders**: the OCR and translate progress messages now show the real box/text count instead of `{{count}}`.
+- **Opening and browsing large images is much smoother**: long-strip manhwa pages load faster, and zooming/panning no longer stutters, even while OCR is running.
+- **Smarter page thumbnails**: long-strip pages now show a real panel instead of a thin sliver.
+
+### Fixed
+
+- **Zooming into pages no longer turns them blurry**: artwork stays pixel-sharp at any zoom level.
+- **Zooming in and out quickly no longer makes memory and CPU usage spike**.
+- **Progress toasts showing raw placeholders**: the OCR and translate progress messages now show the real box/text count instead of `{{count}}`.
 
 ## [0.2.1] - 05-09-2026
 

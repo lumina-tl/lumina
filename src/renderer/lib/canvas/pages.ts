@@ -3,6 +3,10 @@ import { state } from "../state";
 import * as i18n from "../i18n";
 import { ui } from "../ui";
 import { canvas } from "./index";
+import { invalidateComposite } from "./render";
+import * as pageImages from "../pageImages";
+import { hydrateCleanupCanvas } from "./paintool/shared";
+import { hydrateMaskImages } from "../history";
 import { sidebar } from "../sidebar";
 import { history } from "../history";
 import { createIcons } from "../icons";
@@ -31,11 +35,10 @@ canvas.renderPageStrip = function (): void {
     thumb.title = page.fileName;
     thumb.dataset.pageIdx = String(i);
 
-    // Create thumbnail image
+    // Create thumbnail image — downscaled data URL, never the full-res file
     const img = document.createElement("img");
-    if (page.image) {
-      img.src = page.image.src;
-    }
+    img.src = pageImages.pageThumb(page) || "";
+    img.alt = page.fileName;
     thumb.appendChild(img);
 
     // Page number label
@@ -97,9 +100,23 @@ export function setRendererImport(fn: () => Promise<void>): void {
 }
 
 /** Switch active page by index */
-canvas.switchPage = function (idx: number): void {
+canvas.switchPage = async function (idx: number): Promise<void> {
   canvas._clearGroups();
   state.setActivePage(idx);
+  invalidateComposite(state.pages[idx]?.fileName ?? null);
+  const page = state.getActivePage();
+  if (page && !page.image) {
+    // Lazy decode the target page, then render.
+    await pageImages.ensurePageImage(page);
+    // Re-hydrate the paint layer + mask patches that releasePageImage dropped
+    // (persisted PNGs are the source of truth; runtime canvases are restored).
+    hydrateCleanupCanvas(page);
+    hydrateMaskImages(page);
+  }
+  // Drop the bitmap of pages far from the active one (LRU keeps recent ones).
+  for (let i = 0; i < state.pages.length; i++) {
+    if (Math.abs(i - idx) > 2) pageImages.releasePageImage(state.pages[i]);
+  }
   canvas.render();
   canvas.renderPageStrip();
   ui.updatePageIndicator();
@@ -118,6 +135,7 @@ canvas.removePage = async function (idx: number): Promise<void> {
   state.removePage(idx);
   if (removed) history.forgetPage(removed);
   markDirty(); // removal is a mutation — keep the session dirty
+  invalidateComposite(removed?.fileName ?? null);
   canvas._clearGroups();
   if (state.pages.length > 0) {
     state.activePageIdx = Math.min(idx, state.pages.length - 1);

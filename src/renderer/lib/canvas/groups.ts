@@ -18,6 +18,10 @@ canvas._setTextTransformer = function (t) {
   groupRegistry.setTextTransformer(t);
 };
 
+canvas._getTextTransformer = function () {
+  return groupRegistry.getTextTransformer();
+};
+
 // ── Re-OCR submenu children: one row per installed OCR model ──
 
 /** Children for the "Re-OCR" menu item — run OCR on detection `idx` with a

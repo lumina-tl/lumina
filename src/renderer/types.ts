@@ -161,7 +161,11 @@ export interface CleanupMask {
 export interface Page {
   filePath: string;
   fileName: string;
-  image: HTMLImageElement;
+  /** Decoded page bitmap — null while unloaded (see pageImages.ts LRU).
+   *  Only the active page (and a small cache) holds a decoded image. */
+  image: HTMLImageElement | null;
+  /** Small strip thumbnail (data URL), generated once on first decode. */
+  _thumbnail?: string;
   naturalWidth: number;
   naturalHeight: number;
   textDetections: TextDetection[];

@@ -260,10 +260,15 @@ function computeFillMask(
 }
 
 /** Flood-fill the cleanup layer: matching composite pixels get the paint
- *  color (at paint opacity). Returns true if anything changed. */
-export function applyBucket(page: Page, seedX: number, seedY: number): boolean {
+ *  color (at paint opacity). Returns the filled region's bounding box
+ *  (image px) or null when nothing changed. */
+export function applyBucket(
+  page: Page,
+  seedX: number,
+  seedY: number,
+): { x: number; y: number; w: number; h: number } | null {
   const c = ensureCleanupCanvas(page);
-  if (!c) return false;
+  if (!c) return null;
   const s = paintSettings();
   const [fr, fg, fb] = hexToRgb(s.color);
   const fa = s.opacity;
@@ -280,7 +285,7 @@ export function applyBucket(page: Page, seedX: number, seedY: number): boolean {
 
   const w = c.width;
   const h = c.height;
-  if (seedX < 0 || seedY < 0 || seedX >= w || seedY >= h) return false;
+  if (seedX < 0 || seedY < 0 || seedX >= w || seedY >= h) return null;
 
   const match = computeFillMask(
     composite,
@@ -293,6 +298,10 @@ export function applyBucket(page: Page, seedX: number, seedY: number): boolean {
   const ctx = c.getContext("2d")!;
   const cur = ctx.getImageData(0, 0, w, h);
   const out = cur.data;
+  let minX = w;
+  let minY = h;
+  let maxX = -1;
+  let maxY = -1;
   let changed = 0;
   for (let i = 0; i < w * h; i++) {
     if (!match[i]) continue;
@@ -303,10 +312,16 @@ export function applyBucket(page: Page, seedX: number, seedY: number): boolean {
     out[o + 2] = fb * a + out[o + 2] * (1 - a);
     out[o + 3] = Math.max(out[o + 3], 255 * a);
     changed++;
+    const px = i % w;
+    const py = (i / w) | 0;
+    if (px < minX) minX = px;
+    if (px > maxX) maxX = px;
+    if (py < minY) minY = py;
+    if (py > maxY) maxY = py;
   }
-  if (!changed) return false;
+  if (!changed) return null;
   ctx.putImageData(cur, 0, 0);
-  return true;
+  return { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 };
 }
 
 export { clearSprite };

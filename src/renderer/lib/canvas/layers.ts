@@ -1,6 +1,7 @@
 /* ── Lumina Canvas — Unified layer operations (koharu-style panel) ── */
 import { state } from "../state";
 import { canvas } from "./index";
+import { invalidateComposite } from "./render";
 import { sidebar } from "../sidebar";
 import { history } from "../history";
 import { textIdxForLayerId, applyTextSelection } from "./selection";
@@ -70,6 +71,7 @@ canvas.toggleAllMasks = function (): void {
   page.inpaintMasks.forEach((m) => {
     m.visible = show;
   });
+  invalidateComposite(page.fileName);
   canvas.render();
   sidebar.render();
   history.snapshot();
@@ -80,6 +82,7 @@ canvas.toggleBackgroundVisible = function (): void {
   const page = state.getActivePage();
   if (!page) return;
   page.backgroundVisible = !page.backgroundVisible;
+  invalidateComposite(page.fileName);
   canvas.render();
   sidebar.render();
   history.snapshot();

@@ -4,6 +4,7 @@ import Konva from "konva";
 import { canvas } from "../canvas/index";
 import { makeNode } from "../canvas/textool/nodeFactory";
 import { ensureCleanupCanvas } from "../canvas/paintool/shared";
+import * as pageImages from "../pageImages";
 import type { Page } from "../../types";
 import { st } from "./state";
 
@@ -92,6 +93,10 @@ export async function renderPageToCanvas(
   // Ensure the cleanup layer's runtime canvas holds the persisted PNG before
   // compositing (fresh open / undo can leave it un-hydrated).
   await ensureCleanupForExport(page);
+  // The page bitmap may be unloaded (LRU) — decode it for export.
+  if (!page.image) await pageImages.ensurePageImage(page);
+  const img = page.image;
+  if (!img) throw new Error("Page image unavailable for export");
 
   const host = document.createElement("div");
   host.style.cssText =
@@ -108,7 +113,7 @@ export async function renderPageToCanvas(
   if (page.backgroundVisible !== false) {
     layer.add(
       new Konva.Image({
-        image: page.image,
+        image: img,
         x: 0,
         y: 0,
         width: page.naturalWidth,

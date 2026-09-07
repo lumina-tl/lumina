@@ -13,7 +13,10 @@ export function getTransformer(): Konva.Transformer | null {
 }
 
 export function resetTransformer(): void {
-  transformer = null;
+  if (transformer) {
+    transformer.destroy();
+    transformer = null;
+  }
 }
 
 function ensureTransformer(): void {

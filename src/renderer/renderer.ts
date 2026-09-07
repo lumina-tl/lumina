@@ -31,6 +31,7 @@ import * as exportModule from "./lib/export";
 import * as autosave from "./lib/autosave";
 import * as landing from "./lib/landing";
 import { isDirty, getSavePath, setDirtyListener } from "./lib/dirty";
+import * as pageImages from "./lib/pageImages";
 import type { Page } from "./types";
 
 // ── Model check on startup (CHECK ONLY — downloads are manual) ──
@@ -98,19 +99,48 @@ async function importImages(): Promise<void> {
   await openImagePaths(filePaths);
 }
 
-/** Load already-chosen image paths as pages (dialog flow and recent clicks) */
+/** Import path: eager-decodes only the FIRST image, rest are lazy. */
 async function openImagePaths(filePaths: string[]): Promise<void> {
-  for (const fp of filePaths) {
-    const page = await _loadImageAsPage(fp);
-    if (page) {
-      L.state.addPage(page);
+  for (let i = 0; i < filePaths.length; i++) {
+    const fp = filePaths[i];
+    if (i === 0) {
+      const page = await _loadImageAsPage(fp);
+      if (page) L.state.addPage(page);
+    } else {
+      // Non-active pages: register immediately, decode lazily on first
+      // activation (pageImages.ensurePageImage). naturalWidth/Height come
+      // from the decoded bitmap — fill them from the next decoded page's
+      // metadata is not possible here, so probe via an Image without keeping
+      // the bitmap.
+      L.state.addPage({
+        filePath: fp,
+        fileName: fp.split(/[/\\]/).pop() as string,
+        image: null,
+        naturalWidth: 0,
+        naturalHeight: 0,
+        textDetections: [],
+        layers: [],
+        inpaintMasks: [],
+        cleanupMask: null,
+        backgroundVisible: true,
+        _selectedTextIdx: null,
+        _selectedLayerId: null,
+        _selectedMaskId: null,
+      });
     }
   }
 
   // Set active to first if none selected
   if (L.state.activePageIdx === null && L.state.pages.length > 0) {
     L.state.setActivePage(0);
+    // Eager-decode the active page now (it must render immediately).
+    await pageImages.ensurePageImage(L.state.pages[0]);
   }
+
+  // Fill strip thumbnails cheaply (decode at thumb size, never full-res).
+  void pageImages.preloadThumbnails(L.state.pages).then(function () {
+    canvas.renderPageStrip();
+  });
 
   landing.hide();
   models.setHasImage(true);

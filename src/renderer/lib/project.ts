@@ -11,6 +11,7 @@ import { ui } from "./ui";
 import { history, hydrateMaskImages } from "./history";
 import { hydrateCleanupCanvas } from "./canvas/paintool/shared";
 import { canvas } from "./canvas/index";
+import * as pageImages from "./pageImages";
 import { sidebar } from "./sidebar";
 import { models } from "./models";
 import { translateSettings } from "./pipeline/translate";
@@ -36,11 +37,15 @@ function _fileUrl(p: string): string {
   return "file://" + encodeURI(norm).replace(/#/g, "%23").replace(/\?/g, "%3F");
 }
 
-function _loadImage(filePath: string): Promise<HTMLImageElement | null> {
+/** Load image dimensions WITHOUT keeping the decoded bitmap (metadata probe). */
+function _probeImage(
+  filePath: string,
+): Promise<{ w: number; h: number } | null> {
   return new Promise(function (resolve) {
     const img = new Image();
     img.onload = function () {
-      resolve(img);
+      resolve({ w: img.naturalWidth, h: img.naturalHeight });
+      img.src = ""; // release the bitmap
     };
     img.onerror = function () {
       resolve(null);
@@ -188,15 +193,23 @@ export const project = {
     for (const old of state.pages) history.forgetPage(old);
 
     const pages: Page[] = [];
-    for (const pd of result.pages) {
-      const img = await _loadImage(pd.filePath);
-      if (!img) continue;
-      pages.push({
+    for (let pi = 0; pi < result.pages.length; pi++) {
+      const pd = result.pages[pi];
+      // Only the active page gets a decoded bitmap now; the rest register
+      // with dimensions probed from disk and decode lazily on activation.
+      const isActive =
+        result.activePageIdx !== null && pi === result.activePageIdx;
+      const dims = isActive
+        ? null
+        : await _probeImage(pd.filePath).catch(() => null);
+      const page: Page = {
         filePath: pd.filePath,
         fileName: pd.fileName,
-        image: img,
-        naturalWidth: pd.naturalWidth,
-        naturalHeight: pd.naturalHeight,
+        image: null,
+        naturalWidth: isActive ? pd.naturalWidth : (dims?.w ?? pd.naturalWidth),
+        naturalHeight: isActive
+          ? pd.naturalHeight
+          : (dims?.h ?? pd.naturalHeight),
         textDetections: pd.textDetections as Page["textDetections"],
         layers: pd.layers as Page["layers"],
         inpaintMasks: pd.inpaintMasks.map((m) => ({ ...m })),
@@ -208,13 +221,24 @@ export const project = {
         _zoomLevel: pd._zoomLevel,
         _panX: pd._panX,
         _panY: pd._panY,
-      });
+      };
+      if (isActive) {
+        await pageImages.ensurePageImage(page);
+        if (!page.image) continue;
+      }
+      pages.push(page);
     }
     state.pages = pages;
     // Masks are stored as PNG paths — decode them now so the first render
     // shows the cleaned patches instead of raw text over the original image.
     pages.forEach((p) => hydrateMaskImages(p));
     pages.forEach((p) => hydrateCleanupCanvas(p));
+    // Fill every strip thumbnail cheaply (decode at thumb size only — the
+    // full-res bitmap is never materialized for a preview). Progressive;
+    // re-render the strip once they're ready.
+    void pageImages.preloadThumbnails(pages).then(function () {
+      canvas.renderPageStrip();
+    });
     state.activePageIdx =
       result.activePageIdx !== null && result.activePageIdx < pages.length
         ? result.activePageIdx

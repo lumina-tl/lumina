@@ -5,6 +5,7 @@
  */
 import { state } from "../state";
 import { canvas } from "./index";
+import { invalidateComposite } from "./render";
 import { sidebar } from "../sidebar";
 import { history } from "../history";
 import {
@@ -13,6 +14,10 @@ import {
   clearCleanupCanvas,
 } from "./paintool/shared";
 import type { InpaintMask } from "../../types";
+
+function _invalidate(): void {
+  invalidateComposite(state.getActivePage()?.fileName ?? null);
+}
 
 function _findMaskIndex(
   masks: InpaintMask[] | undefined,
@@ -27,6 +32,7 @@ canvas.toggleMaskVisible = function (id: string): void {
   const i = _findMaskIndex(page?.inpaintMasks, id);
   if (!page || i < 0) return;
   page.inpaintMasks[i].visible = !page.inpaintMasks[i].visible;
+  _invalidate();
   canvas.render();
   sidebar.render();
   history.snapshot();
@@ -38,6 +44,7 @@ canvas.deleteMask = function (id: string): void {
   if (!page || i < 0) return;
   page.inpaintMasks.splice(i, 1);
   if (page._selectedMaskId === id) page._selectedMaskId = null;
+  _invalidate();
   canvas.render();
   sidebar.render();
   history.snapshot();
@@ -48,6 +55,7 @@ canvas.setMaskOpacity = function (id: string, opacity: number): void {
   const i = _findMaskIndex(page?.inpaintMasks, id);
   if (!page || i < 0) return;
   page.inpaintMasks[i].opacity = opacity;
+  _invalidate();
   canvas.render();
 };
 
@@ -66,6 +74,7 @@ canvas.toggleCleanupVisible = function (): void {
   const page = state.getActivePage();
   if (!page?.cleanupMask) return;
   page.cleanupMask.visible = !page.cleanupMask.visible;
+  _invalidate();
   canvas.render();
   sidebar.render();
   history.snapshot();
@@ -76,6 +85,7 @@ canvas.deleteCleanupMask = function (): void {
   if (!page?.cleanupMask) return;
   page.cleanupMask = null;
   if (page._selectedMaskId?.startsWith("cleanup-")) page._selectedMaskId = null;
+  _invalidate();
   canvas.render();
   sidebar.render();
   history.snapshot();
@@ -85,6 +95,7 @@ canvas.setCleanupOpacity = function (opacity: number): void {
   const page = state.getActivePage();
   if (!page?.cleanupMask) return;
   page.cleanupMask.opacity = opacity;
+  _invalidate();
   canvas.render();
 };
 

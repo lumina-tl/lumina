@@ -26,6 +26,9 @@ export const groupRegistry = {
   setTextTransformer(t: Konva.Transformer | null): void {
     _textTransformer = t;
   },
+  getTextTransformer(): Konva.Transformer | null {
+    return _textTransformer;
+  },
   setBubbleTransformer(t: Konva.Transformer | null): void {
     _bubbleTransformer = t;
   },

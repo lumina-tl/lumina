@@ -15,6 +15,8 @@ import { contextMenu } from "../contextMenu";
  */
 export interface CanvasAPI {
   render(): void;
+  /** rAF-coalesced render — prefer during high-frequency interactions */
+  scheduleRender(): void;
   getStage(): Konva.Stage | null;
   getLayer(): Konva.Layer | null;
   getScaleRatio(): number;
@@ -30,6 +32,7 @@ export interface CanvasAPI {
     off: { x: number; y: number },
   ): Konva.Group;
   _setTextTransformer(t: Konva.Transformer): void;
+  _getTextTransformer(): Konva.Transformer | null;
   selectTextDetection(idx: number | null): void;
   deleteTextDetection(idx: number): void;
   moveTextDetection(idx: number, dir: number): void;
@@ -80,6 +83,7 @@ export interface CanvasAPI {
 
 export const canvas: CanvasAPI = {
   render() {},
+  scheduleRender() {},
   getStage() {
     return null;
   },
@@ -102,6 +106,9 @@ export const canvas: CanvasAPI = {
     throw new Error("not implemented");
   },
   _setTextTransformer() {},
+  _getTextTransformer() {
+    return null;
+  },
   selectTextDetection() {},
   deleteTextDetection() {},
   moveTextDetection() {},
@@ -207,7 +214,7 @@ canvas.setZoom = function (level, anchor) {
   state._zoomLevel = next;
   _clampPan();
   ui.updateZoom();
-  canvas.render();
+  canvas.scheduleRender();
 };
 
 canvas.zoomIn = function () {
@@ -224,7 +231,7 @@ canvas.zoomReset = function () {
   state._panX = 0;
   state._panY = 0;
   ui.updateZoom();
-  canvas.render();
+  canvas.scheduleRender();
 };
 
 /** Wheel: ctrl+wheel or plain wheel = zoom at cursor */
@@ -293,7 +300,7 @@ canvas._initPanDrag = function (): void {
       state._panY = (state._panY || 0) + (e.clientY - last.y);
       last = { x: e.clientX, y: e.clientY };
       _clampPan();
-      canvas.render();
+      canvas.scheduleRender();
     });
 
     window.addEventListener("mouseup", function () {

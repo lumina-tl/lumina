@@ -5,6 +5,7 @@
  */
 import { state } from "../../state";
 import { canvas } from "../index";
+import { markSourcesDirty } from "../render";
 import type { Page, CleanupMask } from "../../../types";
 
 // ── Brush settings (persisted per app) ──
@@ -128,6 +129,10 @@ function _fileUrl(p: string): string {
 /** Reload the runtime paint canvas from its stored PNG path (undo/redo/open). */
 export function hydrateCleanupCanvas(page: Page): void {
   const mask = page.cleanupMask;
+  // Skip non-active pages: the runtime canvas is only needed while the page
+  // is on screen. It re-hydrates on activation (pages.switchPage) and the
+  // persisted PNG is the source of truth until then.
+  if (!mask || state.getActivePage() !== page) return;
   const c = ensureCleanupCanvas(page);
   if (!mask || !c) return;
   const ctx = c.getContext("2d")!;
@@ -140,6 +145,7 @@ export function hydrateCleanupCanvas(page: Page): void {
     ctx.clearRect(0, 0, c.width, c.height);
     ctx.drawImage(img, 0, 0);
     mask._hydrated = true;
+    markSourcesDirty([c]);
     if (state.getActivePage() === page) canvas.render();
   };
   img.onerror = function () {
@@ -180,7 +186,7 @@ export function compositeRegion(
   c.width = Math.max(1, Math.round(w));
   c.height = Math.max(1, Math.round(h));
   const ctx = c.getContext("2d")!;
-  if (page.backgroundVisible !== false) {
+  if (page.backgroundVisible !== false && page.image) {
     ctx.drawImage(page.image, x, y, c.width, c.height, 0, 0, c.width, c.height);
   }
   for (const m of page.inpaintMasks) {

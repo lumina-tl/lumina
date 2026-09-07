@@ -5,6 +5,7 @@
  */
 import { state } from "./state";
 import { canvas } from "./canvas/index";
+import { invalidateComposite } from "./canvas/render";
 import { sidebar } from "./sidebar";
 import { markDirty } from "./dirty";
 import { hydrateCleanupCanvas } from "./canvas/paintool/shared";
@@ -121,7 +122,10 @@ export function hydrateMaskImages(page: Page): void {
     img.onload = function () {
       const live = page.inpaintMasks.find((lm) => lm.id === m.id);
       if (live) live.image = img;
-      if (state.getActivePage() === page) canvas.render();
+      if (state.getActivePage() === page) {
+        invalidateComposite(page.fileName);
+        canvas.render();
+      }
     };
     img.onerror = function () {
       /* patch file missing — mask stays hidden */
@@ -261,6 +265,9 @@ export const history = {
     // Re-hydrate mask images asynchronously; render again once loaded.
     hydrateMaskImages(page);
     hydrateCleanupCanvas(page);
+    // The composite bake is stale after undo (masks/cleanup changed) —
+    // invalidate so the next render re-bakes from the restored state.
+    invalidateComposite(page.fileName);
     // Selections are transient but undoable — bring them back with the
     // page so Ctrl+Z removes the rectangle/lasso that was just drawn.
     if (snap.selections && _restoreSelections)

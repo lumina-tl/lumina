@@ -8,6 +8,7 @@ import * as i18n from "../i18n";
 import { ui } from "../ui";
 import { history } from "../history";
 import { canvas } from "../canvas/index";
+import { invalidateComposite } from "../canvas/render";
 import { sidebar } from "../sidebar";
 import { models } from "../models";
 import type { BBox, InpaintMask } from "../../types";
@@ -85,6 +86,7 @@ export const inpaint = {
       // see render.ts (overlays only while masks.length === 0).
       page.inpaintMasks = masks;
       state._inpaintLoaded = true;
+      invalidateComposite(page.fileName);
 
       canvas.render();
       sidebar.render();
