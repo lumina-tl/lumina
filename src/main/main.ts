@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, ipcMain } from "electron";
+import { app, BrowserWindow, Menu, ipcMain, shell } from "electron";
 import * as path from "path";
 import { IPC } from "../shared/bridge";
 import {
@@ -49,6 +49,15 @@ function createWindow(): void {
 
   // dist/main/main.js → ../renderer/index.html (same layout in dev and asar)
   mainWindow.loadFile(path.join(MAIN_DIR, "../renderer/index.html"));
+
+  // External links (e.g. the docs API-key tutorial) open in the user's
+  // default browser — never in a bare in-app window.
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith("https://") || url.startsWith("http://")) {
+      void shell.openExternal(url);
+    }
+    return { action: "deny" };
+  });
 
   registerIpcHandlers(mainWindow);
   registerSecretHandlers();

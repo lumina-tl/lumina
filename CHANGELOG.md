@@ -9,12 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Fresh new app icon**: the Lumina icon has been redesigned with a cleaner, more modern look.
-- **Resize detection boxes from any side**: previously you could only drag the corners to resize a detection box; now the edges work too, so you can adjust width or height on their own just like the text tool's boxes.
-- **Text boxes now rotate with their content**: rotating a text box now tilts the whole box together with the text, like in Photoshop, without resizing or jumping it.
-- **Enter commits text edits in the layer list**: pressing Enter in the original/translation editor saves your change; use Shift+Enter to insert a newline.
-- **Undo/redo works while editing text**: pressing Ctrl+Z/Y right inside the original/translation editor undoes/redoes your change and keeps the editor open, so you can keep typing.
-- **GPU badge in Settings → Models now reflects reality**: each model shows the GPU engine it actually runs on (CUDA or DirectML) based on your installed build, updates instantly when you flip the GPU toggle, and turns orange when a model can't use it — e.g. a CUDA-only model on the DirectML build clearly says it will run on CPU instead.
+- **Fresh new app icon**.
+- **Resize detection boxes from any edge**: the edges now work too, not just the corners.
+- **Text boxes rotate with their content**: the whole box tilts with the text, like in Photoshop.
+- **Enter to commit text edits**: pressing Enter in the layer list editor saves; Shift+Enter inserts a newline.
+- **Undo/redo while editing text**: Ctrl+Z/Y inside the editor keeps it open so you can keep typing.
+- **Live GPU badge per model**: shows the engine each model actually runs on (CUDA / DirectML / CPU).
+- **API key tutorial link in Settings → Translation**: step-by-step guide in the docs.
 
 ## [0.2.1] - 05-09-2026
 

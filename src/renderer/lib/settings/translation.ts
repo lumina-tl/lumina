@@ -6,6 +6,10 @@ import * as i18n from "../i18n";
 import { createIcons } from "../icons";
 import { translateSettings, type TranslateConfig } from "../pipeline/translate";
 
+/** Docs tutorial on getting an API key per provider. */
+const API_KEY_TUTORIAL =
+  "https://lumina.navierr.dev/docs/guides/translation#how-to-get-your-api-key";
+
 /** Settings card — nested layer above the workbench pane */
 function card(): HTMLElement {
   const c = document.createElement("div");
@@ -16,6 +20,34 @@ function card(): HTMLElement {
 export const translationTab = {
   build(pane: HTMLElement): void {
     pane.innerHTML = "";
+
+    // ── No API key? → docs tutorial ──
+    const help = card();
+    const helpTitle = document.createElement("div");
+    helpTitle.className = "settings-section-title";
+    helpTitle.textContent = i18n.t("settings.trNoKeyTitle");
+    help.appendChild(helpTitle);
+    const helpText = document.createElement("p");
+    helpText.className =
+      "text-[0.72rem] text-text-muted leading-relaxed max-w-[52ch]";
+    helpText.textContent = i18n.t("settings.trNoKeyHint");
+    help.appendChild(helpText);
+    const helpLink = document.createElement("a");
+    helpLink.className =
+      "group inline-flex items-center gap-1.5 mt-3 pt-2.5 border-t border-white/5 text-[0.72rem] font-medium text-lumina hover:text-lumina-dark w-fit";
+    helpLink.href = API_KEY_TUTORIAL;
+    helpLink.target = "_blank";
+    helpLink.rel = "noreferrer";
+    const linkIcon = document.createElement("i");
+    linkIcon.dataset.lucide = "external-link";
+    linkIcon.className =
+      "w-3.5 h-3.5 shrink-0 transition-transform group-hover:translate-x-px";
+    helpLink.appendChild(linkIcon);
+    const linkText = document.createElement("span");
+    linkText.textContent = i18n.t("settings.trNoKeyLink");
+    helpLink.appendChild(linkText);
+    help.appendChild(helpLink);
+    pane.appendChild(help);
 
     // ── Provider & target ──
     const general = card();
