@@ -181,7 +181,16 @@ function _render(): void {
     const tTransformer = new Konva.Transformer({
       nodes: [],
       rotateEnabled: false,
-      enabledAnchors: ["top-left", "top-right", "bottom-left", "bottom-right"],
+      enabledAnchors: [
+        "top-left",
+        "top-center",
+        "top-right",
+        "middle-left",
+        "middle-right",
+        "bottom-left",
+        "bottom-center",
+        "bottom-right",
+      ],
       anchorStroke: TEXT_COLOR,
       anchorFill: "#fff",
       anchorSize: 8,

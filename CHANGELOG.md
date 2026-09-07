@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **Resize detection boxes from any side**: previously you could only drag the corners to resize a detection box; now the edges work too, so you can adjust width or height on their own just like the text tool's boxes.
+
 ## [0.2.1] - 05-09-2026
 
 > ⚠️ **0.2.0 withdrawn** — the 0.2.0 installers were pulled due to installer bugs (oversized `app.asar` and a console window popping up during CUDA extraction). The 0.2.0 changelog entry remains for reference at [CHANGELOG.md#020---05-09-2026](https://github.com/lumina-tl/lumina/blob/main/CHANGELOG.md#020---05-09-2026).
