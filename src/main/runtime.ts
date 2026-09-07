@@ -268,7 +268,12 @@ function downloadFile(url: string, dest: string): Promise<void> {
       reject(e);
     });
     out.on("finish", () => {
-      out.close(() => resolve());
+      out.close(() => {
+        // .part -> final: downloadFile() callers expect the file at `dest`.
+        fs.rmSync(dest, { force: true }); // stale leftover from a crash
+        fs.renameSync(part, dest);
+        resolve();
+      });
     });
     out.on("error", (e) => {
       fs.unlinkSync(part);
