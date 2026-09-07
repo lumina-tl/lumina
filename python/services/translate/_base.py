@@ -83,13 +83,16 @@ def build_system_instruction(
 ) -> str:
     """Render the system instruction; previous_line falls back to config.
 
-    Config may carry ``previousLines`` (per-text list, aligned by index) — the
-    first entry is used when the caller did not pass an explicit line.
+    Config may carry ``previousLines`` (per-text list, aligned by index) —
+    the full list is joined into one continuity context so single-call mode
+    (per-text loop) sends ALL preceding dialogue, not just the first entry.
     """
     if previous_line is None:
         prev = config.get("previousLines") or config.get("previousLine") or ""
         if isinstance(prev, list):
-            previous_line = prev[0] if prev else ""
+            # Join the whole context — prev[0] alone is the FIRST line of the
+            # page, which is often wrong/irrelevant for the current segment.
+            previous_line = " / ".join(str(p) for p in prev if p)
         else:
             previous_line = str(prev)
     return _render_template(

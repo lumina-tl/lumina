@@ -65,7 +65,7 @@ def translate_batch(
         raise TranslateError("LLM base URL not configured")
     if not model:
         raise TranslateError("LLM model not configured")
-    system = build_system_instruction(config, target, previous_line="")
+    system = build_system_instruction(config, target)
     raw = _chat(
         base_url,
         api_key,

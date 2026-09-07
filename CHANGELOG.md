@@ -18,12 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **API key tutorial link in Settings → Translation**: step-by-step guide in the docs.
 - **Opening and browsing large images is much smoother**: long-strip manhwa pages load faster, and zooming/panning no longer stutters, even while OCR is running.
 - **Smarter page thumbnails**: long-strip pages now show a real panel instead of a thin sliver.
+- **More natural Indonesian translations**: translated dialogue now consistently uses standard Indonesian (e.g. "tidak" rather than "nggak"/"gak") unless the line is shouted or angry, with examples to keep it consistent.
 
 ### Fixed
 
 - **Zooming into pages no longer turns them blurry**: artwork stays pixel-sharp at any zoom level.
 - **Zooming in and out quickly no longer makes memory and CPU usage spike**.
 - **Progress toasts showing raw placeholders**: the OCR and translate progress messages now show the real box/text count instead of `{{count}}`.
+- **Re-translating a single line lost the surrounding context**: the app now sends the full conversation up to that point, so names and tone stay consistent with the rest of the page.
 
 ## [0.2.1] - 05-09-2026
 

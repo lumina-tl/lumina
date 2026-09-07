@@ -51,6 +51,10 @@
 - [ ] add masking tool for cleanup mask
 - [x] installer CUDA variant? soon~
 - [x] documentation website
+- [ ] fix brush not saved ini .lmi file
+- [ ] sometimes undo/redo doesnt work on brush
+- [ ] when resizing detection box or deleting it, make the mask resize/delete too
+- [ ] fix always fetch apikey when translate
 - [ ] add mask when convert to detection
 - [ ] better font fitting
 - [ ] testing and hunt another bugs
