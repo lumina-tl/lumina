@@ -150,7 +150,11 @@ export const translate = {
     }
     state.isRunning = true;
 
-    const loadingToast = ui.toast(i18n.t("toast.trRunning"), "running", 0);
+    const loadingToast = ui.toast(
+      i18n.t("toast.trRunning", { count: withText.length }),
+      "running",
+      0,
+    );
 
     try {
       // Full config incl. api keys from the encrypted vault

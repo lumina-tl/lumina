@@ -51,4 +51,6 @@
 - [ ] add masking tool for cleanup mask
 - [x] installer CUDA variant? soon~
 - [x] documentation website
+- [ ] add mask when convert to detection
+- [ ] better font fitting
 - [ ] testing and hunt another bugs

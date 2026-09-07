@@ -23,7 +23,11 @@ export const ocr = {
     const btn = document.getElementById("btn-ocr") as HTMLButtonElement | null;
     if (btn) btn.disabled = true;
 
-    const loadingToast = ui.toast(i18n.t("toast.ocrRunning"), "running", 0);
+    const loadingToast = ui.toast(
+      i18n.t("toast.ocrRunning", { count: page.textDetections.length }),
+      "running",
+      0,
+    );
 
     try {
       const result = await window.lumina.apiPost<{

@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Undo/redo while editing text**: Ctrl+Z/Y inside the editor keeps it open so you can keep typing.
 - **Live GPU badge per model**: shows the engine each model actually runs on (CUDA / DirectML / CPU).
 - **API key tutorial link in Settings → Translation**: step-by-step guide in the docs.
+- **Fixed progress toasts showing raw placeholders**: the OCR and translate progress messages now show the real box/text count instead of `{{count}}`.
 
 ## [0.2.1] - 05-09-2026
 
