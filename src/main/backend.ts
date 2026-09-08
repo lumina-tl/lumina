@@ -31,11 +31,19 @@ function countFiles(dir: string): { files: number; bytes: number } {
   return { files, bytes };
 }
 
-function clearCacheDir(reason: string): void {
+function clearCacheDir(reason: string, { skipOpenDirs = false } = {}): void {
   let files = 0;
   let bytes = 0;
   if (fs.existsSync(CACHE_DIR)) {
     for (const entry of fs.readdirSync(CACHE_DIR, { withFileTypes: true })) {
+      // open-* dirs contain source images extracted from .lmi projects
+      if (
+        skipOpenDirs &&
+        entry.isDirectory() &&
+        entry.name.startsWith("open-")
+      ) {
+        continue;
+      }
       const full = path.join(CACHE_DIR, entry.name);
       try {
         if (entry.isDirectory()) {
@@ -242,6 +250,13 @@ export function stopPythonBackend(): void {
     console.log("[Lumina] Python backend stopped");
   }
   // Patch files are session-scoped: safe to delete once the backend is
-  // down (no writer holds them anymore).
-  clearCacheDir("app close");
+  // down (no writer holds them anymore). open-* dirs (extracted .lmi
+  // source images) are kept — the app may still be running (e.g. CUDA
+  // backend restart) and the project is still open.
+  clearCacheDir("app close", { skipOpenDirs: true });
+}
+
+/** Wipe extracted .lmi source images — only safe when the app is quitting. */
+export function clearExtractedProjects(): void {
+  clearCacheDir("app quit", { skipOpenDirs: false });
 }

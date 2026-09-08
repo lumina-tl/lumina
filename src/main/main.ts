@@ -5,6 +5,7 @@ import {
   spawnPythonBackend,
   stopPythonBackend,
   prepareCacheDir,
+  clearExtractedProjects,
 } from "./backend";
 import { registerIpcHandlers } from "./pipeline";
 import { registerSecretHandlers, registerConfigHandlers } from "./storage";
@@ -160,6 +161,12 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
   }
+});
+
+// Extracted .lmi source images live in the temp cache — wipe them only
+// when the app is truly quitting, never on backend restarts.
+app.on("before-quit", () => {
+  clearExtractedProjects();
 });
 
 app.on("activate", () => {

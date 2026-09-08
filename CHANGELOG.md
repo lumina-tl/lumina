@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.4] - 08-09-2026
+
+### Fixed
+
+- **Source images no longer deleted when closing the app.** Previously, opening a `.lmi` project extracted its source images into the temp cache, and closing the app — or restarting the backend (e.g. after a CUDA runtime download) — wiped the entire cache, deleting the extracted source images while the project was still open. Extracted projects are now only cleaned up when the app truly quits.
+
 ## [0.3.3] - 08-09-2026
 
 ### Fixed

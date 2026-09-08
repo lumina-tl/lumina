@@ -56,6 +56,7 @@
 - [x] sometimes undo/redo doesnt work on brush
 - [x] fix always fetch apikey when translate
 - [x] merge adjacent detection boxes before inpainting
+- [x] fix delete source file when closing app
 - [ ] add mask when convert to detection
 - [x] better font fitting
 - [ ] testing and hunt another bugs
