@@ -8,7 +8,7 @@ import { blitCleanupIntoComposite } from "../render";
 import { ensureCleanupMask, ensureCleanupCanvas } from "./shared";
 import { applyBucket, clearSprite } from "./strokes";
 import { requireCleanup } from "./guard";
-import { commitStroke } from "./commit";
+import { commitStrokeTracked } from "./commit";
 
 export function handleBucket(page: Page, img: { x: number; y: number }): void {
   if (!requireCleanup(page)) return;
@@ -22,5 +22,5 @@ export function handleBucket(page: Page, img: { x: number; y: number }): void {
   canvas.render();
   // Bucket is a single synchronous click — commit right away (the
   // snapshot is taken at stroke-end, same undo granularity as brush).
-  void commitStroke(page, !!rect);
+  void commitStrokeTracked(page, !!rect);
 }

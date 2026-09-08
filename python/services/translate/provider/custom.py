@@ -52,8 +52,12 @@ def translate(text: str, target: str, config: dict) -> str:
     if not model:
         raise TranslateError("LLM model not configured")
     system = build_system_instruction(config, target)
+    prev = config.get("previousLines") or ""
+    if isinstance(prev, list):
+        prev = " / ".join(str(p) for p in prev if p)
     return _chat(
-        base_url, api_key, model, style, system, build_single_prompt(text, target)
+        base_url, api_key, model, style, system,
+        build_single_prompt(text, target, previous_line=prev),
     )
 
 

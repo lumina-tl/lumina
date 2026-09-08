@@ -160,7 +160,12 @@ canvas.generateThumbnail = function (
 ): string | null {
   maxW = maxW || 80;
   maxH = maxH || 100;
-  if (!page || !page.image) return null;
+  if (!page) return null;
+  if (!page.image) {
+    // Page bitmap released by lazy load — use pre-generated strip thumbnail
+    const cached = pageImages.pageThumb(page);
+    return cached || null;
+  }
   const cnv = document.createElement("canvas");
   const ratio = Math.min(maxW / page.naturalWidth, maxH / page.naturalHeight);
   cnv.width = Math.round(page.naturalWidth * ratio);

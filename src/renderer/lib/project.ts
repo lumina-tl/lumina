@@ -10,6 +10,7 @@ import * as i18n from "./i18n";
 import { ui } from "./ui";
 import { history, hydrateMaskImages } from "./history";
 import { hydrateCleanupCanvas } from "./canvas/paintool/shared";
+import { pendingCommit } from "./canvas/paintool/commit";
 import { canvas } from "./canvas/index";
 import * as pageImages from "./pageImages";
 import { sidebar } from "./sidebar";
@@ -133,6 +134,8 @@ export const project = {
       return false;
     }
     try {
+      // Wait for any in-flight brush stroke commit so cleanup PNGs are on disk
+      await pendingCommit.current;
       const res = await window.lumina.saveProject(buildPayload(getSavePath()));
       if (res.canceled || !res.path) return false;
       setSavePath(res.path);
@@ -229,6 +232,13 @@ export const project = {
       pages.push(page);
     }
     state.pages = pages;
+    // Set active page BEFORE hydrating masks so getActivePage() works
+    state.activePageIdx =
+      result.activePageIdx !== null && result.activePageIdx < pages.length
+        ? result.activePageIdx
+        : pages.length > 0
+          ? 0
+          : null;
     // Masks are stored as PNG paths — decode them now so the first render
     // shows the cleaned patches instead of raw text over the original image.
     pages.forEach((p) => hydrateMaskImages(p));
@@ -239,12 +249,6 @@ export const project = {
     void pageImages.preloadThumbnails(pages).then(function () {
       canvas.renderPageStrip();
     });
-    state.activePageIdx =
-      result.activePageIdx !== null && result.activePageIdx < pages.length
-        ? result.activePageIdx
-        : pages.length > 0
-          ? 0
-          : null;
 
     if (result.settings) {
       translateSettings.save(result.settings as unknown as TranslateConfig);

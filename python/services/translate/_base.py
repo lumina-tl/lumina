@@ -104,8 +104,17 @@ def build_system_instruction(
     )
 
 
-def build_single_prompt(text: str, target: str) -> str:
-    return f"Target language: {target}\n\nText:\n{text}"
+def build_single_prompt(
+    text: str, target: str, previous_line: str | None = None
+) -> str:
+    prompt = f"Target language: {target}\n\nText:\n{text}"
+    if previous_line:
+        prompt = (
+            f"Target language: {target}\n\n"
+            f"Preceding dialogue for continuity:\n{previous_line}\n\n"
+            f"Text:\n{text}"
+        )
+    return prompt
 
 
 # Segment type hints from the detector (FE passes them through); mapped to a

@@ -16,7 +16,7 @@ import {
 } from "./shared";
 import { applyStroke, clearSprite } from "./strokes";
 import { requireCleanup } from "./guard";
-import { commitStroke } from "./commit";
+import { commitStrokeTracked } from "./commit";
 import { updateCursor } from "./cursor";
 
 let _dragging = false;
@@ -86,7 +86,7 @@ export function handleStroke(
     _mode = null;
     _points = [];
     _dirtyRect = null;
-    void commitStroke(page, changed);
+    void commitStrokeTracked(page, changed);
   };
 
   window.addEventListener("mousemove", onMove);

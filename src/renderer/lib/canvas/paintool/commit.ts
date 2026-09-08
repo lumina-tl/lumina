@@ -12,6 +12,10 @@ import type { Page } from "../../../types";
 
 let _commitSeq = 0;
 
+/** Resolves when the latest in-flight stroke commit finishes (or immediately if idle). */
+let _pending: Promise<void> = Promise.resolve();
+export const pendingCommit: { current: Promise<void> } = { current: _pending };
+
 export async function commitStroke(
   page: Page,
   changed: boolean,
@@ -44,6 +48,7 @@ export async function commitStroke(
       name: "cleanup",
     });
     if (seq !== _commitSeq) return; // a newer stroke already committed
+    if (page.cleanupMask !== mask) return; // undo/redo replaced the mask — abort
     mask.imagePath = res.path;
     mask._hydrated = true; // canvas now matches the persisted PNG
     canvas.render();
@@ -52,4 +57,11 @@ export async function commitStroke(
     console.error("[Lumina] Failed to persist cleanup stroke:", e);
     ui.toast(i18n.t("toast.paintSaveFailed"), "error");
   }
+}
+
+/** Wrap commitStroke so pendingCommit always tracks the latest in-flight write. */
+export function commitStrokeTracked(page: Page, changed: boolean): void {
+  const p = commitStroke(page, changed);
+  _pending = p;
+  pendingCommit.current = p;
 }

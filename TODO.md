@@ -46,16 +46,16 @@
 - [ ] tokenizers (paddleocr_vl): replace the "pip install tokenizers" error message in decoder.py, add an `is_ready()` check, and bundle the wheel to be extracted to `runtime_deps` when the user selects the paddleocr_vl download.
 - [x] auto clear selection tool when it converted
 - [x] add paintbucket, eyedropper, and brush tools for cleanup mask
-- [ ] fix undo/redo blinking 
+- [ ] fix undo/redo blinking
 - [x] better translation's secret key loading
 - [ ] add masking tool for cleanup mask
 - [x] installer CUDA variant? soon~
 - [x] documentation website
-- [ ] fix lazy load thumbnail
-- [ ] fix brush not saved ini .lmi file
-- [ ] sometimes undo/redo doesnt work on brush
-- [ ] when resizing detection box or deleting it, make the mask resize/delete too
+- [x] fix lazy load thumbnail
+- [x] fix brush not saved in .lmi file
+- [x] sometimes undo/redo doesnt work on brush
 - [ ] fix always fetch apikey when translate
+- [ ] merge adjacent detection boxes before inpainting
 - [ ] add mask when convert to detection
 - [ ] better font fitting
 - [ ] testing and hunt another bugs

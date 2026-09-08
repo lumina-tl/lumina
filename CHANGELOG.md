@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Brush strokes no longer vanish after save and reopen.** Previously, strokes could be silently dropped due to a timing issue — now they are always saved before the project file is written.
+- **Undo/redo after brushing works reliably.** Previously, undoing right after a brush stroke could skip the step — now it always restores correctly.
+- **Export window thumbnails load correctly.** Previously, thumbnails in the export sidebar could disappear on pages that weren't actively being viewed — now they always show.
+- **Re-translate now follows surrounding context.** Previously, re-translating a single line could produce a literal result that ignored the tone of earlier lines — context is now always included in the prompt.
+
 ## [0.3.2] - 07-09-2026
 
 ### Fixed
