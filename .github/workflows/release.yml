@@ -79,12 +79,11 @@ jobs:
           else
             NOTES="--generate-notes"
           fi
-          # CUDA runtime is now released separately (see release-cuda-runtime.yml).
-          # The app fetches it from the stable "cuda-runtime" tag on first run.
           gh release create "v${{ steps.version.outputs.version }}" \
             dist/dml/Lumina-Setup-DML-${{ steps.version.outputs.version }}.exe \
             dist/cuda/Lumina-Setup-CUDA-${{ steps.version.outputs.version }}.exe \
             dist/dml/dml.yml dist/dml/*.blockmap \
             dist/cuda/cuda.yml dist/cuda/*.blockmap \
+            build/cuda-runtime.7z build/cuda-runtime.json \
             --repo "${{ github.repository }}" $NOTES \
             --title "Lumina v${{ steps.version.outputs.version }}"

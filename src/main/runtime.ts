@@ -29,10 +29,7 @@ const RUNTIME_DIR = () => path.join(app.getPath("userData"), "runtime");
 const CUDA_DIR = () => path.join(RUNTIME_DIR(), "cuda");
 const MARKER_FILE = () => path.join(RUNTIME_DIR(), "cuda-runtime.json");
 
-/** Where the CUDA runtime archive is published — one asset per release tag,
- *  so the app fetches the archive that ships alongside its own version.
- *  CI uploads cuda-runtime.7z + cuda-runtime.json to every release. */
-const RUNTIME_RELEASE_BASE = () =>
+const RUNTIME_VERSION_BASE = () =>
   `https://github.com/lumina-tl/lumina/releases/download/v${app.getVersion()}`;
 
 /** Installed onnxruntime variant — "cuda" | "dml" | "none".
@@ -110,7 +107,8 @@ function _push(progress: RuntimeProgress): void {
     if (progress.percent != null) _progress = progress.percent;
   } else if (progress.state === "extracting") {
     _state = "extracting";
-    _progress = 100;
+    if (progress.percent != null) _progress = progress.percent;
+    else _progress = 0;
   } else if (progress.state === "ready") {
     _state = "ready";
     _version = progress.version;
@@ -343,10 +341,40 @@ function sevenZrPath(): string | null {
   return candidates.find((c) => fs.existsSync(c)) || null;
 }
 
+/** Count files inside a 7z archive via `7zr l` (for extract progress). */
+function countFiles7z(archive: string): Promise<number> {
+  const exe = sevenZrPath();
+  if (!exe)
+    return Promise.reject(new Error("7zr.exe not found in app resources"));
+  return new Promise((resolve, reject) => {
+    const p = spawn(exe, ["l", archive], {
+      windowsHide: true,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    let out = "";
+    p.stdout?.on("data", (d: Buffer) => {
+      out += d.toString();
+    });
+    p.on("error", reject);
+    p.on("exit", (code) => {
+      if (code !== 0) {
+        reject(new Error(`7zr list failed (exit ${code})`));
+        return;
+      }
+      const m = out.match(/Files:\s+(\d+)/i);
+      resolve(m ? parseInt(m[1], 10) : 0);
+    });
+  });
+}
+
 /** Extract the runtime archive with 7zr.exe (async — 1.2GB, don't freeze UI).
- *  `windowsHide` suppresses the terminal window that would otherwise pop up
- *  for the spawned 7zr.exe on Windows. */
-function extract7z(archive: string, dest: string): Promise<void> {
+ *  Reports progress via `onProgress(pct)` by counting "Extracting" lines. */
+function extract7z(
+  archive: string,
+  dest: string,
+  totalFiles: number,
+  onProgress?: (pct: number) => void,
+): Promise<void> {
   const exe = sevenZrPath();
   if (!exe)
     return Promise.reject(new Error("7zr.exe not found in app resources"));
@@ -354,9 +382,24 @@ function extract7z(archive: string, dest: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const p = spawn(exe, ["x", archive, `-o${dest}`, "-y"], {
       windowsHide: true,
-      stdio: "ignore",
+      stdio: ["ignore", "pipe", "pipe"],
     });
-    p.on("error", (e) => reject(e));
+    let extracted = 0;
+    let lastPct = -1;
+    p.stdout?.on("data", (d: Buffer) => {
+      const matches = d.toString().match(/Extracting/g);
+      if (matches) {
+        extracted += matches.length;
+        if (totalFiles > 0) {
+          const pct = Math.min(100, Math.round((extracted / totalFiles) * 100));
+          if (pct !== lastPct) {
+            lastPct = pct;
+            onProgress?.(pct);
+          }
+        }
+      }
+    });
+    p.on("error", reject);
     p.on("exit", (code) => {
       if (code === 0) resolve();
       else reject(new Error(`7zr extract failed (exit ${code})`));
@@ -370,49 +413,69 @@ export function ensureCudaRuntime(): Promise<void> {
 }
 
 async function _ensureCudaRuntime(): Promise<void> {
-  if (installerVariant() !== "cuda" || isCudaRuntimeReady()) return;
+  if (installerVariant() !== "cuda") return;
 
+  // ── Step 1: fetch manifest ──
+  let info: { url: string; sha512: string; version: string } | null = null;
+  try {
+    const raw = JSON.parse(
+      (
+        await fetchBuffer(`${RUNTIME_VERSION_BASE()}/cuda-runtime.json`)
+      ).toString("utf-8"),
+    );
+    if (raw?.url && raw?.sha512) info = raw;
+  } catch {
+    /* manifest not reachable — fall through to ready check */
+  }
+
+  if (!info?.url || !info?.sha512) {
+    // Can't reach manifest — if already installed, keep using it.
+    if (isCudaRuntimeReady()) return;
+    _push({
+      state: "error",
+      error:
+        "Runtime manifest not found. The release may not be published yet.",
+    });
+    return;
+  }
+
+  // ── Step 2: skip only if marker version matches manifest version ──
+  const existingMarker = readMarker();
+  const dllExists = fs.existsSync(
+    path.join(CUDA_DIR(), "onnxruntime", "capi", "onnxruntime.dll"),
+  );
+  if (
+    existingMarker &&
+    dllExists &&
+    existingMarker.version === info.version &&
+    existingMarker.sha512 === info.sha512
+  ) {
+    return; // runtime is up-to-date
+  }
+
+  // ── Step 3: download + extract ──
   _state = "downloading";
   _error = undefined;
   _progress = 0;
   _push({ state: "downloading", percent: 0 });
 
-  // Resolve the archive + checksum from the release feed.
-  const infoUrl = `${RUNTIME_RELEASE_BASE()}/cuda-runtime.json`;
-  let info: { url: string; sha512: string; version: string } | null = null;
-  try {
-    const raw = JSON.parse((await fetchBuffer(infoUrl)).toString("utf-8"));
-    if (raw?.url && raw?.sha512) info = raw;
-  } catch (e) {
-    // Release not published yet — fall back to the well-known asset name.
-    _push({
-      state: "error",
-      error: `Runtime manifest not found (${String((e as Error)?.message || e)}). The release may not be published yet.`,
-    });
-    return;
-  }
-
   const archive = path.join(RUNTIME_DIR(), "cuda.7z");
   fs.mkdirSync(RUNTIME_DIR(), { recursive: true });
-  if (!info?.url || !info?.sha512) {
-    _push({
-      state: "error",
-      error: "Runtime manifest is missing url/sha512 fields.",
-    });
-    return;
-  }
-  // Manifest stores a relative asset name — resolve against the release base.
+
   const archiveUrl = /^https?:\/\//i.test(info.url)
     ? info.url
-    : `${RUNTIME_RELEASE_BASE()}/${info.url}`;
+    : `${RUNTIME_VERSION_BASE()}/${info.url}`;
   try {
     await downloadFile(archiveUrl, archive);
     const got = await sha512File(archive);
     if (got !== info.sha512) {
       throw new Error(`sha512 mismatch: expected ${info.sha512}, got ${got}`);
     }
-    _push({ state: "extracting" });
-    await extract7z(archive, CUDA_DIR());
+    _push({ state: "extracting", percent: 0 });
+    const totalFiles = await countFiles7z(archive);
+    await extract7z(archive, CUDA_DIR(), totalFiles, (pct) => {
+      _push({ state: "extracting", percent: pct });
+    });
     try {
       fs.unlinkSync(archive); // best-effort — retried next launch
     } catch {
@@ -428,9 +491,10 @@ async function _ensureCudaRuntime(): Promise<void> {
     fs.writeFileSync(MARKER_FILE(), JSON.stringify(marker, null, 2));
     _push({ state: "ready", version: info.version });
   } catch (e) {
-    // Clean up a partial archive so the next launch retries from scratch.
+    // Clean up partial archive + partial extract so next launch retries clean.
     fs.rmSync(archive, { force: true });
     fs.rmSync(archive + ".part", { force: true });
+    fs.rmSync(CUDA_DIR(), { recursive: true, force: true });
     _push({
       state: "error",
       error: String((e as Error)?.message || e),

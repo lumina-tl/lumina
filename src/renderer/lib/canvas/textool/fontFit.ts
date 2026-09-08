@@ -109,9 +109,38 @@ export function selectPreset(
 ): TextFitPreset {
   const isBigBox =
     boxWidth >= 150 && boxHeight >= 130 && boxWidth * boxHeight >= 30000;
-  if (isBigBox && charCount <= 28) return PRESET_BIG_SHORT;
-  if (isBigBox && charCount <= 55) return PRESET_BIG_MED;
-  return PRESET_DEFAULT;
+  let preset: TextFitPreset;
+  if (isBigBox && charCount <= 28) preset = PRESET_BIG_SHORT;
+  else if (isBigBox && charCount <= 55) preset = PRESET_BIG_MED;
+  else preset = PRESET_DEFAULT;
+
+  // ── Adaptive usage ratios based on aspect ratio ──
+  // Tall boxes have more height than width → use more width, less height.
+  // Wide boxes are the opposite.
+  const aspect = boxHeight / Math.max(1, boxWidth);
+  if (aspect > 1.5) {
+    // Tall: lerp width up to 0.92, height down to 0.65
+    const t = Math.min(1, (aspect - 1.5) / 1.5); // 0→1 as aspect 1.5→3.0
+    return {
+      ...preset,
+      widthUsageRatio:
+        preset.widthUsageRatio + t * (0.92 - preset.widthUsageRatio),
+      heightUsageRatio:
+        preset.heightUsageRatio - t * (preset.heightUsageRatio - 0.65),
+    };
+  }
+  if (aspect < 0.7) {
+    // Wide: lerp width down to 0.65, height up to 0.92
+    const t = Math.min(1, (0.7 - aspect) / 0.5); // 0→1 as aspect 0.7→0.2
+    return {
+      ...preset,
+      widthUsageRatio:
+        preset.widthUsageRatio - t * (preset.widthUsageRatio - 0.65),
+      heightUsageRatio:
+        preset.heightUsageRatio + t * (0.92 - preset.heightUsageRatio),
+    };
+  }
+  return preset;
 }
 
 // ── Word wrap (horizontal) ──

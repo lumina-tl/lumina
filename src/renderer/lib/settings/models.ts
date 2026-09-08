@@ -438,13 +438,11 @@ export const modelsTab = {
     }
     if (ep) {
       ep.textContent =
-        s.state === "downloading"
+        s.state === "downloading" || s.state === "extracting"
           ? i18n.t("settings.runtimeProgress", {
               pct: String(s.progress ?? 0),
             })
-          : s.state === "extracting"
-            ? ""
-            : "";
+          : "";
     }
     if (badge) {
       badge.textContent =
@@ -467,13 +465,14 @@ export const modelsTab = {
     if (name && p.state === "extracting") {
       name.textContent = i18n.t("settings.runtimeExtracting");
     }
-    if (ep && p.state === "downloading" && p.percent != null) {
+    if (
+      ep &&
+      (p.state === "downloading" || p.state === "extracting") &&
+      p.percent != null
+    ) {
       ep.textContent = i18n.t("settings.runtimeProgress", {
         pct: String(p.percent),
       });
-    }
-    if (ep && p.state === "extracting") {
-      ep.textContent = "";
     }
     const badge = card.querySelector<HTMLElement>(".model-gpu-badge");
     if (badge && (p.state === "downloading" || p.state === "extracting")) {
