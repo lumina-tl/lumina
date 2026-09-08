@@ -14,11 +14,17 @@ def compose_patch(
     nh: int,
     pad_x: int,
     pad_y: int,
+    box_rect: tuple[int, int, int, int] | None = None,
+    *,
+    clamp: bool = False,
 ) -> np.ndarray:
     """Convert the raw CHW graph output into an RGBA patch (BGR + alpha).
 
     RGB = inpainted pixels scaled back to 0..255, A = feathered glyph mask
     (same blur the compositor uses) so edges blend into the artwork.
+
+    When *clamp* is True the alpha channel is zeroed outside *box_rect*,
+    preventing context-padding bleed into neighbouring patches.
     """
     result = np.asarray(output, dtype=np.float32) * OUTPUT_SCALE
     result = np.transpose(result, (1, 2, 0))
@@ -30,4 +36,14 @@ def compose_patch(
 
     alpha = cv.GaussianBlur(mask, (0, 0), 2).astype(np.float32)
     alpha = np.clip(alpha, 0, 255).astype(np.uint8)
+
+    # Clamp alpha outside the text box to prevent context-bleed artifacts.
+    if clamp and box_rect is not None:
+        by0, by1 = box_rect[1], box_rect[3]
+        bx0, bx1 = box_rect[0], box_rect[2]
+        alpha[:by0, :] = 0
+        alpha[by1:, :] = 0
+        alpha[:, :bx0] = 0
+        alpha[:, bx1:] = 0
+
     return np.dstack([result, alpha])

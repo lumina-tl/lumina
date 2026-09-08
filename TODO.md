@@ -55,7 +55,7 @@
 - [x] fix brush not saved in .lmi file
 - [x] sometimes undo/redo doesnt work on brush
 - [ ] fix always fetch apikey when translate
-- [ ] merge adjacent detection boxes before inpainting
+- [x] merge adjacent detection boxes before inpainting
 - [ ] add mask when convert to detection
 - [ ] better font fitting
 - [ ] testing and hunt another bugs

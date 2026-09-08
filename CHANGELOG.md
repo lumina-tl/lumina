@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Undo/redo after brushing works reliably.** Previously, undoing right after a brush stroke could skip the step — now it always restores correctly.
 - **Export window thumbnails load correctly.** Previously, thumbnails in the export sidebar could disappear on pages that weren't actively being viewed — now they always show.
 - **Re-translate now follows surrounding context.** Previously, re-translating a single line could produce a literal result that ignored the tone of earlier lines — context is now always included in the prompt.
+- **Inpaint patches no longer bleed into neighbouring boxes.** Previously, context-padding from adjacent detection boxes could overlap and produce visual artifacts. Each patch now detects whether its padded crop overlaps another — clamping the alpha when it does, preserving smooth feathering for isolated boxes.
 
 ### Changed
 

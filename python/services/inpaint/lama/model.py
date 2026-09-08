@@ -79,6 +79,25 @@ class LamaModel(BaseInpaintModel):
         output_dir.mkdir(parents=True, exist_ok=True)
 
         patches: list[dict] = []
+
+        # Pre-compute padded crops to detect neighbouring boxes.
+        padded_crops: list[tuple[int, int, int, int]] = []
+        for box in boxes:
+            cx0 = max(0, int(box["x"]) - CONTEXT_PAD)
+            cy0 = max(0, int(box["y"]) - CONTEXT_PAD)
+            cx1 = min(w, int(box["x"] + box["w"]) + CONTEXT_PAD)
+            cy1 = min(h, int(box["y"] + box["h"]) + CONTEXT_PAD)
+            padded_crops.append((cx0, cy0, cx1, cy1))
+
+        def _has_neighbor(idx: int) -> bool:
+            ax0, ay0, ax1, ay1 = padded_crops[idx]
+            for j, (bx0, by0, bx1, by1) in enumerate(padded_crops):
+                if j == idx:
+                    continue
+                if ax0 < bx1 and ax1 > bx0 and ay0 < by1 and ay1 > by0:
+                    return True
+            return False
+
         for i, box in enumerate(boxes):
             x0 = max(0, int(box["x"]) - CONTEXT_PAD)
             y0 = max(0, int(box["y"]) - CONTEXT_PAD)
@@ -126,7 +145,7 @@ class LamaModel(BaseInpaintModel):
                     feed[ins[1].name] = mask_blob
 
             output = np.asarray(session.run(None, feed)[0])[0]  # CHW
-            patch = pp.compose_patch(output, mask, nw, nh, pad_x, pad_y)
+            patch = pp.compose_patch(output, mask, nw, nh, pad_x, pad_y, box_rect, clamp=_has_neighbor(i))
 
             patch_path = output_dir / f"patch_{i:03d}.png"
             cv.imwrite(str(patch_path), patch)
