@@ -14,9 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Export window thumbnails load correctly.** Previously, thumbnails in the export sidebar could disappear on pages that weren't actively being viewed — now they always show.
 - **Re-translate now follows surrounding context.** Previously, re-translating a single line could produce a literal result that ignored the tone of earlier lines — context is now always included in the prompt.
 - **Inpaint patches no longer bleed into neighbouring boxes.** Previously, context-padding from adjacent detection boxes could overlap and produce visual artifacts. Each patch now detects whether its padded crop overlaps another — clamping the alpha when it does, preserving smooth feathering for isolated boxes.
+- **Failed CUDA extraction cleans up partial files.** Previously, a failed extraction could leave a corrupted runtime directory — now the directory is removed on failure so the next launch re-downloads cleanly.
 
 ### Changed
 
+- **Font fitting adapts to box shape.** Previously, all boxes used the same width/height usage ratio regardless of aspect ratio — now tall boxes use more width and wide boxes use more height, producing larger, better-fitted text.
+- **Translation only fetches the API key for the active provider.** Previously, every translate or retranslate request fetched all four vault keys via IPC (causing repeated MISS logs for unused providers) — now only the relevant key is loaded.
 - **CUDA runtime installation now shows extraction progress.** Previously, the progress indicator froze at 100% during the extraction phase — it now shows "Extracting CUDA runtime…" so users know the app is still working.
 
 ## [0.3.2] - 07-09-2026

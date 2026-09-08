@@ -113,20 +113,24 @@ export const translateSettings = {
   /** Full config incl. api keys — call before POST /translate */
   async loadWithSecrets(): Promise<TranslateConfig> {
     const cfg = this.load();
-    if (window.lumina.getSecrets) {
+    // Only fetch the vault key for the active provider to avoid
+    // repeated MISS logs and unnecessary IPC round-trips.
+    const vaultKey = (
+      {
+        custom: "llmApiKey",
+        openrouter: "openrouterApiKey",
+        grok: "grokApiKey",
+        gemini: "geminiApiKey",
+      } as const
+    )[cfg.provider];
+    if (vaultKey && window.lumina.getSecrets) {
       try {
-        const secrets = await window.lumina.getSecrets([
-          "llmApiKey",
-          "openrouterApiKey",
-          "grokApiKey",
-          "geminiApiKey",
-        ]);
-        cfg.llmApiKey = secrets.llmApiKey || "";
-        cfg.openrouterApiKey = secrets.openrouterApiKey || "";
-        cfg.grokApiKey = secrets.grokApiKey || "";
-        cfg.geminiApiKey = secrets.geminiApiKey || "";
+        const secrets = await window.lumina.getSecrets([vaultKey]);
+        const val = secrets[vaultKey] || "";
+        // vaultKey is always a valid TranslateConfig key
+        cfg[vaultKey as keyof TranslateConfig] = val as never;
         console.log(
-          `[Lumina] secrets load: custom=${cfg.llmApiKey ? "set" : "empty"} openrouter=${cfg.openrouterApiKey ? "set" : "empty"} grok=${cfg.grokApiKey ? "set" : "empty"} gemini=${cfg.geminiApiKey ? "set" : "empty"}`,
+          `[Lumina] secrets load: provider=${cfg.provider} ${vaultKey}=${val ? "set" : "empty"}`,
         );
       } catch {
         /* vault unavailable — proceed with empty keys */
