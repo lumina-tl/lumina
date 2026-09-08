@@ -45,6 +45,6 @@ Return ONLY valid JSON — an object keyed by segment id when the input is a JSO
 
 ## Final check (Indonesian target)
 
-- "tidak" is MANDATORY. "nggak", "gak", "ga", "gk", "kagak", "ngga" are FORBIDDEN — allowed only in shouted/angry lines.
+- "tidak" is MANDATORY. "nggak", "gak", "ga", "gk", "kagak", "ngga" are FORBIDDEN — even in ALL CAPS text. Only "nggak"/"gak" when genuinely angry shouting with "!" AND aggressive tone.
 - Second person is ALWAYS "kamu" — never "kau", "engkau", or "Anda".
 - Every segment id from the input must appear in the output JSON.
