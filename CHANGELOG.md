@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Export window thumbnails load correctly.** Previously, thumbnails in the export sidebar could disappear on pages that weren't actively being viewed — now they always show.
 - **Re-translate now follows surrounding context.** Previously, re-translating a single line could produce a literal result that ignored the tone of earlier lines — context is now always included in the prompt.
 
+### Changed
+
+- **CUDA runtime installation now shows extraction progress.** Previously, the progress indicator froze at 100% during the extraction phase — it now shows "Extracting CUDA runtime…" so users know the app is still working.
+
 ## [0.3.2] - 07-09-2026
 
 ### Fixed

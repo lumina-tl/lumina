@@ -260,7 +260,12 @@ export interface FontInfo {
 
 /* ── CUDA runtime (download-on-first-run) ── */
 
-export type RuntimeState = "missing" | "downloading" | "ready" | "error";
+export type RuntimeState =
+  | "missing"
+  | "downloading"
+  | "extracting"
+  | "ready"
+  | "error";
 
 /** Installer-scoped status: which onnxruntime the app was shipped with. */
 export interface RuntimeInfo {

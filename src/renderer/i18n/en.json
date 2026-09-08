@@ -129,6 +129,7 @@
   "settings.gpuUnsupported": "GPU acceleration unavailable — running on CPU. Update your graphics driver or reinstall the DirectML runtime.",
   "settings.runtimeMissing": "CUDA runtime not installed",
   "settings.runtimeInstalling": "Installing CUDA runtime…",
+  "settings.runtimeExtracting": "Extracting CUDA runtime…",
   "settings.runtimeProgress": "{{pct}}%",
   "settings.runtimeNotReady": "Downloading…",
   "settings.runtimeError": "CUDA runtime download failed",

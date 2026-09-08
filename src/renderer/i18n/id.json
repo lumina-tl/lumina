@@ -129,6 +129,7 @@
   "settings.gpuUnsupported": "Akselerasi GPU tidak tersedia — berjalan dengan CPU. Perbarui driver grafis atau pasang ulang runtime DirectML.",
   "settings.runtimeMissing": "Runtime CUDA belum terpasang",
   "settings.runtimeInstalling": "Memasang runtime CUDA…",
+  "settings.runtimeExtracting": "Mengekstrak runtime CUDA…",
   "settings.runtimeProgress": "{{pct}}%",
   "settings.runtimeNotReady": "Mengunduh…",
   "settings.runtimeError": "Unduhan runtime CUDA gagal",

@@ -430,9 +430,11 @@ export const modelsTab = {
       name.textContent =
         s.state === "downloading"
           ? i18n.t("settings.runtimeInstalling")
-          : s.state === "error"
-            ? i18n.t("settings.runtimeError")
-            : i18n.t("settings.runtimeMissing");
+          : s.state === "extracting"
+            ? i18n.t("settings.runtimeExtracting")
+            : s.state === "error"
+              ? i18n.t("settings.runtimeError")
+              : i18n.t("settings.runtimeMissing");
     }
     if (ep) {
       ep.textContent =
@@ -440,14 +442,19 @@ export const modelsTab = {
           ? i18n.t("settings.runtimeProgress", {
               pct: String(s.progress ?? 0),
             })
-          : "";
+          : s.state === "extracting"
+            ? ""
+            : "";
     }
     if (badge) {
       badge.textContent =
-        s.state === "downloading"
+        s.state === "downloading" || s.state === "extracting"
           ? i18n.t("settings.runtimeDownloading")
           : i18n.t("settings.runtimeNotReady");
-      badge.classList.toggle("on", s.state === "downloading");
+      badge.classList.toggle(
+        "on",
+        s.state === "downloading" || s.state === "extracting",
+      );
     }
   },
 
@@ -455,14 +462,21 @@ export const modelsTab = {
   _updateRuntimeCard(p: RuntimeProgress): void {
     const card = document.getElementById("runtime-card");
     if (!card || card.hidden) return;
+    const name = card.querySelector<HTMLElement>(".model-gpu-name");
     const ep = card.querySelector<HTMLElement>(".model-gpu-ep");
+    if (name && p.state === "extracting") {
+      name.textContent = i18n.t("settings.runtimeExtracting");
+    }
     if (ep && p.state === "downloading" && p.percent != null) {
       ep.textContent = i18n.t("settings.runtimeProgress", {
         pct: String(p.percent),
       });
     }
+    if (ep && p.state === "extracting") {
+      ep.textContent = "";
+    }
     const badge = card.querySelector<HTMLElement>(".model-gpu-badge");
-    if (badge && p.state === "downloading") {
+    if (badge && (p.state === "downloading" || p.state === "extracting")) {
       badge.classList.add("on");
     }
   },

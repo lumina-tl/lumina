@@ -108,6 +108,9 @@ function _push(progress: RuntimeProgress): void {
   if (progress.state === "downloading") {
     _state = "downloading";
     if (progress.percent != null) _progress = progress.percent;
+  } else if (progress.state === "extracting") {
+    _state = "extracting";
+    _progress = 100;
   } else if (progress.state === "ready") {
     _state = "ready";
     _version = progress.version;
@@ -408,6 +411,7 @@ async function _ensureCudaRuntime(): Promise<void> {
     if (got !== info.sha512) {
       throw new Error(`sha512 mismatch: expected ${info.sha512}, got ${got}`);
     }
+    _push({ state: "extracting" });
     await extract7z(archive, CUDA_DIR());
     try {
       fs.unlinkSync(archive); // best-effort — retried next launch
