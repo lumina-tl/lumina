@@ -1,0 +1,76 @@
+name: Release CUDA Runtime
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Runtime version string (e.g. 1.24.4+cuda12)"
+        required: true
+        type: string
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate inputs
+        run: |
+          if [ -z "${{ inputs.version }}" ]; then
+            echo "Error: version is required"
+            exit 1
+          fi
+
+      - name: Check if release already exists
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "cuda-runtime" --repo ${{ github.repository }} >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Upload expects the artifacts to be in the repo or a known location.
+      # Place cuda-runtime.7z and cuda-runtime.json in the repo root before
+      # triggering this workflow, or add a build step here.
+      - name: Verify artifacts exist
+        run: |
+          if [ ! -f "cuda-runtime.7z" ] || [ ! -f "cuda-runtime.json" ]; then
+            echo "Error: cuda-runtime.7z and cuda-runtime.json must be in the repo root"
+            exit 1
+          fi
+
+      - name: Verify sha512 matches
+        run: |
+          EXPECTED=$(python3 -c "import json; print(json.load(open('cuda-runtime.json'))['sha512'])")
+          GOT=$(sha512sum cuda-runtime.7z | cut -d' ' -f1)
+          if [ "$EXPECTED" != "$GOT" ]; then
+            echo "Error: sha512 mismatch"
+            echo "  Expected: $EXPECTED"
+            echo "  Got:      $GOT"
+            exit 1
+          fi
+
+      - name: Upload assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Delete existing release (force update).
+          if [ "${{ steps.check.outputs.exists }}" == "true" ]; then
+            gh release delete "cuda-runtime" --repo ${{ github.repository }} -y
+          fi
+
+          gh release create "cuda-runtime" \
+            cuda-runtime.7z \
+            cuda-runtime.json \
+            --repo "${{ github.repository }}" \
+            --title "CUDA Runtime ${{ inputs.version }}" \
+            --notes "CUDA onnxruntime runtime v${{ inputs.version }}.
+          Downloaded automatically by Lumina on first run.
+          To update: replace cuda-runtime.7z + cuda-runtime.json, update sha512 in json, re-trigger." \
+            --prerelease
