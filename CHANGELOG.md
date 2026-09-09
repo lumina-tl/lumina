@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Masks now visible in export preview.** Previously, the export window only showed text layers — inpaint and cleanup masks were missing because mask images weren't loaded before compositing.
+- **Layer and mask list items are numbered.** A visible index is shown on each row for easier identification and reorder reference.
+
+### Changed
+
+- **Layer list now reflects visual stacking order.** Index 1 in the list is the topmost layer visually; layers lower in the list sit underneath. Previously the list order was inverted relative to the canvas.
+- **OCR text normalization option.** New setting in Settings → General to normalize OCR text case: as-is (default), lowercase, or uppercase.
+
 ## [0.3.4] - 08-09-2026
 
 ### Fixed

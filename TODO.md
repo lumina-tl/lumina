@@ -59,4 +59,5 @@
 - [x] fix delete source file when closing app
 - [ ] add mask when convert to detection
 - [x] better font fitting
+- [x] fix mask not visible in export window
 - [ ] testing and hunt another bugs

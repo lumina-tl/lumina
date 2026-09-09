@@ -90,8 +90,9 @@ export function estSize(page: Page): string {
 export async function renderPageToCanvas(
   page: Page,
 ): Promise<HTMLCanvasElement> {
-  // Ensure the cleanup layer's runtime canvas holds the persisted PNG before
-  // compositing (fresh open / undo can leave it un-hydrated).
+  // Ensure inpaint mask images + cleanup layer canvas are loaded before
+  // compositing (saved projects don't carry decoded images; LRU can evict).
+  await ensureMaskImages(page);
   await ensureCleanupForExport(page);
   // The page bitmap may be unloaded (LRU) — decode it for export.
   if (!page.image) await pageImages.ensurePageImage(page);
@@ -162,7 +163,7 @@ export async function renderPageToCanvas(
     return { x: 0, y: 0 };
   };
   try {
-    for (const lay of page.layers) {
+    for (const lay of [...page.layers].reverse()) {
       if (!lay.visible) continue;
       // Dialogue text only renders after inpainting — same rule as the editor.
       if (lay.type === "text-dialogue" && page.inpaintMasks.length === 0) {

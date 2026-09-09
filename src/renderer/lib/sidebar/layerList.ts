@@ -91,8 +91,8 @@ export function layerListHTML(page: Page | null): string {
   if (!page) return "";
 
   let html = "";
-  page.layers.forEach(function (layer) {
-    html += layerRowHTML(page, layer);
+  page.layers.forEach(function (layer, i) {
+    html += layerRowHTML(page, layer, i);
   });
 
   // Virtual rows (NOT part of page.layers — that array maps 1:1 to
@@ -153,7 +153,7 @@ function virtualRowHTML(
   );
 }
 
-function layerRowHTML(page: Page, layer: PageLayer): string {
+function layerRowHTML(page: Page, layer: PageLayer, idx: number): string {
   const selected = page._selectedLayerId === layer.id;
   const kindLabel = i18n.t(KIND_KEYS[layer.type]);
   const name = esc(layerName(layer));
@@ -167,6 +167,9 @@ function layerRowHTML(page: Page, layer: PageLayer): string {
     esc(layer.id) +
     '" draggable="true">' +
     '<div class="layer-row-main">' +
+    '<span class="layer-index">' +
+    (idx + 1) +
+    "</span>" +
     '<i data-lucide="type" class="layer-icon"></i>' +
     '<div class="layer-name-wrap">' +
     '<span class="layer-name">' +

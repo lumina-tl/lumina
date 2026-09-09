@@ -88,6 +88,11 @@
   "settings.autoSaveInterval": "Save every",
   "settings.seconds": "seconds",
   "settings.autoSaveHint": "Saves the project automatically to its file. Skipped while a pipeline task or model download is running. The first save is always manual so you can pick a location.",
+  "settings.ocrNormalize": "OCR text case",
+  "settings.ocrNormNone": "As-is (default)",
+  "settings.ocrNormLower": "Lowercase",
+  "settings.ocrNormUpper": "Uppercase",
+  "settings.ocrNormHint": "Normalize the case of text recognized by OCR. Applies to new OCR results only.",
 
   "landing.title": "Manga Translation Editor",
   "landing.subtitle": "Import a page to begin",

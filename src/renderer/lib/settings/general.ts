@@ -1,9 +1,10 @@
-/* ── Settings: General tab (language + auto-save) ── */
+/* ── Settings: General tab (language + auto-save + OCR normalize) ── */
 import * as i18n from "../i18n";
 import { canvas } from "../canvas/index";
 import { sidebar } from "../sidebar";
 import { shortcutsTab } from "./shortcutsTab";
 import * as autosave from "../autosave";
+import { getOcrNormalizeMode, setOcrNormalizeMode } from "../pipeline/textNorm";
 
 export const generalTab = {
   build(pane: HTMLElement): void {
@@ -106,6 +107,50 @@ export const generalTab = {
     autoSection.appendChild(autoHint);
 
     pane.appendChild(autoSection);
+
+    // ── OCR text normalization ──
+    const ocrSection = document.createElement("div");
+    ocrSection.className = "settings-section";
+
+    const ocrRow = document.createElement("div");
+    ocrRow.className = "field-row items-center justify-between mb-3";
+
+    const ocrLabel = document.createElement("span");
+    ocrLabel.className = "text-[0.78rem] text-text-primary";
+    ocrLabel.dataset.i18n = "settings.ocrNormalize";
+    ocrLabel.textContent = i18n.t("settings.ocrNormalize");
+
+    const ocrSel = document.createElement("select");
+    ocrSel.id = "settings-ocr-normalize";
+    ocrSel.className = "field-select";
+    const modes: [string, string][] = [
+      ["none", i18n.t("settings.ocrNormNone")],
+      ["lowercase", i18n.t("settings.ocrNormLower")],
+      ["uppercase", i18n.t("settings.ocrNormUpper")],
+    ];
+    modes.forEach(function ([val, txt]) {
+      const opt = document.createElement("option");
+      opt.value = val;
+      opt.textContent = txt;
+      ocrSel.appendChild(opt);
+    });
+
+    ocrRow.appendChild(ocrLabel);
+    ocrRow.appendChild(ocrSel);
+    ocrSection.appendChild(ocrRow);
+
+    const ocrHint = document.createElement("p");
+    ocrHint.className = "text-[0.68rem] text-text-muted leading-relaxed";
+    ocrHint.dataset.i18n = "settings.ocrNormHint";
+    ocrHint.textContent = i18n.t("settings.ocrNormHint");
+    ocrSection.appendChild(ocrHint);
+
+    pane.appendChild(ocrSection);
+
+    ocrSel.value = getOcrNormalizeMode();
+    ocrSel.addEventListener("change", function () {
+      setOcrNormalizeMode(this.value as "none" | "lowercase" | "uppercase");
+    });
 
     // Hydrate from persisted config
     const cfg = autosave.load();

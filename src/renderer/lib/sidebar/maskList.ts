@@ -107,6 +107,9 @@ function maskRowHTML(page: Page, mask: InpaintMask, idx: number): string {
     esc(mask.id) +
     '">' +
     '<div class="layer-row-main">' +
+    '<span class="layer-index">' +
+    (idx + 1) +
+    "</span>" +
     '<img class="mask-thumb" src="' +
     esc(fileUrl(mask.imagePath)) +
     '" alt="">' +

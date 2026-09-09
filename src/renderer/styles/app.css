@@ -987,6 +987,18 @@ body.resizing-settings * {
   gap: 8px;
   padding: 5px 8px;
 }
+.layer-index {
+  width: 18px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #6a6a6a;
+  text-align: center;
+  flex-shrink: 0;
+  user-select: none;
+}
+.layer-row.selected .layer-index {
+  color: #e94560;
+}
 .layer-preview {
   color: #6a6a6a;
   font-weight: 400;

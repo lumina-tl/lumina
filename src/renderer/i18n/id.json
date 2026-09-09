@@ -88,6 +88,11 @@
   "settings.autoSaveInterval": "Simpan setiap",
   "settings.seconds": "detik",
   "settings.autoSaveHint": "Menyimpan proyek secara otomatis ke filenya. Dilewati saat proses pipeline atau unduhan model berjalan. Simpan pertama selalu manual agar kamu bisa memilih lokasi.",
+  "settings.ocrNormalize": "Kapitalisasi teks OCR",
+  "settings.ocrNormNone": "Sesuai asal (default)",
+  "settings.ocrNormLower": "Lowercase",
+  "settings.ocrNormUpper": "Uppercase",
+  "settings.ocrNormHint": "Normalisasi kapitalisasi teks hasil OCR. Hanya berlaku untuk hasil OCR baru.",
 
   "landing.title": "Editor Terjemahan Manga",
   "landing.subtitle": "Impor halaman untuk mulai",

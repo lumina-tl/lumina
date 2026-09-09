@@ -38,74 +38,78 @@ export function renderLayerTextNodes(): void {
   resetTransformer();
   if (!konvaLayer || !page) return;
 
-  (page.layers || []).forEach(function (lay) {
-    if (!lay.visible) return;
-    // OCR/translation of dialogue layers only appears after inpainting —
-    // before that the canvas shows the untouched original + boxes.
-    if (lay.type === "text-dialogue" && page.inpaintMasks.length === 0) return;
-    const text = lay.translation || lay.source || "";
-    if (!text) return;
-    const node = makeNode(lay, text);
-    node.on("click tap", function (e) {
-      e.cancelBubble = true;
-      if (isEditing()) return;
-      // Paint tools own the pointer — brush/eraser/bucket/eyedropper must
-      // never select text layers underneath.
-      const t = state.activeTool;
-      if (
-        t === "brush" ||
-        t === "eraser" ||
-        t === "bucket" ||
-        t === "eyedropper"
-      )
+  (page.layers || [])
+    .slice()
+    .reverse()
+    .forEach(function (lay) {
+      if (!lay.visible) return;
+      // OCR/translation of dialogue layers only appears after inpainting —
+      // before that the canvas shows the untouched original + boxes.
+      if (lay.type === "text-dialogue" && page.inpaintMasks.length === 0)
         return;
-      const now = Date.now();
-      if (now - (_lastClickAt[lay.id] || 0) < 350) {
-        // Double-click → edit in place (switching to the text tool first).
-        delete _lastClickAt[lay.id];
-        if (state.activeTool !== "text") tools.setActive("text");
-        startEdit(lay.id);
-        return;
-      }
-      _lastClickAt[lay.id] = now;
-      // Click = select (shows transform handles).
-      canvas.selectLayer(lay.id);
-      syncTransformerSelection();
-      canvas.getLayer()?.draw();
-    });
-    node.on("dragend", function () {
-      // Dragging moves the whole group; node.x()/y() is its local top-left
-      // (already rotated with the group) — commit directly. Using the AABB
-      // would shift the box for non-cardinal rotations.
-      const img = stageToImg(node.x(), node.y());
-      const target = page.layers.find(function (l) {
-        return l.id === (node.getAttr("layerId") as string);
-      });
-      if (target) {
-        target.bbox.x = img.x;
-        target.bbox.y = img.y;
-        history.snapshot();
-      }
-      sidebar.render();
-    });
-    node.on("transformend", function () {
-      onNodeTransformEnd(node);
-      // Box was resized with the transformer while editing — onNodeTransformEnd()
-      // full-renders, so re-hide the fresh node's glyphs, keep the handles
-      // attached and move the textarea to the new box.
-      if (getEditingLayerId() === lay.id) {
-        refreshEditingState();
-        const ta = getEditor();
-        if (ta) {
-          ta.focus();
-          const len = ta.value.length;
-          ta.setSelectionRange(len, len);
+      const text = lay.translation || lay.source || "";
+      if (!text) return;
+      const node = makeNode(lay, text);
+      node.on("click tap", function (e) {
+        e.cancelBubble = true;
+        if (isEditing()) return;
+        // Paint tools own the pointer — brush/eraser/bucket/eyedropper must
+        // never select text layers underneath.
+        const t = state.activeTool;
+        if (
+          t === "brush" ||
+          t === "eraser" ||
+          t === "bucket" ||
+          t === "eyedropper"
+        )
+          return;
+        const now = Date.now();
+        if (now - (_lastClickAt[lay.id] || 0) < 350) {
+          // Double-click → edit in place (switching to the text tool first).
+          delete _lastClickAt[lay.id];
+          if (state.activeTool !== "text") tools.setActive("text");
+          startEdit(lay.id);
+          return;
         }
-      }
+        _lastClickAt[lay.id] = now;
+        // Click = select (shows transform handles).
+        canvas.selectLayer(lay.id);
+        syncTransformerSelection();
+        canvas.getLayer()?.draw();
+      });
+      node.on("dragend", function () {
+        // Dragging moves the whole group; node.x()/y() is its local top-left
+        // (already rotated with the group) — commit directly. Using the AABB
+        // would shift the box for non-cardinal rotations.
+        const img = stageToImg(node.x(), node.y());
+        const target = page.layers.find(function (l) {
+          return l.id === (node.getAttr("layerId") as string);
+        });
+        if (target) {
+          target.bbox.x = img.x;
+          target.bbox.y = img.y;
+          history.snapshot();
+        }
+        sidebar.render();
+      });
+      node.on("transformend", function () {
+        onNodeTransformEnd(node);
+        // Box was resized with the transformer while editing — onNodeTransformEnd()
+        // full-renders, so re-hide the fresh node's glyphs, keep the handles
+        // attached and move the textarea to the new box.
+        if (getEditingLayerId() === lay.id) {
+          refreshEditingState();
+          const ta = getEditor();
+          if (ta) {
+            ta.focus();
+            const len = ta.value.length;
+            ta.setSelectionRange(len, len);
+          }
+        }
+      });
+      konvaLayer.add(node);
+      layerTextNodes.push(node);
     });
-    konvaLayer.add(node);
-    layerTextNodes.push(node);
-  });
 
   syncTransformerSelection();
   konvaLayer.draw();
