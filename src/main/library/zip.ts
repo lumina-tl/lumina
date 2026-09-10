@@ -1,8 +1,4 @@
-/* ── Minimal ZIP archive writer/reader (no external deps) ──
- * Entries are STORED (uncompressed): PNG patch files are already deflate-
- * compressed internally and project.json is tiny, so deflate buys nothing
- * but code size. Supports the subset of ZIP the writer emits.
- */
+/** Zip — minimal .lmi archive IO. */
 import zlib from "zlib";
 
 const CRC_TABLE = (() => {
@@ -49,37 +45,37 @@ export function zipWrite(entries: ZipEntry[]): Buffer {
     const size = e.data.length;
 
     const lh = Buffer.alloc(30);
-    lh.writeUInt32LE(0x04034b50, 0); // PK\x03\x04
-    lh.writeUInt16LE(20, 4); // version needed
-    lh.writeUInt16LE(0, 6); // flags
-    lh.writeUInt16LE(0, 8); // method: stored
+    lh.writeUInt32LE(0x04034b50, 0);
+    lh.writeUInt16LE(20, 4);
+    lh.writeUInt16LE(0, 6);
+    lh.writeUInt16LE(0, 8);
     lh.writeUInt16LE(time, 10);
     lh.writeUInt16LE(date, 12);
     lh.writeUInt32LE(crc, 14);
     lh.writeUInt32LE(size, 18);
     lh.writeUInt32LE(size, 22);
     lh.writeUInt16LE(nameBuf.length, 26);
-    lh.writeUInt16LE(0, 28); // extra len
+    lh.writeUInt16LE(0, 28);
     locals.push(lh, nameBuf, e.data);
 
     const ch = Buffer.alloc(46);
-    ch.writeUInt32LE(0x02014b50, 0); // PK\x01\x02
-    ch.writeUInt16LE(20, 4); // version made by
-    ch.writeUInt16LE(20, 6); // version needed
-    ch.writeUInt16LE(0, 8); // flags
-    ch.writeUInt16LE(0, 10); // method: stored
+    ch.writeUInt32LE(0x02014b50, 0);
+    ch.writeUInt16LE(20, 4);
+    ch.writeUInt16LE(20, 6);
+    ch.writeUInt16LE(0, 8);
+    ch.writeUInt16LE(0, 10);
     ch.writeUInt16LE(time, 12);
     ch.writeUInt16LE(date, 14);
     ch.writeUInt32LE(crc, 16);
     ch.writeUInt32LE(size, 20);
     ch.writeUInt32LE(size, 24);
     ch.writeUInt16LE(nameBuf.length, 28);
-    ch.writeUInt16LE(0, 30); // extra len
-    ch.writeUInt16LE(0, 32); // comment len
-    ch.writeUInt16LE(0, 34); // disk start
-    ch.writeUInt16LE(0, 36); // internal attrs
-    ch.writeUInt32LE(0, 38); // external attrs
-    ch.writeUInt32LE(offset, 42); // local header offset
+    ch.writeUInt16LE(0, 30);
+    ch.writeUInt16LE(0, 32);
+    ch.writeUInt16LE(0, 34);
+    ch.writeUInt16LE(0, 36);
+    ch.writeUInt32LE(0, 38);
+    ch.writeUInt32LE(offset, 42);
     central.push(ch, nameBuf);
 
     offset += lh.length + nameBuf.length + size;
@@ -88,21 +84,19 @@ export function zipWrite(entries: ZipEntry[]): Buffer {
   const cdStart = offset;
   const cd = Buffer.concat(central);
   const eocd = Buffer.alloc(22);
-  eocd.writeUInt32LE(0x06054b50, 0); // PK\x05\x06
-  eocd.writeUInt16LE(0, 4); // disk number
-  eocd.writeUInt16LE(0, 6); // cd start disk
+  eocd.writeUInt32LE(0x06054b50, 0);
+  eocd.writeUInt16LE(0, 4);
+  eocd.writeUInt16LE(0, 6);
   eocd.writeUInt16LE(entries.length, 8);
   eocd.writeUInt16LE(entries.length, 10);
   eocd.writeUInt32LE(cd.length, 12);
   eocd.writeUInt32LE(cdStart, 16);
-  eocd.writeUInt16LE(0, 20); // comment len
+  eocd.writeUInt16LE(0, 20);
 
   return Buffer.concat([...locals, cd, eocd]);
 }
 
-/** Read a stored/deflate zip buffer → name → data map. Throws on corruption. */
 export function zipRead(buf: Buffer): Map<string, Buffer> {
-  // Locate EOCD: scan backwards from the end (max 64 KiB comment)
   let eocd = -1;
   const lo = Math.max(0, buf.length - 22 - 65536);
   for (let i = buf.length - 22; i >= lo; i--) {
@@ -115,7 +109,7 @@ export function zipRead(buf: Buffer): Map<string, Buffer> {
     throw new Error("Invalid archive: missing end-of-central-directory");
 
   const count = buf.readUInt16LE(eocd + 10);
-  let p = buf.readUInt32LE(eocd + 16); // central directory offset
+  let p = buf.readUInt32LE(eocd + 16);
   const out = new Map<string, Buffer>();
 
   for (let i = 0; i < count; i++) {

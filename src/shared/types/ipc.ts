@@ -1,11 +1,10 @@
+/** IPC channels — main/renderer contract. */
 export const IPC = {
   // Image import
   importImage: "import-image",
   importImages: "import-images",
 
-  // Pipeline
-  runPipeline: "run-pipeline",
-  pipelineProgress: "pipeline-progress",
+  // Backend proxy
   apiPost: "api-post",
 
   // Device / GPU

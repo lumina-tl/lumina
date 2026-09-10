@@ -1,3 +1,4 @@
+/** Types barrel — re-export all shared types. */
 export { IPC } from "./ipc";
 export type { ModelInfo, ModelCheck, DownloadProgress } from "./model";
 export type { DeviceInfo } from "./device";

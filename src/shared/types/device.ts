@@ -1,3 +1,4 @@
+/** Device types — backend provider info. */
 export interface DeviceInfo {
   provider: string;
   ep: string;

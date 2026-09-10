@@ -1,3 +1,4 @@
+/** Misc types — fonts, temp PNG, models path. */
 export interface FontInfo {
   family: string;
   path: string;

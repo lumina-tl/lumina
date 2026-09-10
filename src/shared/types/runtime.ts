@@ -1,3 +1,4 @@
+/** Runtime types — CUDA state + progress. */
 export type RuntimeState =
   | "missing"
   | "downloading"

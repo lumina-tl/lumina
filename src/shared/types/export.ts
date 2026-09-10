@@ -1,3 +1,4 @@
+/** Export types — payload + result. */
 export interface ExportImageFile {
   fileName: string;
   data: Uint8Array;

@@ -1,3 +1,4 @@
+/** Bridge — IPC contract barrel. */
 export { IPC } from "./types/ipc";
 export type { ModelInfo, ModelCheck, DownloadProgress } from "./types/model";
 export type { DeviceInfo } from "./types/device";

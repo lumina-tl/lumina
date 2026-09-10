@@ -1,3 +1,4 @@
+/** Preload bridge — expose LuminaAPI. */
 import { contextBridge, ipcRenderer } from "electron";
 import { IPC } from "./shared/bridge";
 import type { LuminaAPI } from "./shared/bridge";
@@ -15,10 +16,6 @@ function on<T>(channel: string, cb: (msg: T) => void): () => void {
 const api: LuminaAPI = {
   importImage: () => invoke(IPC.importImage),
   importImages: () => invoke(IPC.importImages),
-  runPipeline: (imagePath) => invoke(IPC.runPipeline, imagePath),
-  onProgress: (cb) => {
-    on(IPC.pipelineProgress, cb);
-  },
   apiPost: <T>(endpoint: string, body: unknown) =>
     invoke<T>(IPC.apiPost, endpoint, body),
   getDevice: () => invoke(IPC.device),

@@ -1,3 +1,4 @@
+/** LuminaAPI — preload surface types. */
 import type { CheckUpdateResult, UpdateProgress } from "./update";
 import type { DeviceInfo } from "./device";
 import type {
@@ -20,8 +21,6 @@ import type { RuntimeInfo, RuntimeProgress } from "./runtime";
 export interface LuminaAPI {
   importImage(): Promise<string | null>;
   importImages(): Promise<string[] | null>;
-  runPipeline(imagePath: string): Promise<unknown>;
-  onProgress(cb: (msg: { step: string; detail?: string }) => void): void;
   apiPost<T = unknown>(endpoint: string, body: unknown): Promise<T>;
   getDevice(): Promise<DeviceInfo>;
   setUseGpu(useGpu: boolean): Promise<DeviceInfo>;

@@ -1,3 +1,4 @@
+/** Model types — info, check, download progress. */
 export interface ModelInfo {
   id: string;
   name: string;

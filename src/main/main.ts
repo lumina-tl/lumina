@@ -1,176 +1,101 @@
-import { app, BrowserWindow, Menu, ipcMain, shell } from "electron";
-import * as path from "path";
+/** App entry — boot, window, backend, handlers. */
+import { app, BrowserWindow, Menu } from "electron";
 import { IPC } from "../shared/bridge";
+import { send } from "./core/ipc";
+import { onDownloadBusyChange } from "./core/mutex";
 import {
-  spawnPythonBackend,
-  stopPythonBackend,
-  prepareCacheDir,
-  clearExtractedProjects,
-} from "./backend";
-import { registerIpcHandlers } from "./pipeline";
-import { registerSecretHandlers, registerConfigHandlers } from "./storage";
-import { registerProjectIpc, isLumiFileArg } from "./project";
-import { registerExportIpc } from "./export";
-import { registerTempCacheIpc } from "./tempCache";
-import { registerUpdaterIpc } from "./updater";
+  createWindow,
+  findLumiPath,
+  focusWindow,
+  getWindow,
+  setPendingOpenPath,
+} from "./core/window";
+import { clearExtractedCache, prepareCache } from "./backend/cache";
+import { spawnBackend, stopBackend } from "./backend/spawn";
+import { registerApiHandlers } from "./backend/proxy";
+import { registerConfigHandlers } from "./system/config";
+import { registerSecretHandlers } from "./system/secrets";
+import { registerFontHandlers } from "./system/fonts";
+import { registerTranslationHandlers } from "./system/translations";
+import { registerUpdaterHandlers } from "./system/updater";
+import { registerDeviceHandlers } from "./models/device";
+import { registerDownloadHandlers } from "./models/downloads";
 import {
-  registerRuntimeIpc,
   ensureCudaRuntime,
-  installerVariant,
-  isCudaRuntimeReady,
-  runtimeStatus,
-} from "./runtime";
-import { registerRecentsIpc } from "./recents";
-import { MAIN_DIR } from "./paths";
+  registerRuntimeHandlers,
+} from "./models/runtime/installer";
+import { installerVariant, isCudaRuntimeReady } from "./models/runtime/variant";
+import { registerImportHandlers } from "./library/imports";
+import { registerRecentHandlers } from "./library/recents";
+import { registerProjectHandlers } from "./library/project";
+import { registerExportHandlers } from "./library/export";
+import { registerTempCacheHandlers } from "./library/temp-cache";
 
-let mainWindow: BrowserWindow | null = null;
-/** Set once the renderer approved closing — skips the unsaved-changes check */
-let _allowClose = false;
-/** First .lmi path passed at launch — pulled once by the renderer */
-let _pendingOpenPath: string | null = null;
-
-/** Finds a .lmi path in a command-line arg list (skips flags/values). */
-function _findLumiPath(args: string[]): string | null {
-  for (let i = 0; i < args.length; i++) {
-    const a = args[i];
-    if (!a || a.startsWith("-")) continue;
-    // "--flag=value" style
-    if (a.startsWith("--") && a.includes("=")) continue;
-    if (isLumiFileArg(a)) return a;
-  }
-  return null;
-}
-
-function createWindow(): void {
-  mainWindow = new BrowserWindow({
-    width: 1400,
-    height: 900,
-    minWidth: 1024,
-    minHeight: 700,
-    title: "Lumina",
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: path.join(MAIN_DIR, "../preload/preload.cjs"),
-    },
-  });
-
-  // dist/main/main.js → ../renderer/index.html (same layout in dev and asar)
-  mainWindow.loadFile(path.join(MAIN_DIR, "../renderer/index.html"));
-
-  // External links (e.g. the docs API-key tutorial) open in the user's
-  // default browser — never in a bare in-app window.
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith("https://") || url.startsWith("http://")) {
-      void shell.openExternal(url);
-    }
-    return { action: "deny" };
-  });
-
-  registerIpcHandlers(mainWindow);
+/** Wire all IPC handlers for a new window. */
+function registerAll(win: BrowserWindow): void {
+  registerApiHandlers();
+  registerDeviceHandlers();
+  registerDownloadHandlers(win);
+  registerRuntimeHandlers(win);
   registerSecretHandlers();
   registerConfigHandlers();
-  registerProjectIpc();
-  registerExportIpc();
-  registerTempCacheIpc();
-  registerUpdaterIpc(mainWindow);
-  registerRuntimeIpc(mainWindow);
-  registerRecentsIpc();
-
-  // CUDA runtime status (pull) + busy events (push) for the Models tab.
-  ipcMain.removeHandler(IPC.runtimeStatus);
-  ipcMain.handle(IPC.runtimeStatus, () => runtimeStatus());
-  ipcMain.removeHandler(IPC.runtimeBusy);
-  ipcMain.handle(IPC.runtimeBusy, (_e, busy: boolean) => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send(IPC.runtimeBusy, busy);
-    }
-  });
-
-  // First .lmi path at launch — pulled once by the renderer
-  ipcMain.removeHandler(IPC.pendingOpenPath);
-  ipcMain.handle(IPC.pendingOpenPath, () => _pendingOpenPath);
-
-  // Ask the renderer to confirm unsaved changes before closing (Photoshop-style).
-  ipcMain.removeHandler(IPC.confirmClose);
-  ipcMain.handle(IPC.confirmClose, (_e, ok: boolean) => {
-    _allowClose = !!ok;
-    if (_allowClose && mainWindow) mainWindow.close();
-  });
-
-  mainWindow.on("close", (e) => {
-    if (_allowClose) return;
-    const wc = mainWindow?.webContents;
-    // Startup guard — no renderer listener yet, so just let it close.
-    if (!wc || wc.isLoading()) return;
-    e.preventDefault();
-    wc.send(IPC.requestCloseCheck);
-  });
-
-  mainWindow.on("closed", () => {
-    mainWindow = null;
-    _allowClose = false;
-  });
+  registerFontHandlers();
+  registerTranslationHandlers();
+  registerUpdaterHandlers(win);
+  registerProjectHandlers();
+  registerExportHandlers();
+  registerTempCacheHandlers();
+  registerImportHandlers(win);
+  registerRecentHandlers();
 }
 
+function bootWindow(): BrowserWindow {
+  const win = createWindow();
+  registerAll(win);
+  return win;
+}
+
+onDownloadBusyChange((busy) => send(getWindow(), IPC.runtimeBusy, busy));
+
 app.whenReady().then(async () => {
-  // Remove default Electron menu bar (File/Edit/View...)
   Menu.setApplicationMenu(null);
 
-  // Single-instance: a second launch forwards its .lmi path to this window.
   const gotLock = app.requestSingleInstanceLock();
   if (!gotLock) {
     app.quit();
     return;
   }
   app.on("second-instance", (_e, argv) => {
-    const p = _findLumiPath(argv);
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore();
-      mainWindow.focus();
-      if (p) mainWindow.webContents.send(IPC.openProjectRequest, p);
-    } else if (p) {
-      _pendingOpenPath = p;
-    }
+    focusWindow(findLumiPath(argv));
   });
 
-  // First launch with a .lmi file → open it once the window is ready
-  _pendingOpenPath = _findLumiPath(process.argv.slice(1));
+  setPendingOpenPath(findLumiPath(process.argv.slice(1)));
 
-  prepareCacheDir();
-  await spawnPythonBackend();
-  createWindow();
+  prepareCache();
+  await spawnBackend();
+  bootWindow();
 
-  // CUDA installers ship WITHOUT the runtime — fetch it once into userData.
-  // The backend starts first (models unavailable until ready); the download
-  // runs in the background and the backend is restarted when it completes.
   if (installerVariant() === "cuda" && !isCudaRuntimeReady()) {
     await ensureCudaRuntime();
-    // Restart the backend so it picks up the new ORT folder via
-    // LUMINA_PYTHONPATH, then tell the renderer the models are back.
-    stopPythonBackend();
-    await spawnPythonBackend();
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send(IPC.checkModel);
-    }
+    stopBackend();
+    await spawnBackend();
+    send(getWindow(), IPC.checkModel);
   }
 });
 
 app.on("window-all-closed", () => {
-  stopPythonBackend();
+  stopBackend();
   if (process.platform !== "darwin") {
     app.quit();
   }
 });
 
-// Extracted .lmi source images live in the temp cache — wipe them only
-// when the app is truly quitting, never on backend restarts.
 app.on("before-quit", () => {
-  clearExtractedProjects();
+  clearExtractedCache();
 });
 
 app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
+    bootWindow();
   }
 });

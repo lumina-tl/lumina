@@ -1,3 +1,4 @@
+/** Project types — save/open payloads. */
 export interface ProjectMaskData {
   id: string;
   bbox: { x: number; y: number; w: number; h: number };

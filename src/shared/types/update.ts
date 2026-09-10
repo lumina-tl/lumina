@@ -1,3 +1,4 @@
+/** Update types — check result + progress. */
 export interface CheckUpdateResult {
   available: boolean;
   current?: string;

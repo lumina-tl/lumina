@@ -60,6 +60,7 @@
 - [ ] add mask when convert to detection
 - [x] better font fitting
 - [x] fix mask not visible in export window
-- [ ] refactor codebase to be more modular and maintainable
+- [ ] refactor codebase to be more modular and maintainable\
+- [ ] fix font fitting visually changed when zoom in/out
 - [ ] redesign UI
 - [ ] testing and hunt another bugs

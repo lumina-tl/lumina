@@ -1,14 +1,7 @@
-/* ── Lumina project save/open (.lmi = zip) ──
- * Save: bundle project.json + a copy of every source image + every inpaint
- * patch PNG into one zip. Open: extract to a session temp dir (patches are
- * runtime artifacts — they already live in the temp cache dir) and return
- * rewritten absolute paths so the renderer can load pages exactly like an
- * import.
- */
-import { dialog, BrowserWindow, ipcMain } from "electron";
+/** Project — save/open .lmi archives. */
+import { dialog } from "electron";
 import type { IpcMainInvokeEvent } from "electron";
 import fs from "fs";
-import os from "os";
 import path from "path";
 import {
   IPC,
@@ -17,29 +10,24 @@ import {
   type ProjectPageData,
   type ProjectSavePayload,
   type ProjectSaveResult,
-} from "../shared/bridge";
-import { zipRead, zipWrite } from "./zip";
+} from "../../shared/bridge";
+import { CACHE_DIR } from "../backend/cache";
+import { handle, windowFromEvent } from "../core/ipc";
 import { recordRecent } from "./recents";
+import { zipRead, zipWrite } from "./zip";
 
-/** Session extraction root — wiped with the rest of the cache on app close */
-const EXTRACT_ROOT = path.join(os.tmpdir(), "lumina");
-
-function _window(event: IpcMainInvokeEvent): BrowserWindow | undefined {
-  return BrowserWindow.fromWebContents(event.sender) ?? undefined;
-}
-
-function _ext(name: string): string {
+function ext(name: string): string {
   const e = path.extname(name);
   return e && e.length <= 5 ? e : ".png";
 }
 
-async function _handleSave(
+async function handleSave(
   event: IpcMainInvokeEvent,
   payload: ProjectSavePayload,
 ): Promise<ProjectSaveResult> {
   let savePath = payload.savePath;
   if (!savePath) {
-    const res = await dialog.showSaveDialog(_window(event)!, {
+    const res = await dialog.showSaveDialog(windowFromEvent(event)!, {
       title: "Save Project",
       defaultPath: "project.lmi",
       filters: [{ name: "Lumina Project", extensions: ["lmi"] }],
@@ -51,7 +39,7 @@ async function _handleSave(
 
   const pages = payload.project.pages;
   const zipPages = pages.map((p, i) => {
-    const imageEntry = `pages/${String(i).padStart(3, "0")}${_ext(p.fileName)}`;
+    const imageEntry = `pages/${String(i).padStart(3, "0")}${ext(p.fileName)}`;
     return {
       fileName: p.fileName,
       naturalWidth: p.naturalWidth,
@@ -104,7 +92,7 @@ async function _handleSave(
   pages.forEach((p, i) => {
     try {
       entries.push({
-        name: `pages/${String(i).padStart(3, "0")}${_ext(p.fileName)}`,
+        name: `pages/${String(i).padStart(3, "0")}${ext(p.fileName)}`,
         data: fs.readFileSync(p.filePath),
       });
     } catch {
@@ -120,8 +108,7 @@ async function _handleSave(
         console.warn(`[Lumina] Skipping missing patch: ${m.imagePath}`);
       }
     });
-    // Cleanup layer — one full-page PNG per page, only when the layer exists
-    if (p.cleanupMask && p.cleanupMask.imagePath) {
+    if (p.cleanupMask?.imagePath) {
       try {
         entries.push({
           name: `cleanup/${String(i).padStart(3, "0")}.png`,
@@ -143,13 +130,13 @@ async function _handleSave(
   return { path: savePath, canceled: false };
 }
 
-async function _handleOpen(
+async function handleOpen(
   event: IpcMainInvokeEvent,
   explicitPath?: string,
 ): Promise<OpenProjectResult | null> {
   let zipPath = explicitPath;
   if (!zipPath) {
-    const res = await dialog.showOpenDialog(_window(event)!, {
+    const res = await dialog.showOpenDialog(windowFromEvent(event)!, {
       title: "Open Project",
       properties: ["openFile"],
       filters: [{ name: "Lumina Project", extensions: ["lmi"] }],
@@ -162,13 +149,10 @@ async function _handleOpen(
   const raw = entries.get("project.json");
   if (!raw) throw new Error("Invalid project file: missing project.json");
   const proj = JSON.parse(raw.toString("utf-8"));
-  if (proj.version !== 1) {
+  if (proj.version !== 1)
     throw new Error(`Unsupported project version: ${proj.version}`);
-  }
 
-  // Extract into a fresh session dir (existing open-* dirs get wiped on
-  // app close with the rest of the temp cache).
-  const extractDir = path.join(EXTRACT_ROOT, `open-${Date.now()}`);
+  const extractDir = path.join(CACHE_DIR, `open-${Date.now()}`);
   fs.mkdirSync(path.join(extractDir, "pages"), { recursive: true });
   fs.mkdirSync(path.join(extractDir, "patches"), { recursive: true });
   fs.mkdirSync(path.join(extractDir, "cleanup"), { recursive: true });
@@ -217,11 +201,11 @@ async function _handleOpen(
   };
 }
 
-async function _handleConfirmDiscard(
+async function handleConfirmDiscard(
   event: IpcMainInvokeEvent,
   message: string,
 ): Promise<DiscardChoice> {
-  const res = await dialog.showMessageBox(_window(event)!, {
+  const res = await dialog.showMessageBox(windowFromEvent(event)!, {
     type: "warning",
     buttons: ["Save", "Don't Save", "Cancel"],
     defaultId: 0,
@@ -237,17 +221,12 @@ async function _handleConfirmDiscard(
       : "cancel";
 }
 
-export function registerProjectIpc(): void {
-  // removeHandler first — createWindow() may run again (macOS activate)
-  ipcMain.removeHandler(IPC.saveProject);
-  ipcMain.removeHandler(IPC.openProject);
-  ipcMain.removeHandler(IPC.confirmDiscard);
-  ipcMain.handle(IPC.saveProject, _handleSave);
-  ipcMain.handle(IPC.openProject, _handleOpen);
-  ipcMain.handle(IPC.confirmDiscard, _handleConfirmDiscard);
+export function registerProjectHandlers(): void {
+  handle(IPC.saveProject, handleSave);
+  handle(IPC.openProject, handleOpen);
+  handle(IPC.confirmDiscard, handleConfirmDiscard);
 }
 
-/** True when the given arg is a real .lmi file path (not a flag/value). */
 export function isLumiFileArg(arg: string): boolean {
   return !!arg && arg.trim().toLowerCase().endsWith(".lmi");
 }
