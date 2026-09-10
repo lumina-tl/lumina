@@ -2,71 +2,74 @@ import { contextBridge, ipcRenderer } from "electron";
 import { IPC } from "./shared/bridge";
 import type { LuminaAPI } from "./shared/bridge";
 
+function invoke<T>(channel: string, ...args: unknown[]): Promise<T> {
+  return ipcRenderer.invoke(channel, ...args) as Promise<T>;
+}
+
+function on<T>(channel: string, cb: (msg: T) => void): () => void {
+  const handler = (_e: Electron.IpcRendererEvent, msg: T) => cb(msg);
+  ipcRenderer.on(channel, handler);
+  return () => ipcRenderer.removeListener(channel, handler);
+}
+
 const api: LuminaAPI = {
-  importImage: () => ipcRenderer.invoke(IPC.importImage),
-  importImages: () => ipcRenderer.invoke(IPC.importImages),
-  runPipeline: (imagePath: string) =>
-    ipcRenderer.invoke(IPC.runPipeline, imagePath),
-  onProgress: (cb: (msg: { step: string; detail?: string }) => void) => {
-    ipcRenderer.on(IPC.pipelineProgress, (_e, msg) => cb(msg));
+  importImage: () => invoke(IPC.importImage),
+  importImages: () => invoke(IPC.importImages),
+  runPipeline: (imagePath) => invoke(IPC.runPipeline, imagePath),
+  onProgress: (cb) => {
+    on(IPC.pipelineProgress, cb);
   },
-  apiPost: <T = unknown>(endpoint: string, body: unknown) =>
-    ipcRenderer.invoke(IPC.apiPost, endpoint, body) as Promise<T>,
-  getDevice: () => ipcRenderer.invoke(IPC.device),
-  setUseGpu: (useGpu: boolean) =>
-    ipcRenderer.invoke(IPC.deviceConfigure, useGpu),
-  checkModel: () => ipcRenderer.invoke(IPC.checkModel),
-  downloadModel: (models?: string[]) =>
-    ipcRenderer.invoke(IPC.downloadModel, models ?? []),
-  cancelDownload: () => ipcRenderer.invoke(IPC.cancelDownload),
+  apiPost: <T>(endpoint: string, body: unknown) =>
+    invoke<T>(IPC.apiPost, endpoint, body),
+  getDevice: () => invoke(IPC.device),
+  setUseGpu: (useGpu) => invoke(IPC.deviceConfigure, useGpu),
+  checkModel: () => invoke(IPC.checkModel),
+  downloadModel: (models) => invoke(IPC.downloadModel, models ?? []),
+  cancelDownload: () => invoke(IPC.cancelDownload),
   onDownloadProgress: (cb) => {
-    ipcRenderer.on(IPC.modelDownloadProgress, (_e, msg) => cb(msg));
+    on(IPC.modelDownloadProgress, cb);
   },
-  getFonts: () => ipcRenderer.invoke(IPC.getFonts),
-  loadTranslations: () => ipcRenderer.invoke(IPC.loadTranslations),
-  loadDefaultInstruction: () => ipcRenderer.invoke(IPC.loadDefaultInstruction),
-  setSecret: (key: string, value: string) =>
-    ipcRenderer.invoke(IPC.secretsSet, key, value),
-  getSecret: (key: string) => ipcRenderer.invoke(IPC.secretsGet, key),
-  getSecrets: (keys: string[]) => ipcRenderer.invoke(IPC.secretsGetMany, keys),
-  deleteSecret: (key: string) => ipcRenderer.invoke(IPC.secretsDelete, key),
-  getModelsPath: () => ipcRenderer.invoke(IPC.modelsPathGet),
-  setModelsPath: (value: string) =>
-    ipcRenderer.invoke(IPC.modelsPathSet, value),
-  chooseModelsPath: () => ipcRenderer.invoke(IPC.modelsPathChoose),
-  saveProject: (payload) => ipcRenderer.invoke(IPC.saveProject, payload),
-  openProject: (path?: string) =>
-    ipcRenderer.invoke(IPC.openProject, path ?? undefined),
-  getPendingOpenPath: () => ipcRenderer.invoke(IPC.pendingOpenPath),
-  getRecents: () => ipcRenderer.invoke(IPC.recentsList),
-  removeRecent: (path: string) => ipcRenderer.invoke(IPC.recentsRemove, path),
-  onOpenProjectRequest: (cb: (path: string) => void) => {
-    ipcRenderer.on(IPC.openProjectRequest, (_e, p: string) => cb(p));
+  getFonts: () => invoke(IPC.getFonts),
+  loadTranslations: () => invoke(IPC.loadTranslations),
+  loadDefaultInstruction: () => invoke(IPC.loadDefaultInstruction),
+  setSecret: (key, value) => invoke(IPC.secretsSet, key, value),
+  getSecret: (key) => invoke(IPC.secretsGet, key),
+  getSecrets: (keys) => invoke(IPC.secretsGetMany, keys),
+  deleteSecret: (key) => invoke(IPC.secretsDelete, key),
+  getModelsPath: () => invoke(IPC.modelsPathGet),
+  setModelsPath: (value) => invoke(IPC.modelsPathSet, value),
+  chooseModelsPath: () => invoke(IPC.modelsPathChoose),
+  saveProject: (payload) => invoke(IPC.saveProject, payload),
+  openProject: (path) => invoke(IPC.openProject, path ?? undefined),
+  getPendingOpenPath: () => invoke(IPC.pendingOpenPath),
+  onOpenProjectRequest: (cb) => {
+    on(IPC.openProjectRequest, cb);
   },
-  confirmDiscard: (message: string) =>
-    ipcRenderer.invoke(IPC.confirmDiscard, message),
-  onRequestCloseCheck: (cb: () => void) => {
-    ipcRenderer.on(IPC.requestCloseCheck, () => cb());
+  getRecents: () => invoke(IPC.recentsList),
+  removeRecent: (path) => invoke(IPC.recentsRemove, path),
+  confirmDiscard: (message) => invoke(IPC.confirmDiscard, message),
+  onRequestCloseCheck: (cb) => {
+    on(IPC.requestCloseCheck, cb);
   },
-  confirmClose: (ok: boolean) => ipcRenderer.invoke(IPC.confirmClose, ok),
-  exportImages: (payload) => ipcRenderer.invoke(IPC.exportImages, payload),
-  writeTempPng: (payload) => ipcRenderer.invoke(IPC.writeTempPng, payload),
-  checkForUpdates: () => ipcRenderer.invoke(IPC.checkForUpdates),
-  downloadUpdate: () => ipcRenderer.invoke(IPC.downloadUpdate),
-  installUpdate: () => ipcRenderer.invoke(IPC.installUpdate),
+  confirmClose: (ok) => invoke(IPC.confirmClose, ok),
+  exportImages: (payload) => invoke(IPC.exportImages, payload),
+  writeTempPng: (payload) => invoke(IPC.writeTempPng, payload),
+  checkForUpdates: () => invoke(IPC.checkForUpdates),
+  downloadUpdate: () => invoke(IPC.downloadUpdate),
+  installUpdate: () => invoke(IPC.installUpdate),
   onUpdateProgress: (cb) => {
-    ipcRenderer.on(IPC.updateProgress, (_e, msg) => cb(msg));
+    on(IPC.updateProgress, cb);
   },
-  openUpdateUrl: (url: string) => ipcRenderer.invoke(IPC.openUpdateUrl, url),
-  getRuntimeStatus: () => ipcRenderer.invoke(IPC.runtimeStatus),
+  openUpdateUrl: (url) => invoke(IPC.openUpdateUrl, url),
+  getRuntimeStatus: () => invoke(IPC.runtimeStatus),
   onRuntimeProgress: (cb) => {
-    ipcRenderer.on(IPC.runtimeProgress, (_e, msg) => cb(msg));
+    on(IPC.runtimeProgress, cb);
   },
   onRuntimeBusy: (cb) => {
-    ipcRenderer.on(IPC.runtimeBusy, (_e, busy: boolean) => cb(busy));
+    on(IPC.runtimeBusy, cb);
   },
   onCheckModel: (cb) => {
-    ipcRenderer.on(IPC.checkModel, () => cb());
+    on(IPC.checkModel, cb);
   },
 };
 
