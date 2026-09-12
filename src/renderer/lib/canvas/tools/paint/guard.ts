@@ -3,11 +3,11 @@
  * requireCleanup: paint tools need the cleanup raster layer to exist —
  * if missing, toast + jump to the Masks tab.
  */
-import { state } from "../../state";
-import { ui } from "../../ui";
-import { sidebar } from "../../sidebar";
-import * as i18n from "../../i18n";
-import type { Page } from "../../../types";
+import { state } from "../../../state";
+import { ui } from "../../../ui";
+import { sidebar } from "../../../sidebar";
+import * as i18n from "../../../i18n";
+import type { Page } from "../../../../types";
 
 export function isPaintTool(): boolean {
   const t = state.activeTool;

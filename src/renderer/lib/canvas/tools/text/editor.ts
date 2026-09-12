@@ -1,7 +1,7 @@
 /* ── Text Tool — in-place editing (textarea overlay) ── */
 import Konva from "konva";
-import { state } from "../../state";
-import { canvas } from "../index";
+import { state } from "../../../state";
+import { canvas } from "../../index";
 import {
   imgToStage,
   getEditor,

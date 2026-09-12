@@ -1,6 +1,6 @@
 /* ── Text Tool — stage interactions: marquee (paragraph) + click (point) ── */
-import { state } from "../../state";
-import { canvas } from "../index";
+import { state } from "../../../state";
+import { canvas } from "../../index";
 import { stageToImg, cleanedViewReady, getEditor } from "./shared";
 import { createAndEdit } from "./create";
 

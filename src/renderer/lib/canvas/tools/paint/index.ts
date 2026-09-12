@@ -9,10 +9,10 @@
  * cursor); this file wires the stage, the momentary-eyedropper tool switch,
  * and the header options bar.
  */
-import { state } from "../../state";
-import { canvas } from "../index";
-import { tools } from "../../ui/tools";
-import { setSliderFill } from "../../ui/slider";
+import { state } from "../../../state";
+import { canvas } from "../../index";
+import { tools } from "../../../ui/tools";
+import { setSliderFill } from "../../../ui/slider";
 import { setPaintColor, stageToImg, paintSettings } from "./shared";
 import { isPaintTool } from "./guard";
 import { sampleComposite } from "./sampler";

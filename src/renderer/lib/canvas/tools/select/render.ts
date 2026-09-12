@@ -4,8 +4,8 @@
  * tracks zoom/pan automatically (canvas.render → refreshOverlay).
  */
 import Konva from "konva";
-import { canvas } from "../index";
-import { state } from "../../state";
+import { canvas } from "../../index";
+import { state } from "../../../state";
 import { selections, activeId, imgToStage } from "./shared";
 
 let _layer: Konva.Layer | null = null;

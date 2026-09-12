@@ -3,17 +3,17 @@
  * bbox, status "adjusted") plus its mirrored dialogue layer. No OCR — the
  * user runs that explicitly with the OCR button when wanted.
  */
-import { state } from "../../../state";
-import { history } from "../../../history";
-import { canvas } from "../../index";
-import { sidebar } from "../../../sidebar";
-import { tools } from "../../../ui/tools";
-import { defaultTypography, loadGlobalTypography } from "../../../../types";
-import type { PageLayer, TextDetection } from "../../../../types";
+import { state } from "../../../../state";
+import { history } from "../../../../history";
+import { canvas } from "../../../index";
+import { sidebar } from "../../../../sidebar";
+import { tools } from "../../../../ui/tools";
+import { defaultTypography, loadGlobalTypography } from "../../../../../types";
+import type { PageLayer, TextDetection } from "../../../../../types";
 import { selections, clearSelections, shapeAABB, isHoleShape } from "../shared";
 import { refreshOverlay } from "../render";
 import { hideContextBar } from "../contextBar";
-import { sortReadingOrder } from "../../../utils/reading-order";
+import { sortReadingOrder } from "../../../../utils/reading-order";
 
 export function toDetection(): void {
   const page = state.getActivePage();

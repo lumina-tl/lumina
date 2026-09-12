@@ -10,9 +10,9 @@
  * Window-level move/up listeners keep the drag alive even when the pointer
  * leaves the canvas.
  */
-import { state } from "../../state";
-import { canvas } from "../index";
-import { history } from "../../history";
+import { state } from "../../../state";
+import { canvas } from "../../index";
+import { history } from "../../../history";
 import {
   selections,
   activeId,

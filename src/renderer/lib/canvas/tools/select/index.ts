@@ -16,8 +16,8 @@
  *   contextBar.ts   — floating action bar (also tracks the render loop)
  *   actions/        — one file per convert action (toDetection, …)
  */
-import { canvas } from "../index";
-import { history, setSelectionHistoryHandlers } from "../../history";
+import { canvas } from "../../index";
+import { history, setSelectionHistoryHandlers } from "../../../history";
 import {
   clearSelections,
   selections,

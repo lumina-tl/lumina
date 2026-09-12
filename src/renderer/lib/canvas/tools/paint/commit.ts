@@ -3,12 +3,12 @@
  * snapshots history (one undo step per stroke). A sequence guard ensures an
  * older async write can never overwrite a newer stroke's imagePath.
  */
-import { history } from "../../history";
-import { ui } from "../../ui";
-import * as i18n from "../../i18n";
-import { canvas } from "../index";
+import { history } from "../../../history";
+import { ui } from "../../../ui";
+import * as i18n from "../../../i18n";
+import { canvas } from "../../index";
 import { ensureCleanupCanvas } from "./shared";
-import type { Page } from "../../../types";
+import type { Page } from "../../../../types";
 
 let _commitSeq = 0;
 

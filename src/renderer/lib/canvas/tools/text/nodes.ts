@@ -1,10 +1,10 @@
 /* ── Text Tool — node lifecycle & event wiring (called from render.ts) ── */
 import Konva from "konva";
-import { state } from "../../state";
-import { canvas } from "../index";
-import { sidebar } from "../../sidebar";
-import { history } from "../../history";
-import { tools } from "../../ui/tools";
+import { state } from "../../../state";
+import { canvas } from "../../index";
+import { sidebar } from "../../../sidebar";
+import { history } from "../../../history";
+import { tools } from "../../../ui/tools";
 import {
   layerTextNodes,
   isEditing,

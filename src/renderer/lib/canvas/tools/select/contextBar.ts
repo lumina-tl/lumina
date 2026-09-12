@@ -3,9 +3,9 @@
  * selection with the convert action(s). Also wraps canvas.render so the
  * ants and the bar track zoom/pan/page changes.
  */
-import { canvas } from "../index";
-import { state } from "../../state";
-import * as i18n from "../../i18n";
+import { canvas } from "../../index";
+import { state } from "../../../state";
+import * as i18n from "../../../i18n";
 import {
   selections,
   activeSelection,

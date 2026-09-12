@@ -6,7 +6,7 @@ import { canvas } from "../index";
 import { TEXT_COLOR } from "../render";
 import { sidebar } from "../../sidebar";
 import { groupRegistry } from "./groupRegistry";
-import { syncTransformerSelection } from "../textool/transformer";
+import { syncTransformerSelection } from "../tools/text/transformer";
 import type { Page } from "../../../types";
 
 // ── Clear groups (called before re-render) ──

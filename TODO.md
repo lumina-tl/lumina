@@ -62,7 +62,8 @@
 - [x] fix mask not visible in export window
 - [ ] fix eraser tool visually dellayed and cant be dragged
 - [ ] fix how to get apikey 404
-- [ ] refactor codebase to be more modular and maintainable\
+- [ ] refactor codebase to be more modular and maintainable
+- [ ] add multi selection feature
 - [ ] fix font fitting visually changed when zoom in/out
 - [ ] redesign UI
 - [ ] testing and hunt another bugs

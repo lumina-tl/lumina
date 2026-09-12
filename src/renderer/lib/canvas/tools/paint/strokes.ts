@@ -5,7 +5,7 @@
  * cleanup layer. All strokes draw into the runtime cleanup canvas at
  * natural size; the caller serializes it to a versioned PNG on stroke-end.
  */
-import type { Page } from "../../../types";
+import type { Page } from "../../../../types";
 import { paintSettings, ensureCleanupCanvas, compositeRegion } from "./shared";
 
 const MAX_SAMPLE_STEP = 0.25; // stamps every 25% of brush diameter

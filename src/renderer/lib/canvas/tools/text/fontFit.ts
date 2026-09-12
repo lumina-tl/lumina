@@ -7,7 +7,7 @@
  * All measurements run in IMAGE space (unscaled page pixels) so results are
  * zoom-independent. The renderer maps the result back to stage space.
  */
-import type { Typography } from "../../../types";
+import type { Typography } from "../../../../types";
 
 export type FitStatus = "ok" | "overflow-tolerated" | "forced-minimum";
 

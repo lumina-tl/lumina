@@ -2,7 +2,7 @@
  * Reads the 1×1 composite region (bg + visible inpaint patches + cleanup)
  * and returns the hex color, or null for fully transparent pixels.
  */
-import type { Page } from "../../../types";
+import type { Page } from "../../../../types";
 import { compositeRegion } from "./shared";
 
 export function sampleComposite(

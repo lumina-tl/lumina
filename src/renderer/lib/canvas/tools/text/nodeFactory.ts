@@ -3,8 +3,8 @@
  * scoring loop, ≤15% overflow tolerance). Results are computed in image
  * space; fontSize is stored back on the layer so it stays stable. */
 import Konva from "konva";
-import { canvas } from "../index";
-import type { PageLayer, Typography } from "../../../types";
+import { canvas } from "../../index";
+import type { PageLayer, Typography } from "../../../../types";
 import { imgToStage } from "./shared";
 import { fitTextToBox } from "./fontFit";
 

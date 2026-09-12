@@ -1,9 +1,9 @@
 /* ── Text Tool — Transformer (move / resize / scale font) ── */
 import Konva from "konva";
-import { state } from "../../state";
-import { canvas } from "../index";
-import { sidebar } from "../../sidebar";
-import { history } from "../../history";
+import { state } from "../../../state";
+import { canvas } from "../../index";
+import { sidebar } from "../../../sidebar";
+import { history } from "../../../history";
 import { layerTextNodes, stageToImg } from "./shared";
 
 let transformer: Konva.Transformer | null = null;

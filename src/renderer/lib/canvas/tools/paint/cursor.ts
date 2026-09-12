@@ -7,9 +7,9 @@
  * — pipette icon + crosshair, no brush circle — so the momentary
  * Alt+click sampling is visibly indicated before you click.
  */
-import { state } from "../../state";
-import { canvas } from "../index";
-import { createIcons } from "../../ui/icons";
+import { state } from "../../../state";
+import { canvas } from "../../index";
+import { createIcons } from "../../../ui/icons";
 import { paintSettings } from "./shared";
 import { isPaintTool } from "./guard";
 

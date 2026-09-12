@@ -12,7 +12,7 @@ import {
   ensureCleanupMask,
   ensureCleanupCanvas,
   clearCleanupCanvas,
-} from "../paintool/shared";
+} from "../tools/paint/shared";
 import type { InpaintMask } from "../../../types";
 
 function _invalidate(): void {

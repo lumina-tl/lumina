@@ -3,7 +3,7 @@ import Konva from "konva";
 import { state } from "../state";
 import { canvas } from "./index";
 import { bindPanWhenStageReady } from "./viewport";
-import { renderLayerTextNodes } from "./textool";
+import { renderLayerTextNodes } from "./tools/text";
 
 /**
  * Canvas render module.

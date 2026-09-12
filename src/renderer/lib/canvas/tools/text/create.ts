@@ -1,11 +1,11 @@
 /* ── Text Tool — free text layer creation ── */
-import { state } from "../../state";
-import { canvas } from "../index";
-import { sidebar } from "../../sidebar";
-import { history } from "../../history";
-import { defaultTypography, loadGlobalTypography } from "../../../types";
-import type { PageLayer } from "../../../types";
-import { t } from "../../i18n";
+import { state } from "../../../state";
+import { canvas } from "../../index";
+import { sidebar } from "../../../sidebar";
+import { history } from "../../../history";
+import { defaultTypography, loadGlobalTypography } from "../../../../types";
+import type { PageLayer } from "../../../../types";
+import { t } from "../../../i18n";
 import { startEdit } from "./editor";
 
 export function createLayer(

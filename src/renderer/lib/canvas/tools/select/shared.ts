@@ -3,7 +3,7 @@
  * (module-level, like the textool editor) — they are NOT persisted to the
  * project and clear on page switch / explicit clear.
  */
-import { canvas } from "../index";
+import { canvas } from "../../index";
 
 export type SelectionShape =
   | { kind: "rect"; x: number; y: number; w: number; h: number }

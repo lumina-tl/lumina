@@ -5,9 +5,9 @@
  * composite (blitCleanupIntoComposite) instead of re-baking the whole page
  * — the screen just re-draws the composite via scheduleRender.
  */
-import type { Page } from "../../../types";
-import { canvas } from "../index";
-import { markSourcesDirty, blitCleanupIntoComposite } from "../render";
+import type { Page } from "../../../../types";
+import { canvas } from "../../index";
+import { markSourcesDirty, blitCleanupIntoComposite } from "../../render";
 import {
   ensureCleanupMask,
   ensureCleanupCanvas,

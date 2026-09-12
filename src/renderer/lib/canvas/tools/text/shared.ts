@@ -1,7 +1,7 @@
 /* ── Text Tool — shared state & coordinate helpers ── */
 import Konva from "konva";
-import { state } from "../../state";
-import { canvas } from "../index";
+import { state } from "../../../state";
+import { canvas } from "../../index";
 
 /** All layer text nodes currently on the stage (visual + interactive) */
 export const layerTextNodes: Konva.Group[] = [];

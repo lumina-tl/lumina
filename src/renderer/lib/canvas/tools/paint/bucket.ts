@@ -2,9 +2,9 @@
  * Flood-fills the cleanup layer against the composite image and commits
  * immediately (same undo granularity as a brush stroke).
  */
-import type { Page } from "../../../types";
-import { canvas } from "../index";
-import { blitCleanupIntoComposite } from "../render";
+import type { Page } from "../../../../types";
+import { canvas } from "../../index";
+import { blitCleanupIntoComposite } from "../../render";
 import { ensureCleanupMask, ensureCleanupCanvas } from "./shared";
 import { applyBucket, clearSprite } from "./strokes";
 import { requireCleanup } from "./guard";

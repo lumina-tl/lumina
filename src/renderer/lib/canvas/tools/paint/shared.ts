@@ -3,10 +3,10 @@
  * lifecycle, stage↔image coordinate mapping, and composite-color sampling
  * (bg + inpaint patches + cleanup) for the eyedropper and bucket.
  */
-import { state } from "../../state";
-import { canvas } from "../index";
-import { markSourcesDirty } from "../render";
-import type { Page, CleanupMask } from "../../../types";
+import { state } from "../../../state";
+import { canvas } from "../../index";
+import { markSourcesDirty } from "../../render";
+import type { Page, CleanupMask } from "../../../../types";
 
 // ── Brush settings (persisted per app) ──
 

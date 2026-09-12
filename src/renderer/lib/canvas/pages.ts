@@ -5,7 +5,7 @@ import { ui } from "../ui";
 import { canvas } from "./index";
 import { invalidateComposite } from "./render";
 import * as pageImages from "../project/page-images";
-import { hydrateCleanupCanvas } from "./paintool/shared";
+import { hydrateCleanupCanvas } from "./tools/paint/shared";
 import { hydrateMaskImages } from "../history";
 import { sidebar } from "../sidebar";
 import { history } from "../history";

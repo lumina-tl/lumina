@@ -15,8 +15,8 @@ import {
 } from "./shared";
 import { clearSprite } from "./strokes";
 import { syncOptionsBar } from ".";
-import { wireSlider } from "../../ui/slider";
-import { state } from "../../state";
+import { wireSlider } from "../../../ui/slider";
+import { state } from "../../../state";
 
 export function initPaintOptions(): void {
   const el = document.getElementById("paint-options");

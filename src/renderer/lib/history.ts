@@ -8,7 +8,7 @@ import { canvas } from "./canvas/index";
 import { invalidateComposite } from "./canvas/render";
 import { sidebar } from "./sidebar";
 import { markDirty } from "./project/dirty";
-import { hydrateCleanupCanvas } from "./canvas/paintool/shared";
+import { hydrateCleanupCanvas } from "./canvas/tools/paint/shared";
 import type { Page } from "../types";
 
 /** Convert a Windows path to a loadable file:// URL */
