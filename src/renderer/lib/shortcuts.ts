@@ -1,7 +1,7 @@
 /* ── Lumina Shortcuts — Keybinding Manager ── */
 import * as i18n from "./i18n";
 import { history } from "./history";
-import { tools } from "./tools";
+import { tools } from "./ui/tools";
 import { canvas } from "./canvas/index";
 import { project } from "./project";
 import * as exportModule from "./export";

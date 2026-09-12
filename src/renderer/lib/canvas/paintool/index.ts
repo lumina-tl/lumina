@@ -11,7 +11,7 @@
  */
 import { state } from "../../state";
 import { canvas } from "../index";
-import { tools } from "../../tools";
+import { tools } from "../../ui/tools";
 import { setSliderFill } from "../../ui/slider";
 import { setPaintColor, stageToImg, paintSettings } from "./shared";
 import { isPaintTool } from "./guard";

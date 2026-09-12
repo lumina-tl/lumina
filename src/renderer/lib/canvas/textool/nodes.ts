@@ -4,7 +4,7 @@ import { state } from "../../state";
 import { canvas } from "../index";
 import { sidebar } from "../../sidebar";
 import { history } from "../../history";
-import { tools } from "../../tools";
+import { tools } from "../../ui/tools";
 import {
   layerTextNodes,
   isEditing,

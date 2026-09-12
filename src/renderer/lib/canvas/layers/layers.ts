@@ -1,10 +1,10 @@
 /* ── Lumina Canvas — Unified layer operations (koharu-style panel) ── */
-import { state } from "../state";
-import { canvas } from "./index";
-import { invalidateComposite } from "./render";
-import { sidebar } from "../sidebar";
-import { history } from "../history";
-import { textIdxForLayerId, applyTextSelection } from "./selection";
+import { state } from "../../state";
+import { canvas } from "../index";
+import { invalidateComposite } from "../render";
+import { sidebar } from "../../sidebar";
+import { history } from "../../history";
+import { textIdxForLayerId, applyTextSelection } from "../detection/selection";
 
 function _findLayer(
   page: { layers: Array<{ id: string }> } | null,

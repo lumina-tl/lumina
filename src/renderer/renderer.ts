@@ -4,7 +4,7 @@ import * as i18n from "./lib/i18n";
 import { ui } from "./lib/ui";
 import { history } from "./lib/history";
 import { shortcuts } from "./lib/shortcuts";
-import { tools } from "./lib/tools";
+import { tools } from "./lib/ui/tools";
 import { pipeline } from "./lib/pipeline";
 import { settings } from "./lib/settings";
 import { models } from "./lib/models";
@@ -15,11 +15,13 @@ import { setRendererImport } from "./lib/canvas/pages";
 // object. Must come AFTER canvas/index so `canvas` is initialized
 // (importing them from inside canvas/index would hit a TDZ error).
 import "./lib/canvas/render";
-import "./lib/canvas/groups";
-import "./lib/canvas/selection";
-import "./lib/canvas/mutations";
-import "./lib/canvas/layers";
-import "./lib/canvas/masks";
+import "./lib/canvas/detection/groups";
+import "./lib/canvas/detection/selection";
+import "./lib/canvas/detection/mutations";
+import "./lib/canvas/layers/layers";
+import "./lib/canvas/layers/masks";
+import "./lib/canvas/viewport";
+import { bindHoverCursor } from "./lib/canvas/cursor";
 import { bindTextTool } from "./lib/canvas/textool";
 import { bindSelectTool } from "./lib/canvas/selectool";
 import { bindPaintTool } from "./lib/canvas/paintool";
@@ -143,6 +145,7 @@ i18n.init().then(function () {
   tools.init();
   ui.initResize();
   canvas.initBindings();
+  bindHoverCursor();
   bindTextTool();
   bindSelectTool();
   bindPaintTool();

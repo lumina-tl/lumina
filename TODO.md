@@ -60,6 +60,7 @@
 - [ ] add mask when convert to detection
 - [x] better font fitting
 - [x] fix mask not visible in export window
+- [ ] fix eraser tool visually dellayed and cant be dragged
 - [ ] fix how to get apikey 404
 - [ ] refactor codebase to be more modular and maintainable\
 - [ ] fix font fitting visually changed when zoom in/out

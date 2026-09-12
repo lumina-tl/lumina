@@ -1,7 +1,8 @@
 /* ── Lumina Canvas — Stage & Render ── */
 import Konva from "konva";
 import { state } from "../state";
-import { canvas, bindPanWhenStageReady } from "./index";
+import { canvas } from "./index";
+import { bindPanWhenStageReady } from "./viewport";
 import { renderLayerTextNodes } from "./textool";
 
 /**

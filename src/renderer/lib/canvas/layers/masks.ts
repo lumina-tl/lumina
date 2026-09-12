@@ -3,17 +3,17 @@
  * that can be hidden, deleted (= revert that region to the original image),
  * or have its opacity adjusted.
  */
-import { state } from "../state";
-import { canvas } from "./index";
-import { invalidateComposite } from "./render";
-import { sidebar } from "../sidebar";
-import { history } from "../history";
+import { state } from "../../state";
+import { canvas } from "../index";
+import { invalidateComposite } from "../render";
+import { sidebar } from "../../sidebar";
+import { history } from "../../history";
 import {
   ensureCleanupMask,
   ensureCleanupCanvas,
   clearCleanupCanvas,
-} from "./paintool/shared";
-import type { InpaintMask } from "../../types";
+} from "../paintool/shared";
+import type { InpaintMask } from "../../../types";
 
 function _invalidate(): void {
   invalidateComposite(state.getActivePage()?.fileName ?? null);

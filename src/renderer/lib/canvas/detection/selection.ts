@@ -1,13 +1,13 @@
 /* ── Lumina Canvas — Selection, group refresh, status bar, tool change ── */
 import Konva from "konva";
-import { state } from "../state";
-import * as i18n from "../i18n";
-import { canvas } from "./index";
-import { TEXT_COLOR } from "./render";
-import { sidebar } from "../sidebar";
+import { state } from "../../state";
+import * as i18n from "../../i18n";
+import { canvas } from "../index";
+import { TEXT_COLOR } from "../render";
+import { sidebar } from "../../sidebar";
 import { groupRegistry } from "./groupRegistry";
-import { syncTransformerSelection } from "./textool/transformer";
-import type { Page } from "../../types";
+import { syncTransformerSelection } from "../textool/transformer";
+import type { Page } from "../../../types";
 
 // ── Clear groups (called before re-render) ──
 

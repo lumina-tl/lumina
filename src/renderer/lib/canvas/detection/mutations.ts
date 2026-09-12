@@ -2,10 +2,10 @@
  * Deletion splices the array and re-renders: badge numbers (T1, B2, ...) are
  * derived from array index, so they renumber automatically.
  */
-import { state } from "../state";
-import { canvas } from "./index";
-import { sidebar } from "../sidebar";
-import { history } from "../history";
+import { state } from "../../state";
+import { canvas } from "../index";
+import { sidebar } from "../../sidebar";
+import { history } from "../../history";
 
 // Deletion splices the array and re-renders: badge numbers (T1, B2, ...) are
 // derived from array index, so they renumber automatically.

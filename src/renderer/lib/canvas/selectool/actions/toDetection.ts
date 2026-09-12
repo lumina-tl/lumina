@@ -7,7 +7,7 @@ import { state } from "../../../state";
 import { history } from "../../../history";
 import { canvas } from "../../index";
 import { sidebar } from "../../../sidebar";
-import { tools } from "../../../tools";
+import { tools } from "../../../ui/tools";
 import { defaultTypography, loadGlobalTypography } from "../../../../types";
 import type { PageLayer, TextDetection } from "../../../../types";
 import { selections, clearSelections, shapeAABB, isHoleShape } from "../shared";

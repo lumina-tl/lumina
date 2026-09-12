@@ -1,14 +1,14 @@
 /* ── Lumina Canvas — Detection group factories & bbox sync helpers ── */
 import Konva from "konva";
-import { state, CONST } from "../state";
-import { canvas } from "./index";
-import { contextMenu, type MenuItem } from "../ui/context-menu";
-import { history } from "../history";
-import { sidebar } from "../sidebar";
-import { models } from "../models";
-import { ocr } from "../pipeline/ocr";
-import * as i18n from "../i18n";
-import type { BBox, TextDetection } from "../../types";
+import { state, CONST } from "../../state";
+import { canvas } from "../index";
+import { contextMenu, type MenuItem } from "../../ui/context-menu";
+import { history } from "../../history";
+import { sidebar } from "../../sidebar";
+import { models } from "../../models";
+import { ocr } from "../../pipeline/ocr";
+import * as i18n from "../../i18n";
+import type { BBox, TextDetection } from "../../../types";
 import { groupRegistry } from "./groupRegistry";
 import { applyTextSelection } from "./selection";
 
