@@ -3,7 +3,7 @@ import * as i18n from "../i18n";
 import { canvas } from "../canvas/index";
 import { sidebar } from "../sidebar";
 import { shortcutsTab } from "./shortcutsTab";
-import * as autosave from "../autosave";
+import * as autosave from "../project/autosave";
 import { getOcrNormalizeMode, setOcrNormalizeMode } from "../pipeline/textNorm";
 
 export const generalTab = {

@@ -4,7 +4,7 @@ import Konva from "konva";
 import { canvas } from "../canvas/index";
 import { makeNode } from "../canvas/textool/nodeFactory";
 import { ensureCleanupCanvas } from "../canvas/paintool/shared";
-import * as pageImages from "../pageImages";
+import * as pageImages from "../project/page-images";
 import type { Page } from "../../types";
 import { st } from "./state";
 

@@ -23,16 +23,16 @@ import "./lib/canvas/masks";
 import { bindTextTool } from "./lib/canvas/textool";
 import { bindSelectTool } from "./lib/canvas/selectool";
 import { bindPaintTool } from "./lib/canvas/paintool";
-import { initPaintOptions } from "./lib/paintOptions";
+import { initPaintOptions } from "./lib/canvas/paintool/options";
 import { loadSystemFonts } from "./lib/utils/font-loader";
 import { createIcons } from "./lib/ui/icons";
 import { project, handleCloseRequest } from "./lib/project";
 import * as exportModule from "./lib/export";
-import * as autosave from "./lib/autosave";
-import * as landing from "./lib/landing";
-import { importImages, openImagePaths } from "./lib/page-loader";
-import { initAutoUpdate } from "./lib/auto-update";
-import { updateDirtyUI, setDirtyListener } from "./lib/dirty";
+import * as autosave from "./lib/project/autosave";
+import * as landing from "./lib/ui/landing";
+import { importImages, openImagePaths } from "./lib/project/page-loader";
+import { initAutoUpdate } from "./lib/ui/auto-update";
+import { updateDirtyUI, setDirtyListener } from "./lib/project/dirty";
 
 // Expose for page strip "+" button
 setRendererImport(importImages);

@@ -7,7 +7,7 @@ import { state } from "./state";
 import { canvas } from "./canvas/index";
 import { invalidateComposite } from "./canvas/render";
 import { sidebar } from "./sidebar";
-import { markDirty } from "./dirty";
+import { markDirty } from "./project/dirty";
 import { hydrateCleanupCanvas } from "./canvas/paintool/shared";
 import type { Page } from "../types";
 

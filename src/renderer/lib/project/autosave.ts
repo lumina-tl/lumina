@@ -5,10 +5,10 @@
  * save is always manual so the user picks a location — auto-save never
  * pops the dialog).
  */
-import { state } from "./state";
+import { state } from "../state";
 import { isDirty, getSavePath } from "./dirty";
-import { models } from "./models";
-import { project } from "./project";
+import { models } from "../models";
+import { project } from ".";
 
 export interface AutoSaveConfig {
   enabled: boolean;

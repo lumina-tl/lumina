@@ -4,14 +4,14 @@ import * as i18n from "../i18n";
 import { ui } from "../ui";
 import { canvas } from "./index";
 import { invalidateComposite } from "./render";
-import * as pageImages from "../pageImages";
+import * as pageImages from "../project/page-images";
 import { hydrateCleanupCanvas } from "./paintool/shared";
 import { hydrateMaskImages } from "../history";
 import { sidebar } from "../sidebar";
 import { history } from "../history";
 import { createIcons } from "../ui/icons";
-import * as landing from "../landing";
-import { isDirty, markDirty } from "../dirty";
+import * as landing from "../ui/landing";
+import { isDirty, markDirty } from "../project/dirty";
 import type { Page } from "../../types";
 
 /** Render page strip thumbnails */

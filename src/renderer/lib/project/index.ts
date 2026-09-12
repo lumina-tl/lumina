@@ -5,19 +5,19 @@
  * Open is orchestrated in renderer.ts (it rebuilds the UI); this module
  * owns the payload + save/saveAs + dirty tracking.
  */
-import { state } from "./state";
-import * as i18n from "./i18n";
-import { ui } from "./ui";
-import { history, hydrateMaskImages } from "./history";
-import { hydrateCleanupCanvas } from "./canvas/paintool/shared";
-import { pendingCommit } from "./canvas/paintool/commit";
-import { canvas } from "./canvas/index";
-import * as pageImages from "./pageImages";
-import { sidebar } from "./sidebar";
-import { models } from "./models";
-import { translateSettings } from "./pipeline/translate";
-import * as landing from "./landing";
-import type { TranslateConfig } from "./pipeline/translate";
+import { state } from "../state";
+import * as i18n from "../i18n";
+import { ui } from "../ui";
+import { history, hydrateMaskImages } from "../history";
+import { hydrateCleanupCanvas } from "../canvas/paintool/shared";
+import { pendingCommit } from "../canvas/paintool/commit";
+import { canvas } from "../canvas/index";
+import * as pageImages from "./page-images";
+import { sidebar } from "../sidebar";
+import { models } from "../models";
+import { translateSettings } from "../pipeline/translate";
+import * as landing from "../ui/landing";
+import type { TranslateConfig } from "../pipeline/translate";
 import {
   getSavePath,
   setSavePath,
@@ -25,7 +25,11 @@ import {
   isDirty,
   markDirty,
 } from "./dirty";
-import type { Page, ProjectSavePayload, ProjectSettingsData } from "../types";
+import type {
+  Page,
+  ProjectSavePayload,
+  ProjectSettingsData,
+} from "../../types";
 
 function _basename(p: string): string {
   return p.split(/[\\/]/).pop() as string;

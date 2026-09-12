@@ -12,11 +12,11 @@ import {
   setPaintTolerance,
   setPaintContiguous,
   resetPaintSettings,
-} from "./canvas/paintool/shared";
-import { clearSprite } from "./canvas/paintool/strokes";
-import { syncOptionsBar } from "./canvas/paintool/index";
-import { wireSlider } from "./ui/slider";
-import { state } from "./state";
+} from "./shared";
+import { clearSprite } from "./strokes";
+import { syncOptionsBar } from ".";
+import { wireSlider } from "../../ui/slider";
+import { state } from "../../state";
 
 export function initPaintOptions(): void {
   const el = document.getElementById("paint-options");

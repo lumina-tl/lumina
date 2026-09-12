@@ -3,9 +3,9 @@
  * Click → download (progress reuses the model-download bar),
  * click again once downloaded → install & relaunch.
  */
-import * as i18n from "./i18n";
-import { ui } from "./ui";
-import { createIcons } from "./ui/icons";
+import * as i18n from "../i18n";
+import { ui } from ".";
+import { createIcons } from "./icons";
 
 type UpdateState =
   | "checking"

@@ -1,14 +1,14 @@
 /* ── Lumina Page Loader ── */
-import * as L from "./state";
-import * as pageImages from "./pageImages";
-import { canvas } from "./canvas/index";
-import { ui } from "./ui";
-import { sidebar } from "./sidebar";
-import { history } from "./history";
-import { project } from "./project";
-import * as landing from "./landing";
-import { models } from "./models";
-import type { Page } from "../types";
+import * as L from "../state";
+import * as pageImages from "./page-images";
+import { canvas } from "../canvas/index";
+import { ui } from "../ui";
+import { sidebar } from "../sidebar";
+import { history } from "../history";
+import { project } from ".";
+import * as landing from "../ui/landing";
+import { models } from "../models";
+import type { Page } from "../../types";
 
 /** Convert a raw Windows/POSIX file path into a valid file:// URL */
 function _toFileUrl(p: string): string {

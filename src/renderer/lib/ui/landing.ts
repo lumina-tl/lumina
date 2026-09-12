@@ -7,9 +7,9 @@
  *  - init() — first paint (app start)
  *  - show() — every time the landing reappears (fresh recents + labels)
  */
-import * as i18n from "./i18n";
-import { createIcons } from "./ui/icons";
-import type { RecentsData } from "../types";
+import * as i18n from "../i18n";
+import { createIcons } from "./icons";
+import type { RecentsData } from "../../types";
 
 export interface LandingHandlers {
   /** Open the native multi-image import dialog (page-strip "+" flow) */

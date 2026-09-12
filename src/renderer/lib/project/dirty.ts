@@ -3,7 +3,7 @@
  * mutations flow through); project.ts clears it after save/open. A single
  * listener (wired in renderer.ts) updates the status bar + window title.
  */
-import { state } from "./state";
+import { state } from "../state";
 
 let _dirty = false;
 let _savePath: string | null = null;

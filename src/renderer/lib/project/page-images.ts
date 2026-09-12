@@ -9,7 +9,7 @@
  * full-res bitmap is never materialized for a thumbnail. Pages visited later
  * reuse it, so the strip never decodes full-res images twice.
  */
-import type { Page } from "../types";
+import type { Page } from "../../types";
 
 /** Max decoded page bitmaps held outside the active page. */
 const MAX_CACHED = 2;
