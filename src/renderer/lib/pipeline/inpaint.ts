@@ -11,6 +11,7 @@ import { canvas } from "../canvas/index";
 import { invalidateComposite } from "../canvas/render";
 import { sidebar } from "../sidebar";
 import { models } from "../models";
+import { log } from "../logger";
 import type { BBox, InpaintMask } from "../../types";
 
 /** Convert a Windows path to a loadable file:// URL */
@@ -98,7 +99,7 @@ export const inpaint = {
         3000,
       );
     } catch (err) {
-      console.error("Inpaint error:", err);
+      log.error("fe", `Inpaint: ${err}`);
       ui.dismissToast(loadingToast);
       ui.toast(
         (err as Error).message || i18n.t("toast.inpaintFailed"),

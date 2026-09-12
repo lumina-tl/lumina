@@ -13,6 +13,7 @@ import {
 } from "../../shared/bridge";
 import { CACHE_DIR } from "../backend/cache";
 import { handle, windowFromEvent } from "../core/ipc";
+import { log } from "../core/logger";
 import { recordRecent } from "./recents";
 import { zipRead, zipWrite } from "./zip";
 
@@ -96,7 +97,7 @@ async function handleSave(
         data: fs.readFileSync(p.filePath),
       });
     } catch {
-      console.warn(`[Lumina] Skipping missing source image: ${p.filePath}`);
+      log.warn(`Skipping missing source image: ${p.filePath}`);
     }
     p.inpaintMasks.forEach((m, j) => {
       try {
@@ -105,7 +106,7 @@ async function handleSave(
           data: fs.readFileSync(m.imagePath),
         });
       } catch {
-        console.warn(`[Lumina] Skipping missing patch: ${m.imagePath}`);
+        log.warn(`Skipping missing patch: ${m.imagePath}`);
       }
     });
     if (p.cleanupMask?.imagePath) {
@@ -115,16 +116,14 @@ async function handleSave(
           data: fs.readFileSync(p.cleanupMask.imagePath),
         });
       } catch {
-        console.warn(
-          `[Lumina] Skipping missing cleanup PNG: ${p.cleanupMask.imagePath}`,
-        );
+        log.warn(`Skipping missing cleanup PNG: ${p.cleanupMask.imagePath}`);
       }
     }
   });
 
   fs.writeFileSync(savePath, zipWrite(entries));
-  console.log(
-    `[Lumina] Project saved: ${savePath} (${pages.length} page(s), ${entries.length} file(s))`,
+  log.info(
+    `Project saved: ${savePath} (${pages.length} page(s), ${entries.length} file(s))`,
   );
   recordRecent("project", savePath);
   return { path: savePath, canceled: false };
@@ -191,7 +190,7 @@ async function handleOpen(
     };
   });
 
-  console.log(`[Lumina] Project opened: ${zipPath} (${pages.length} page(s))`);
+  log.info(`Project opened: ${zipPath} (${pages.length} page(s))`);
   recordRecent("project", zipPath);
   return {
     projectPath: zipPath,

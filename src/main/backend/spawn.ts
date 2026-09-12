@@ -9,10 +9,26 @@ import { activeOrtDir } from "../models/runtime/variant";
 import { BACKEND_PORT } from "./client";
 import { CACHE_DIR, clearSessionCache } from "./cache";
 import { loadEnvFile } from "./env";
+import { log } from "../core/logger";
 
 loadEnvFile();
 
 let pythonProcess: ChildProcess | null = null;
+
+/** Forward a Python subprocess line, stripping library prefixes like "INFO:". */
+function forwardPyLine(line: string): void {
+  const m = line.match(/^(DEBUG|INFO|WARNING|ERROR|CRITICAL):\s*(.*)/);
+  if (m) {
+    const lvl = m[1].toLowerCase();
+    const msg = m[2];
+    if (lvl === "debug") log.debug(msg, "py");
+    else if (lvl === "warning") log.warn(msg, "py");
+    else if (lvl === "error" || lvl === "critical") log.error(msg, "py");
+    else log.info(msg, "py");
+  } else {
+    log.info(line, "py");
+  }
+}
 
 interface PythonLaunch {
   dir: string;
@@ -59,7 +75,7 @@ function waitForHealth(
   }
   const req = http.get(`http://127.0.0.1:${BACKEND_PORT}/health`, (res) => {
     if (res.statusCode === 200) {
-      console.log("[Lumina] Python backend is ready");
+      log.info("Python backend is ready");
       resolve();
     } else {
       setTimeout(() => waitForHealth(resolve, reject, retries - 1), 500);
@@ -75,7 +91,7 @@ export function spawnBackend(): Promise<void> {
   return new Promise((resolve, reject) => {
     const launch = resolveLaunch();
     const modelsDir = resolveModelsDir().path;
-    console.log(`[Lumina] Starting Python backend at ${launch.entry}`);
+    log.info(`Starting Python backend at ${launch.entry}`);
     pythonProcess = spawn(
       launch.executable,
       [launch.entry, "--port", String(BACKEND_PORT)],
@@ -95,17 +111,17 @@ export function spawnBackend(): Promise<void> {
     );
 
     pythonProcess.stdout?.on("data", (data: Buffer) => {
-      console.log(`[Python] ${data.toString().trim()}`);
+      forwardPyLine(data.toString().trim());
     });
     pythonProcess.stderr?.on("data", (data: Buffer) => {
-      console.log(`[Python stderr] ${data.toString().trim()}`);
+      forwardPyLine(data.toString().trim());
     });
     pythonProcess.on("error", (err) => {
-      console.error("[Lumina] Failed to start Python backend:", err.message);
+      log.error(`Failed to start Python backend: ${err.message}`);
       reject(err);
     });
     pythonProcess.on("exit", (code) => {
-      console.log(`[Lumina] Python backend exited with code ${code}`);
+      log.info(`Python backend exited with code ${code}`);
     });
 
     waitForHealth(resolve, reject, 30);
@@ -116,7 +132,7 @@ export function stopBackend(): void {
   if (pythonProcess) {
     pythonProcess.kill();
     pythonProcess = null;
-    console.log("[Lumina] Python backend stopped");
+    log.info("Python backend stopped");
   }
   clearSessionCache();
 }

@@ -8,6 +8,7 @@ import { sidebar } from "../sidebar";
 import { models } from "../models";
 import type { DetectResult, PageLayer, TextDetection } from "../../types";
 import { sortReadingOrder } from "../utils/reading-order";
+import { log } from "../logger";
 import { defaultTypography, loadGlobalTypography } from "../../types";
 import { assignBubbleFitBoxes } from "../utils/bubble-box";
 
@@ -117,8 +118,7 @@ export const detection = {
         3000,
       );
     } catch (err) {
-      console.error("Detection error:", err);
-      if (err && (err as Error).stack) console.error((err as Error).stack);
+      log.error("fe", `Detection: ${err}`);
       ui.dismissToast(loadingToast);
       ui.toast((err as Error).message || i18n.t("toast.detectFailed"), "error");
     } finally {
@@ -156,7 +156,7 @@ export const detection = {
         );
         page.maskPath = result.maskPath ?? null;
       } catch (err) {
-        console.error("Detection error page " + (i + 1) + ":", err);
+        log.error("fe", `Detection page ${i + 1}: ${err}`);
       }
     }
 

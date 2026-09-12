@@ -30,6 +30,7 @@ import { registerRecentHandlers } from "./library/recents";
 import { registerProjectHandlers } from "./library/project";
 import { registerExportHandlers } from "./library/export";
 import { registerTempCacheHandlers } from "./library/temp-cache";
+import { registerLogHandler } from "./core/logger";
 
 /** Wire all IPC handlers for a new window. */
 function registerAll(win: BrowserWindow): void {
@@ -59,6 +60,7 @@ onDownloadBusyChange((busy) => send(getWindow(), IPC.runtimeBusy, busy));
 
 app.whenReady().then(async () => {
   Menu.setApplicationMenu(null);
+  registerLogHandler();
 
   const gotLock = app.requestSingleInstanceLock();
   if (!gotLock) {

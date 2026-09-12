@@ -12,6 +12,7 @@ import { models } from "../models";
 import { translateSettings } from "../pipeline/translate";
 import * as landing from "../ui/landing";
 import type { TranslateConfig } from "../pipeline/translate";
+import { log } from "../logger";
 import {
   getSavePath,
   setSavePath,
@@ -147,7 +148,7 @@ export const project = {
       }
       return true;
     } catch (e) {
-      console.error("[Lumina] Save failed:", e);
+      log.error("fe", `Save failed: ${e}`);
       if (!opts?.silent) ui.toast(i18n.t("project.saveError"), "error", 4000);
       return false;
     }
@@ -184,7 +185,7 @@ export const project = {
     try {
       result = await window.lumina.openProject(path);
     } catch (e) {
-      console.error("[Lumina] Open failed:", e);
+      log.error("fe", `Open failed: ${e}`);
       ui.toast(i18n.t("project.openError"), "error", 4000);
       return;
     }

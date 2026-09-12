@@ -61,6 +61,9 @@ export const IPC = {
   updateProgress: "update-progress",
   openUpdateUrl: "open-update-url",
 
+  // Logging
+  log: "log",
+
   // CUDA runtime
   runtimeStatus: "runtime-status",
   runtimeProgress: "runtime-progress",

@@ -9,6 +9,7 @@ import {
   type ExportResult,
 } from "../../shared/bridge";
 import { handle, windowFromEvent } from "../core/ipc";
+import { log } from "../core/logger";
 
 async function handleExport(
   event: IpcMainInvokeEvent,
@@ -31,9 +32,7 @@ async function handleExport(
     fs.writeFileSync(path.join(dir, base + ext), Buffer.from(f.data));
     written++;
   }
-  console.log(
-    `[Lumina] Export done: ${dir} (${written} file(s), ${payload.format})`,
-  );
+  log.info(`Export done: ${dir} (${written} file(s), ${payload.format})`);
   return { canceled: false, dir, count: written };
 }
 

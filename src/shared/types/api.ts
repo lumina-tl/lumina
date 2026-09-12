@@ -17,6 +17,7 @@ import type {
 } from "./misc";
 import type { RecentsData } from "./recent";
 import type { RuntimeInfo, RuntimeProgress } from "./runtime";
+import type { LogLevel } from "../logger";
 
 export interface LuminaAPI {
   importImage(): Promise<string | null>;
@@ -58,6 +59,7 @@ export interface LuminaAPI {
   onRuntimeProgress(cb: (msg: RuntimeProgress) => void): void;
   onRuntimeBusy(cb: (busy: boolean) => void): void;
   onCheckModel(cb: () => void): void;
+  log(level: LogLevel, tag: string, msg: string): void;
 }
 
 declare global {

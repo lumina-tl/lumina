@@ -2,6 +2,7 @@
 import { history } from "../../../history";
 import { ui } from "../../../ui";
 import * as i18n from "../../../i18n";
+import { log } from "../../../logger";
 import { canvas } from "../../index";
 import { ensureCleanupCanvas } from "./shared";
 import type { Page } from "../../../../types";
@@ -50,7 +51,7 @@ export async function commitStroke(
     canvas.render();
     history.snapshot();
   } catch (e) {
-    console.error("[Lumina] Failed to persist cleanup stroke:", e);
+    log.error("fe", `Failed to persist cleanup stroke: ${e}`);
     ui.toast(i18n.t("toast.paintSaveFailed"), "error");
   }
 }

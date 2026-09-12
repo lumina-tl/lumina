@@ -8,6 +8,7 @@ import { sidebar } from "../sidebar";
 import { models } from "../models";
 import { normalizeAutoText } from "./text-norm";
 import type { OcrResult } from "../../types";
+import { log } from "../logger";
 
 export const ocr = {
   /** Run OCR on all text detections of the active page */
@@ -62,7 +63,7 @@ export const ocr = {
         3000,
       );
     } catch (err) {
-      console.error("OCR error:", err);
+      log.error("fe", `OCR: ${err}`);
       ui.dismissToast(loadingToast);
       ui.toast((err as Error).message || i18n.t("toast.ocrFailed"), "error");
     } finally {
@@ -148,7 +149,7 @@ export const ocr = {
         3000,
       );
     } catch (err) {
-      console.error("OCR error:", err);
+      log.error("fe", `OCR boxes: ${err}`);
       ui.dismissToast(loadingToast);
       ui.toast((err as Error).message || i18n.t("toast.ocrFailed"), "error");
     } finally {

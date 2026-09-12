@@ -68,6 +68,9 @@ const api: LuminaAPI = {
   onCheckModel: (cb) => {
     on(IPC.checkModel, cb);
   },
+  log: (level, tag, msg) => {
+    ipcRenderer.send(IPC.log, level, tag, msg);
+  },
 };
 
 contextBridge.exposeInMainWorld("lumina", api);

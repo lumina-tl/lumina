@@ -2,12 +2,31 @@
 from __future__ import annotations
 
 import os
+import sys
 import threading
 from datetime import datetime
 
 _LEVELS: dict[str, int] = {"debug": 10, "info": 20, "warn": 30, "error": 40}
 _current = _LEVELS.get(os.environ.get("LUMINA_LOG_LEVEL", "info").lower(), 20)
 _lock = threading.Lock()
+_is_subprocess = not sys.stdout.isatty()
+
+# Enable ANSI colors on Windows 10+.
+if sys.platform == "win32":
+    try:
+        import ctypes
+        kernel32 = ctypes.windll.kernel32
+        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+    except Exception:
+        pass
+
+_COLORS: dict[str, str] = {
+    "debug": "\x1b[90m",   # gray
+    "info": "",              # normal white
+    "warn": "\x1b[33m",     # yellow
+    "error": "\x1b[31m",    # red
+}
+_RESET = "\x1b[0m"
 
 
 def set_level(name: str) -> None:
@@ -19,9 +38,15 @@ def set_level(name: str) -> None:
 def _emit(level: str, level_no: int, msg: str) -> None:
     if level_no < _current:
         return
-    ts = datetime.now().strftime("%H:%M:%S")
     with _lock:
-        print(f"[Lumina] [{ts}] [{level.upper()}] {msg}", flush=True)
+        if _is_subprocess:
+            # Raw — main process handles formatting.
+            print(msg, flush=True)
+        else:
+            ts = datetime.now().strftime("%H:%M:%S")
+            color = _COLORS.get(level, "")
+            level_str = level.upper().ljust(5)
+            print(f"{color}[{ts}] [{level_str}] [py] {msg}{_RESET}", flush=True)
 
 
 class _Log:

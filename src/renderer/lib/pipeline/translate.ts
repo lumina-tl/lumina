@@ -10,6 +10,7 @@ import { canvas } from "../canvas/index";
 import { sidebar } from "../sidebar";
 import { normalizeAutoText } from "./text-norm";
 import type { TextDetection } from "../../types";
+import { log } from "../logger";
 
 const STORAGE_KEY = "lumina-translate";
 
@@ -93,12 +94,14 @@ export const translateSettings = {
       if (cfg.grokApiKey) window.lumina.setSecret("grokApiKey", cfg.grokApiKey);
       if (cfg.geminiApiKey)
         window.lumina.setSecret("geminiApiKey", cfg.geminiApiKey);
-      console.log(
-        `[Lumina] secrets save: custom=${cfg.llmApiKey ? "set" : "empty"} openrouter=${cfg.openrouterApiKey ? "set" : "empty"} grok=${cfg.grokApiKey ? "set" : "empty"} gemini=${cfg.geminiApiKey ? "set" : "empty"}`,
+      log.debug(
+        "fe",
+        `secrets save: custom=${cfg.llmApiKey ? "set" : "empty"} openrouter=${cfg.openrouterApiKey ? "set" : "empty"} grok=${cfg.grokApiKey ? "set" : "empty"} gemini=${cfg.geminiApiKey ? "set" : "empty"}`,
       );
     } else {
-      console.warn(
-        "[Lumina] window.lumina.setSecret MISSING — preload not rebuilt? Keys NOT saved",
+      log.warn(
+        "fe",
+        "window.lumina.setSecret MISSING — preload not rebuilt? Keys NOT saved",
       );
     }
   },
@@ -129,8 +132,9 @@ export const translateSettings = {
         const val = secrets[vaultKey] || "";
         // vaultKey is always a valid TranslateConfig key
         cfg[vaultKey as keyof TranslateConfig] = val as never;
-        console.log(
-          `[Lumina] secrets load: provider=${cfg.provider} ${vaultKey}=${val ? "set" : "empty"}`,
+        log.debug(
+          "fe",
+          `secrets load: provider=${cfg.provider} ${vaultKey}=${val ? "set" : "empty"}`,
         );
       } catch {
         /* vault unavailable — proceed with empty keys */
@@ -218,7 +222,7 @@ export const translate = {
         3000,
       );
     } catch (err) {
-      console.error("Translate error:", err);
+      log.error("fe", `Translate: ${err}`);
       ui.dismissToast(loadingToast);
       ui.toast((err as Error).message || i18n.t("toast.trFailed"), "error");
     } finally {
@@ -284,7 +288,7 @@ export const translate = {
       ui.dismissToast(loadingToast);
       ui.toast(i18n.t("toast.trDone", { count: 1 }), "success", 3000);
     } catch (err) {
-      console.error("Retranslate error:", err);
+      log.error("fe", `Retranslate: ${err}`);
       ui.dismissToast(loadingToast);
       ui.toast((err as Error).message || i18n.t("toast.trFailed"), "error");
     } finally {

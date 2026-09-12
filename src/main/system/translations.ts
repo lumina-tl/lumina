@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { IPC } from "../../shared/bridge";
 import { handle } from "../core/ipc";
+import { log } from "../core/logger";
 import { MAIN_DIR } from "../core/paths";
 import { backendSourceDir } from "../core/paths";
 
@@ -17,7 +18,7 @@ function loadAll(): Record<string, Record<string, string>> {
       );
     }
   } catch (err) {
-    console.error("Failed to load translations:", err);
+    log.error(`Failed to load translations: ${err}`);
   }
   return out;
 }

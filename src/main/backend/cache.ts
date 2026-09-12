@@ -2,6 +2,7 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
+import { log } from "../core/logger";
 
 export const CACHE_DIR = path.join(os.tmpdir(), "lumina");
 
@@ -51,22 +52,20 @@ function clearCache(reason: string, skipOpenDirs = false): void {
           fs.unlinkSync(full);
         }
       } catch (err) {
-        console.warn(`[Lumina] Failed to remove cache entry ${full}:`, err);
+        log.warn(`Failed to remove cache entry ${full}: ${err}`);
       }
     }
   }
   if (files > 0) {
     const mb = (bytes / 1024 / 1024).toFixed(1);
-    console.log(
-      `[Lumina] Cache cleaned (${reason}): ${files} file(s), ${mb} MB`,
-    );
+    log.info(`Cache cleaned (${reason}): ${files} file(s), ${mb} MB`);
   }
   fs.mkdirSync(CACHE_DIR, { recursive: true });
 }
 
 /** Called once at startup — wipes leftovers from a previous crashed session. */
 export function prepareCache(): void {
-  console.log(`[Lumina] Cache dir: ${CACHE_DIR}`);
+  log.info(`Cache dir: ${CACHE_DIR}`);
   clearCache("previous session leftovers");
 }
 
