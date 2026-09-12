@@ -2,7 +2,7 @@
 import { state } from "./state";
 import * as i18n from "./i18n";
 import { canvas } from "./canvas/index";
-import { createIcons } from "./icons";
+import { createIcons } from "./ui/icons";
 import { paintSettings, setPaintSize } from "./canvas/paintool/shared";
 
 interface ToolItem {

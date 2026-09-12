@@ -1,5 +1,5 @@
 /* ── Lumina Context Menu ── */
-import * as i18n from "./i18n";
+import * as i18n from "../i18n";
 
 export interface MenuItem {
   /** i18n key of the row label — used when `label` is not given. */

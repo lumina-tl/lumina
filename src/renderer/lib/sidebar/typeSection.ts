@@ -6,7 +6,7 @@ import { state } from "../state";
 import * as i18n from "../i18n";
 import { canvas } from "../canvas/index";
 import { history } from "../history";
-import { internalFontName } from "../fontLoader";
+import { internalFontName } from "../utils/font-loader";
 import { loadGlobalTypography, saveGlobalTypography } from "../../types";
 import type { Page, PageLayer, Typography } from "../../types";
 

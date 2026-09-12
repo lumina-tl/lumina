@@ -12,7 +12,7 @@
 import { state } from "../../state";
 import { canvas } from "../index";
 import { tools } from "../../tools";
-import { setSliderFill } from "../../slider";
+import { setSliderFill } from "../../ui/slider";
 import { setPaintColor, stageToImg, paintSettings } from "./shared";
 import { isPaintTool } from "./guard";
 import { sampleComposite } from "./sampler";

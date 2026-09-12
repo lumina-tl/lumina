@@ -13,7 +13,7 @@ import type { PageLayer, TextDetection } from "../../../../types";
 import { selections, clearSelections, shapeAABB, isHoleShape } from "../shared";
 import { refreshOverlay } from "../render";
 import { hideContextBar } from "../contextBar";
-import { sortReadingOrder } from "../../../readingOrder";
+import { sortReadingOrder } from "../../../utils/reading-order";
 
 export function toDetection(): void {
   const page = state.getActivePage();

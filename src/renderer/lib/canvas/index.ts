@@ -2,7 +2,7 @@
 import Konva from "konva";
 import { state } from "../state";
 import { ui } from "../ui";
-import { contextMenu } from "../contextMenu";
+import { contextMenu } from "../ui/context-menu";
 
 /**
  * Canvas modules:

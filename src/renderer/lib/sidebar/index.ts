@@ -1,7 +1,7 @@
 /* ── Lumina Sidebar (entry) — koharu-style Type + Layers|Masks panels ── */
 import { state } from "../state";
 import * as i18n from "../i18n";
-import { createIcons } from "../icons";
+import { createIcons } from "../ui/icons";
 import type { Page } from "../../types";
 import { layerListHTML, wireEvents } from "./layerList";
 import { maskListHTML, wireMaskEvents } from "./maskList";

@@ -2,7 +2,7 @@
 import * as i18n from "../i18n";
 import { ui } from "../ui";
 import { shortcuts } from "../shortcuts";
-import { createIcons } from "../icons";
+import { createIcons } from "../ui/icons";
 
 type ActionId = Parameters<typeof shortcuts.get>[0] extends infer A ? A : never;
 

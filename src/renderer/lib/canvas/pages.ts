@@ -9,7 +9,7 @@ import { hydrateCleanupCanvas } from "./paintool/shared";
 import { hydrateMaskImages } from "../history";
 import { sidebar } from "../sidebar";
 import { history } from "../history";
-import { createIcons } from "../icons";
+import { createIcons } from "../ui/icons";
 import * as landing from "../landing";
 import { isDirty, markDirty } from "../dirty";
 import type { Page } from "../../types";

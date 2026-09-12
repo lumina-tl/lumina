@@ -8,7 +8,7 @@
  *  - show() — every time the landing reappears (fresh recents + labels)
  */
 import * as i18n from "./i18n";
-import { createIcons } from "./icons";
+import { createIcons } from "./ui/icons";
 import type { RecentsData } from "../types";
 
 export interface LandingHandlers {

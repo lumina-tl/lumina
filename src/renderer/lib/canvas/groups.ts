@@ -2,7 +2,7 @@
 import Konva from "konva";
 import { state, CONST } from "../state";
 import { canvas } from "./index";
-import { contextMenu, type MenuItem } from "../contextMenu";
+import { contextMenu, type MenuItem } from "../ui/context-menu";
 import { history } from "../history";
 import { sidebar } from "../sidebar";
 import { models } from "../models";

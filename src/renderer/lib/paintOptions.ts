@@ -15,7 +15,7 @@ import {
 } from "./canvas/paintool/shared";
 import { clearSprite } from "./canvas/paintool/strokes";
 import { syncOptionsBar } from "./canvas/paintool/index";
-import { wireSlider } from "./slider";
+import { wireSlider } from "./ui/slider";
 import { state } from "./state";
 
 export function initPaintOptions(): void {

@@ -9,7 +9,7 @@
  */
 import { state } from "../../state";
 import { canvas } from "../index";
-import { createIcons } from "../../icons";
+import { createIcons } from "../../ui/icons";
 import { paintSettings } from "./shared";
 import { isPaintTool } from "./guard";
 

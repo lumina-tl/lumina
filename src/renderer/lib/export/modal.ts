@@ -1,6 +1,6 @@
 /* ── Export modal window: build, wire up, close, and export. ── */
 
-import { createIcons } from "../icons";
+import { createIcons } from "../ui/icons";
 import * as i18n from "../i18n";
 import { ui } from "../ui";
 import {
@@ -11,7 +11,7 @@ import {
   centerRect,
   currentRect,
   type ModalRect,
-} from "../modalWindow";
+} from "../ui/modal-window";
 import type { ExportPayload, ExportResult } from "../../../shared/bridge";
 import { st, WINDOW_KEY, ZOOM_STEP } from "./state";
 import { ensureMaskImages, renderPage } from "./render";

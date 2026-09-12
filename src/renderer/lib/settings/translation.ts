@@ -3,7 +3,7 @@
  * use default from prompts/translate-default.md on the backend.
  */
 import * as i18n from "../i18n";
-import { createIcons } from "../icons";
+import { createIcons } from "../ui/icons";
 import { translateSettings, type TranslateConfig } from "../pipeline/translate";
 
 /** Docs tutorial on getting an API key per provider. */

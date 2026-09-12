@@ -5,7 +5,7 @@
  */
 import * as i18n from "./i18n";
 import { ui } from "./ui";
-import { createIcons } from "./icons";
+import { createIcons } from "./ui/icons";
 
 type UpdateState =
   | "checking"

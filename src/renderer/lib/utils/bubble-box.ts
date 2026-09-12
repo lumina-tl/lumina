@@ -13,7 +13,7 @@
  * split a dialogue into separate lines) is left untouched — fitting two
  * layers into the same bubble would stack them on top of each other.
  */
-import type { BBox } from "../types";
+import type { BBox } from "../../types";
 
 function centerIn(bubble: BBox, t: BBox): boolean {
   const cx = t.x + t.w / 2;

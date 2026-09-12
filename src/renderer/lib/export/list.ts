@@ -1,7 +1,7 @@
 /* ── Export sidebar list: thumbnails, add/remove/reorder + page info. ── */
 
 import { canvas } from "../canvas/index";
-import { createIcons } from "../icons";
+import { createIcons } from "../ui/icons";
 import { esc } from "../sidebar/_esc";
 import * as i18n from "../i18n";
 import { state } from "../state";

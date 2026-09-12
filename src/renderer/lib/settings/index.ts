@@ -2,7 +2,7 @@
  * Tab content is built by each tab module; index.html only holds a skeleton.
  */
 import * as i18n from "../i18n";
-import { createIcons } from "../icons";
+import { createIcons } from "../ui/icons";
 import { generalTab } from "./general";
 import { shortcutsTab } from "./shortcutsTab";
 import { translationTab } from "./translation";

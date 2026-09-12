@@ -4,7 +4,7 @@
  * 2. Rows sorted top→bottom
  * 3. Within a row, boxes sorted right→left
  */
-import type { BBox } from "../types";
+import type { BBox } from "../../types";
 
 function centerY(b: BBox): number {
   return b.y + b.h / 2;

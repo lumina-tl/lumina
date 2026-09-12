@@ -7,9 +7,9 @@ import { canvas } from "../canvas/index";
 import { sidebar } from "../sidebar";
 import { models } from "../models";
 import type { DetectResult, PageLayer, TextDetection } from "../../types";
-import { sortReadingOrder } from "../readingOrder";
+import { sortReadingOrder } from "../utils/reading-order";
 import { defaultTypography, loadGlobalTypography } from "../../types";
-import { assignBubbleFitBoxes } from "../bubbleBox";
+import { assignBubbleFitBoxes } from "../utils/bubble-box";
 
 export const detection = {
   /** Run detection on active page */

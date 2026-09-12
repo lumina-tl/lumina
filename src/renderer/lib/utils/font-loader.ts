@@ -4,7 +4,7 @@
  * FontFace with a sanitized internal family name. The renderer then uses
  * that internal name everywhere (Konva.Text, textarea styles).
  */
-import { state } from "./state";
+import { state } from "../state";
 
 /** Internal family name used in CSS/Konva for a given system font */
 export function internalFontName(family: string): string {

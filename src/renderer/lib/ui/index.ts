@@ -1,7 +1,7 @@
 /* ── Lumina UI Helpers ── */
-import { state } from "./state";
-import * as i18n from "./i18n";
-import { canvas } from "./canvas/index";
+import { state } from "../state";
+import * as i18n from "../i18n";
+import { canvas } from "../canvas/index";
 import { createIcons } from "./icons";
 
 type ToastType = "info" | "warn" | "error" | "success" | "running";
