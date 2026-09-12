@@ -30,9 +30,12 @@ import { project, handleCloseRequest } from "./lib/project";
 import * as exportModule from "./lib/export";
 import * as autosave from "./lib/autosave";
 import * as landing from "./lib/landing";
-import { isDirty, getSavePath, setDirtyListener } from "./lib/dirty";
-import * as pageImages from "./lib/pageImages";
-import type { Page } from "./types";
+import { importImages, openImagePaths } from "./lib/page-loader";
+import { initAutoUpdate } from "./lib/auto-update";
+import { updateDirtyUI, setDirtyListener } from "./lib/dirty";
+
+// Expose for page strip "+" button
+setRendererImport(importImages);
 
 // ── Model check on startup (CHECK ONLY — downloads are manual) ──
 function checkModels(): void {
@@ -43,138 +46,6 @@ function checkModels(): void {
     }
   });
 }
-
-// ── Load single image → create page ──
-/** Convert a raw Windows/POSIX file path into a valid file:// URL */
-function _toFileUrl(p: string): string {
-  if (/^file:\/\//i.test(p)) return p;
-  let norm = p.replace(/\\/g, "/");
-  if (!norm.startsWith("/")) norm = "/" + norm; // drive letter → /D:/...
-  // encodeURI handles spaces & non-ASCII but keeps # and ? — escape those
-  return "file://" + encodeURI(norm).replace(/#/g, "%23").replace(/\?/g, "%3F");
-}
-
-function _loadImageAsPage(filePath: string): Promise<Page | null> {
-  return new Promise(function (resolve) {
-    const img = new Image();
-    img.onload = function () {
-      const page: Page = {
-        filePath: filePath,
-        fileName: filePath.split(/[/\\]/).pop() as string,
-        image: img,
-        naturalWidth: img.naturalWidth,
-        naturalHeight: img.naturalHeight,
-        textDetections: [],
-        layers: [],
-        inpaintMasks: [],
-        cleanupMask: null,
-        backgroundVisible: true,
-        _selectedTextIdx: null,
-        _selectedLayerId: null,
-        _selectedMaskId: null,
-      };
-      resolve(page);
-    };
-    img.onerror = function () {
-      resolve(null);
-    };
-    img.src = _toFileUrl(filePath);
-  });
-}
-
-// ── Import: single or multi ──
-async function importImages(): Promise<void> {
-  // Try multi-file import first
-  let filePaths: string[] | null;
-  try {
-    filePaths = await window.lumina.importImages();
-  } catch (e) {
-    // Fallback: single file
-    const single = await window.lumina.importImage();
-    if (!single) return;
-    filePaths = [single];
-  }
-
-  if (!filePaths || filePaths.length === 0) return;
-  await openImagePaths(filePaths);
-}
-
-/** Import path: eager-decodes only the FIRST image, rest are lazy. */
-async function openImagePaths(filePaths: string[]): Promise<void> {
-  for (let i = 0; i < filePaths.length; i++) {
-    const fp = filePaths[i];
-    if (i === 0) {
-      const page = await _loadImageAsPage(fp);
-      if (page) L.state.addPage(page);
-    } else {
-      // Non-active pages: register immediately, decode lazily on first
-      // activation (pageImages.ensurePageImage). naturalWidth/Height come
-      // from the decoded bitmap — fill them from the next decoded page's
-      // metadata is not possible here, so probe via an Image without keeping
-      // the bitmap.
-      L.state.addPage({
-        filePath: fp,
-        fileName: fp.split(/[/\\]/).pop() as string,
-        image: null,
-        naturalWidth: 0,
-        naturalHeight: 0,
-        textDetections: [],
-        layers: [],
-        inpaintMasks: [],
-        cleanupMask: null,
-        backgroundVisible: true,
-        _selectedTextIdx: null,
-        _selectedLayerId: null,
-        _selectedMaskId: null,
-      });
-    }
-  }
-
-  // Set active to first if none selected
-  if (L.state.activePageIdx === null && L.state.pages.length > 0) {
-    L.state.setActivePage(0);
-    // Eager-decode the active page now (it must render immediately).
-    await pageImages.ensurePageImage(L.state.pages[0]);
-  }
-
-  // Fill strip thumbnails cheaply (decode at thumb size, never full-res).
-  void pageImages.preloadThumbnails(L.state.pages).then(function () {
-    canvas.renderPageStrip();
-  });
-
-  landing.hide();
-  models.setHasImage(true);
-
-  canvas._clearGroups();
-  canvas.render();
-  canvas.renderPageStrip();
-  ui.updatePageIndicator();
-  sidebar.render();
-  history.reset();
-  project.markImportedDirty();
-}
-
-// ── Project dirty indicator (status bar + window title) ──
-function updateDirtyUI(): void {
-  const el = document.getElementById("status-project");
-  const path = getSavePath();
-  const name = path ? (path.split(/[\\/]/).pop() as string) : "";
-  if (el) el.textContent = name ? (isDirty() ? name + " •" : name) : "";
-  document.title = isDirty() ? "Lumina •" : "Lumina";
-
-  const hasPages = L.state.pages.length > 0;
-  const saveBtn = document.getElementById("btn-save");
-  const saveAsBtn = document.getElementById("btn-save-as");
-  const exportBtn = document.getElementById("btn-export");
-  const exportAllBtn = document.getElementById("btn-export-all");
-  if (saveBtn) (saveBtn as HTMLButtonElement).disabled = !hasPages;
-  if (saveAsBtn) (saveAsBtn as HTMLButtonElement).disabled = !hasPages;
-  if (exportBtn) (exportBtn as HTMLButtonElement).disabled = !hasPages;
-  if (exportAllBtn) (exportAllBtn as HTMLButtonElement).disabled = !hasPages;
-}
-
-// Expose for page strip "+" button
-setRendererImport(importImages);
 
 // ── Init modules ──
 i18n.init().then(function () {
@@ -212,98 +83,7 @@ i18n.init().then(function () {
   // ── Auto-update: show an update button when a newer published version
   //    exists. Click → download (progress reuses the model-download bar),
   //    click again once downloaded → install & relaunch.
-  const btnUpdate = document.getElementById("btn-update");
-  const updateIcon = btnUpdate?.querySelector("i[data-lucide]");
-  const badge = btnUpdate?.querySelector("span");
-  let updateToast: HTMLElement | null = null;
-  let updateState:
-    | "checking"
-    | "available"
-    | "downloading"
-    | "downloaded"
-    | "error" = "checking";
-
-  function setUpdateIcon(name: string): void {
-    if (updateIcon) {
-      updateIcon.setAttribute("data-lucide", name);
-      updateIcon.className = "w-3 h-3";
-    }
-    if (createIcons)
-      createIcons({
-        nameAttr: "data-lucide",
-        attrs: {},
-        root: btnUpdate as HTMLElement,
-      });
-  }
-
-  function setUpdateButton(state: typeof updateState, title: string): void {
-    updateState = state;
-    if (!btnUpdate) return;
-    btnUpdate.hidden = state === "checking";
-    if (title) btnUpdate.title = title;
-    if (badge) badge.hidden = state !== "available" && state !== "downloaded";
-    if (state === "downloading") setUpdateIcon("loader-2");
-    else if (state === "downloaded") setUpdateIcon("download");
-    else if (state === "error") setUpdateIcon("alert-triangle");
-    else setUpdateIcon("cloud-download");
-  }
-
-  if (btnUpdate) {
-    btnUpdate.addEventListener("click", function () {
-      if (updateState === "downloaded") {
-        void window.lumina.installUpdate();
-      } else if (updateState === "available" || updateState === "error") {
-        setUpdateButton("downloading", i18n.t("update.downloading"));
-        updateToast = ui.downloadToast(i18n.t("update.downloading"));
-        void window.lumina.downloadUpdate();
-      }
-    });
-  }
-
-  window.lumina.onUpdateProgress(function (p) {
-    if (p.state === "downloading") {
-      setUpdateButton("downloading", i18n.t("update.downloading"));
-      if (!updateToast)
-        updateToast = ui.downloadToast(i18n.t("update.downloading"));
-      ui.updateDownloadToast(p.percent || 0, p.transferred || 0, p.total || 0);
-    } else if (p.state === "downloaded") {
-      if (updateToast) {
-        ui.dismissToast(updateToast as never);
-        updateToast = null;
-      }
-      const msg = i18n.t("update.downloaded", {
-        version: p.version || "",
-      });
-      ui.toast(msg, "success", 6000);
-      setUpdateButton(
-        "downloaded",
-        i18n.t("update.install", { version: p.version || "" }),
-      );
-    } else if (p.state === "error") {
-      if (updateToast) {
-        ui.dismissToast(updateToast as never);
-        updateToast = null;
-      }
-      ui.toast(i18n.t("update.downloadError"), "error", 8000);
-      setUpdateButton("error", i18n.t("update.retry"));
-    }
-  });
-
-  window.lumina
-    .checkForUpdates()
-    .then(function (res) {
-      if (!res.available) {
-        setUpdateButton("checking", "");
-        return;
-      }
-      setUpdateButton(
-        "available",
-        i18n.t("update.available", { version: res.latest || "" }),
-      );
-    })
-    .catch(function () {
-      setUpdateButton("checking", "");
-    });
+  initAutoUpdate();
 
   document.getElementById("btn-detect")!.addEventListener("click", function () {
     pipeline.runDetection();
