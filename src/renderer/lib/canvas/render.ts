@@ -150,6 +150,56 @@ export function blitCleanupIntoComposite(
   ctx.globalAlpha = 1;
 }
 
+/** Re-composite a cleanup region (eraser drag fast-path).
+ *  Unlike blitCleanupIntoComposite, this redraws bg + inpaint + cleanup
+ *  inside the rect so that erased (transparent) pixels are reflected. */
+export function recompositeCleanupRegion(
+  page: ReturnType<typeof state.getActivePage>,
+  rect: { x: number; y: number; w: number; h: number },
+): void {
+  const cache = state._compositeCache;
+  const cc = page?.cleanupMask?.cleanupCanvas;
+  if (!page || !cache || !cc || !page.cleanupMask?.visible) return;
+  const img = page.image;
+  if (!img) return;
+  const x = Math.max(0, Math.floor(rect.x));
+  const y = Math.max(0, Math.floor(rect.y));
+  const w = Math.min(page.naturalWidth - x, Math.ceil(rect.w));
+  const h = Math.min(page.naturalHeight - y, Math.ceil(rect.h));
+  if (w <= 0 || h <= 0) return;
+  const ctx = cache.canvas.getContext("2d")!;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+  // 1. background image
+  if (page.backgroundVisible !== false)
+    ctx.drawImage(img, 0, 0, page.naturalWidth, page.naturalHeight);
+  else ctx.clearRect(x, y, w, h);
+  // 2. inpaint masks
+  for (const m of page.inpaintMasks || []) {
+    if (!m.visible || !m.image) continue;
+    ctx.globalAlpha = m.opacity;
+    ctx.drawImage(
+      m.image,
+      0,
+      0,
+      m.image.naturalWidth || m.image.width,
+      m.image.naturalHeight || m.image.height,
+      Math.round(m.bbox.x),
+      Math.round(m.bbox.y),
+      Math.round(m.bbox.w),
+      Math.round(m.bbox.h),
+    );
+    ctx.globalAlpha = 1;
+  }
+  // 3. cleanup overlay
+  ctx.globalAlpha = page.cleanupMask.opacity;
+  ctx.drawImage(cc, 0, 0, page.naturalWidth, page.naturalHeight);
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
 /** Destroy main-layer children (prevent Konva node leaks). */
 function _destroyLayerChildren(): void {
   if (!_layer) return;

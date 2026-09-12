@@ -1,7 +1,11 @@
 /** Brush/eraser drag stroke — stamps along pointer path, then commits. */
 import type { Page } from "../../../../types";
 import { canvas } from "../../index";
-import { markSourcesDirty, blitCleanupIntoComposite } from "../../render";
+import {
+  markSourcesDirty,
+  blitCleanupIntoComposite,
+  recompositeCleanupRegion,
+} from "../../render";
 import {
   ensureCleanupMask,
   ensureCleanupCanvas,
@@ -64,7 +68,10 @@ export function handleStroke(
       _dirtyRect.w = Math.max(_dirtyRect.w, p.x + m - _dirtyRect.x);
       _dirtyRect.h = Math.max(_dirtyRect.h, p.y + m - _dirtyRect.y);
     }
-    blitCleanupIntoComposite(page, _dirtyRect!);
+    // Eraser removes pixels — blit (source-over) can't reflect that, so
+    // re-composite bg + inpaint + cleanup for the dirty region instead.
+    if (_mode === "eraser") recompositeCleanupRegion(page, _dirtyRect!);
+    else blitCleanupIntoComposite(page, _dirtyRect!);
     canvas.scheduleRender();
   };
 

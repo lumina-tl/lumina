@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Masks now visible in export preview.** Previously, the export window only showed text layers — inpaint and cleanup masks were missing because mask images weren't loaded before compositing.
+- **Undo/redo no longer flickers.** Mask images are now preserved across snapshots when the file path hasn't changed, eliminating the 1-frame flash of the bare background during undo/redo.
+- **Eraser tool now responds immediately during drag.** Previously the eraser appeared delayed because the blit fast-path (source-over) couldn't reflect erased pixels — it now re-composites the affected region so visual feedback is instant.
+- **Font fitting no longer shifts on zoom.** Text word-wrapping is now pre-computed using image-space measurements and passed to Konva.Text with `wrap: 'none'`, preventing Konva from re-wrapping at zoom-dependent stage-space sizes where sub-pixel rounding differences caused line breaks to shift.
 - **Layer and mask list items are numbered.** A visible index is shown on each row for easier identification and reorder reference.
 
 ### Changed

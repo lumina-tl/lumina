@@ -3,7 +3,7 @@ import Konva from "konva";
 import { canvas } from "../../index";
 import type { PageLayer, Typography } from "../../../../types";
 import { imgToStage } from "./shared";
-import { fitTextToBox } from "./font-fit";
+import { fitTextToBox, selectPreset, wordWrap } from "./font-fit";
 
 export function makeNode(layer: PageLayer, text: string): Konva.Group {
   const sr = canvas.getScaleRatio();
@@ -20,6 +20,14 @@ export function makeNode(layer: PageLayer, text: string): Konva.Group {
     layer.typography.fontSize = fit.fontSize; // persist fitted size
     layer.fitStatus = fit.fitStatus; // drives sidebar review badge
   }
+
+  // Pre-wrap using IMAGE-space measurements so line breaks stay consistent
+  // across zoom levels (Canvas2D measureText sub-pixel rounding varies with
+  // rendered font size, causing Konva's own wrapping to shift on zoom).
+  const chars = text.replace(/[\s\n]/g, "").length;
+  const preset = selectPreset(layer.bbox.w, layer.bbox.h, chars);
+  const maxW = layer.bbox.w * preset.widthUsageRatio;
+  const wrappedText = wordWrap(text, imgFontSize, typo, maxW).join("\n");
 
   // Group + Rect + Text — mirrors the detection-group pattern so the
   // Transformer tracks the BOX (not the measured text) and the whole box
@@ -56,11 +64,12 @@ export function makeNode(layer: PageLayer, text: string): Konva.Group {
       height: lh,
       offsetX: lw / 2,
       offsetY: lh / 2,
-      text: text,
+      text: wrappedText,
       fontSize: imgFontSize * sr,
       fontFamily: typo.fontFamily || "Arial, sans-serif",
       fontStyle: typo.fontStyle,
       fontVariant: typo.fontWeight >= 700 ? "bold" : "normal",
+      wrap: "none",
       align: typo.align,
       verticalAlign: "middle",
       fill: typo.color,

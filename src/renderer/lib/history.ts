@@ -218,27 +218,35 @@ export const history = {
     page._selectedLayerId = snap._selectedLayerId;
     if (typeof snap.backgroundVisible === "boolean")
       page.backgroundVisible = snap.backgroundVisible;
+    // Preserve existing mask images when the imagePath matches — avoids
+    // a 1-frame flash of the bare background while PNGs reload from disk.
+    const prevMaskImages = new Map(
+      (page.inpaintMasks || []).map((m) => [m.imagePath, m.image]),
+    );
     const masks = (snap.inpaintMasks || []).map((m) => ({
       ...m,
-      image: undefined,
+      image: prevMaskImages.get(m.imagePath) ?? undefined,
     }));
     page.inpaintMasks = masks as never;
-    // Cleanup raster layer: restore fields, drop the runtime canvas, and
-    // reload its PNG from the versioned path (same pattern as inpaint masks).
+    // Cleanup raster layer: preserve the runtime canvas when the imagePath
+    // hasn't changed; only drop + rehydrate when it points to a different file.
     if (snap.cleanupMask) {
+      const samePath =
+        page.cleanupMask?.imagePath === snap.cleanupMask.imagePath;
       page.cleanupMask = {
         id: snap.cleanupMask.id,
         visible: snap.cleanupMask.visible,
         opacity: snap.cleanupMask.opacity,
         imagePath: snap.cleanupMask.imagePath,
-        cleanupCanvas: undefined,
+        cleanupCanvas: samePath ? page.cleanupMask?.cleanupCanvas : undefined,
       };
     } else {
       page.cleanupMask = null;
     }
-    // Re-hydrate mask images asynchronously; render again once loaded.
+    // Re-hydrate only masks whose images were dropped (new/changed paths).
     hydrateMaskImages(page);
-    hydrateCleanupCanvas(page);
+    if (!page.cleanupMask?.cleanupCanvas && page.cleanupMask?.imagePath)
+      hydrateCleanupCanvas(page);
     // The composite bake is stale after undo (masks/cleanup changed) —
     // invalidate so the next render re-bakes from the restored state.
     invalidateComposite(page.fileName);
