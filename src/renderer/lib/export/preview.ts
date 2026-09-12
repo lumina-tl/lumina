@@ -1,4 +1,4 @@
-/* ── Export preview: zoom, pan, and canvas drawing. ── */
+/** Export preview: zoom, pan, and canvas drawing. */
 
 import { st, ZOOM_MAX, ZOOM_MIN, ZOOM_STEP } from "./state";
 import { renderPageToCanvas } from "./render";

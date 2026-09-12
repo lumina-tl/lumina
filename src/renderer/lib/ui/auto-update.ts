@@ -1,8 +1,4 @@
-/* ── Lumina Auto-Update UI ──
- * Shows an update button when a newer published version exists.
- * Click → download (progress reuses the model-download bar),
- * click again once downloaded → install & relaunch.
- */
+/** Show update button when a newer version exists; download → install → relaunch. */
 import * as i18n from "../i18n";
 import { ui } from ".";
 import { createIcons } from "./icons";

@@ -1,7 +1,4 @@
-/* ── Model descriptions: Inpainting ──
- * Bilingual copy shown in Settings → Models. Keyed by backend registry id.
- * Edit freely — the renderer rebuilds, no backend restart needed.
- */
+/** Bilingual model descriptions — Inpainting. */
 import type { ModelDescMap } from "./index";
 
 export const INPAINT_DESCS: ModelDescMap = {

@@ -1,9 +1,4 @@
-/* ── Lumina — Manga reading-order sort ──
- * Sorts detection bboxes right-to-left, top-to-bottom (manga order):
- * 1. Group boxes into rows (vertical overlap > 50% of the shorter box)
- * 2. Rows sorted top→bottom
- * 3. Within a row, boxes sorted right→left
- */
+/** Sort detection bboxes in manga reading order (right→left, top→bottom). */
 import type { BBox } from "../../types";
 
 function centerY(b: BBox): number {

@@ -1,9 +1,4 @@
-/* ── Lumina Export — entry point. ──
- * Three-pane modal window (thumbnail sidebar with add/remove/reorder,
- * accurate preview, page info). Reordering pages here changes only the
- * export order, never state.pages. open() starts with the active page
- * only; openAll() starts with every page.
- */
+/** Export modal — thumbnail sidebar, preview, page info. */
 import { state } from "../state";
 import * as i18n from "../i18n";
 import { ui } from "../ui";

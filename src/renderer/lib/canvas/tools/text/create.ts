@@ -1,4 +1,4 @@
-/* ── Text Tool — free text layer creation ── */
+/** Text Tool — free text layer creation */
 import { state } from "../../../state";
 import { canvas } from "../../index";
 import { sidebar } from "../../../sidebar";

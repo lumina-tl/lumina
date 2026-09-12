@@ -1,4 +1,4 @@
-/* ── Lumina Tools Panel ── */
+/** Lumina Tools Panel */
 import { state } from "../state";
 import * as i18n from "../i18n";
 import { canvas } from "../canvas/index";

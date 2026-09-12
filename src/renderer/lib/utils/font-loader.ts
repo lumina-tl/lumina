@@ -1,9 +1,4 @@
-/* ── Lumina Font Loader ──
- * System fonts come from the main process as { family, path } pairs.
- * Chromium doesn't know them by name, so each font file is registered as a
- * FontFace with a sanitized internal family name. The renderer then uses
- * that internal name everywhere (Konva.Text, textarea styles).
- */
+/** Register system fonts from main process as FontFace instances. */
 import { state } from "../state";
 
 /** Internal family name used in CSS/Konva for a given system font */

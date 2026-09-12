@@ -1,7 +1,4 @@
-/**
- * Wire backend progress events → subscribers + download toast.
- * Called once from index.ts at import time.
- */
+/** Wire backend progress events → subscribers + download toast. */
 import * as i18n from "../i18n";
 import { ui } from "../ui";
 import { s } from "./state";

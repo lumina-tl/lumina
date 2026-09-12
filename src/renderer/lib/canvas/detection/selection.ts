@@ -1,11 +1,11 @@
-/* ── Lumina Canvas — Selection, group refresh, status bar, tool change ── */
+/** Lumina Canvas — Selection, group refresh, status bar, tool change */
 import Konva from "konva";
 import { state } from "../../state";
 import * as i18n from "../../i18n";
 import { canvas } from "../index";
 import { TEXT_COLOR } from "../render";
 import { sidebar } from "../../sidebar";
-import { groupRegistry } from "./groupRegistry";
+import { groupRegistry } from "./group-registry";
 import { syncTransformerSelection } from "../tools/text/transformer";
 import type { Page } from "../../../types";
 

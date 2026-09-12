@@ -1,4 +1,4 @@
-/* ── Export sidebar list: thumbnails, add/remove/reorder + page info. ── */
+/** Export sidebar list: thumbnails, add/remove/reorder + page info. */
 
 import { canvas } from "../canvas/index";
 import { createIcons } from "../ui/icons";

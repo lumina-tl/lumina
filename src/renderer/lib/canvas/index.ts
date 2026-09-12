@@ -1,23 +1,7 @@
-/* ── Lumina Canvas — Public API ── */
+/** Canvas API — shared interface other modules attach to. */
 import Konva from "konva";
 import { state } from "../state";
 import { contextMenu } from "../ui/context-menu";
-
-/**
- * Canvas modules (side-effect imports live in renderer.ts):
- *   render.ts     — stage, render(), getScaleRatio(), getOffset()
- *   viewport.ts   — zoom, pan, sidebar resize
- *   cursor.ts     — tool cursor + transformer anchor cursors
- *   groups.ts     — detection group factories
- *   selection.ts  — selection, tool change, status bar
- *   mutations.ts  — detection delete/reorder/setText
- *   layers.ts     — unified layer ops
- *   masks.ts      — inpaint mask + cleanup mask ops
- *   pages.ts      — page strip, switchPage, removePage
- *
- * This file defines the shared canvas API object that the other
- * canvas modules attach their functions to.
- */
 export interface CanvasAPI {
   render(): void;
   /** rAF-coalesced render — prefer during high-frequency interactions */

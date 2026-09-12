@@ -1,14 +1,4 @@
-/* ── Paint Tool — public entry point & stage interactions ──
- * Photoshop-style raster tools:
- *   - Brush / Eraser : drag to stroke (stamps along the pointer path)
- *   - Bucket         : click to flood-fill the cleanup layer (composite-aware)
- *   - Eyedropper     : click to sample the composite color → sets brush color
- *   - Alt+click      : momentary eyedropper from ANY paint tool
- *
- * Per-tool logic lives in sibling modules (stroke/bucket/sampler/commit/
- * cursor); this file wires the stage, the momentary-eyedropper tool switch,
- * and the header options bar.
- */
+/** Paint tool — public entry point & stage interactions. */
 import { state } from "../../../state";
 import { canvas } from "../../index";
 import { tools } from "../../../ui/tools";

@@ -1,8 +1,4 @@
-/* ── Range slider styling helper ──
- * Custom track fill: sets a `--fill` CSS var (0-100%) that the .slider
- * track gradient consumes, so the filled portion reflects the value
- * (VS Code style). Call after the slider gains a value, and on input.
- */
+/** Set range slider track fill via --fill CSS var. */
 export function setSliderFill(el: HTMLInputElement): void {
   if (el.type !== "range") return;
   const min = el.min !== "" ? parseFloat(el.min) : 0;

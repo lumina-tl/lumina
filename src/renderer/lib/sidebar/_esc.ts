@@ -1,4 +1,4 @@
-/* ── Shared HTML escape helper ── */
+/** Shared HTML escape helper */
 export function esc(s: unknown): string {
   if (!s) return "";
   return String(s)

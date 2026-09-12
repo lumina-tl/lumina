@@ -1,8 +1,4 @@
-/* ── Stroke-end serialization ──
- * Serializes the cleanup canvas to a versioned PNG in the session cache and
- * snapshots history (one undo step per stroke). A sequence guard ensures an
- * older async write can never overwrite a newer stroke's imagePath.
- */
+/** Stroke-end serialization — PNG cache + history snapshot. */
 import { history } from "../../../history";
 import { ui } from "../../../ui";
 import * as i18n from "../../../i18n";
@@ -12,7 +8,7 @@ import type { Page } from "../../../../types";
 
 let _commitSeq = 0;
 
-/** Resolves when the latest in-flight stroke commit finishes (or immediately if idle). */
+/** Latest in-flight stroke commit promise (resolves when idle). */
 let _pending: Promise<void> = Promise.resolve();
 export const pendingCommit: { current: Promise<void> } = { current: _pending };
 
@@ -59,7 +55,7 @@ export async function commitStroke(
   }
 }
 
-/** Wrap commitStroke so pendingCommit always tracks the latest in-flight write. */
+/** Wrap commitStroke so pendingCommit tracks the latest in-flight write. */
 export function commitStrokeTracked(page: Page, changed: boolean): void {
   const p = commitStroke(page, changed);
   _pending = p;

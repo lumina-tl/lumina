@@ -1,11 +1,11 @@
-/* ── Lumina Sidebar (entry) — koharu-style Type + Layers|Masks panels ── */
+/** Lumina Sidebar (entry) — koharu-style Type + Layers|Masks panels */
 import { state } from "../state";
 import * as i18n from "../i18n";
 import { createIcons } from "../ui/icons";
 import type { Page } from "../../types";
-import { layerListHTML, wireEvents } from "./layerList";
-import { maskListHTML, wireMaskEvents } from "./maskList";
-import { typeSection } from "./typeSection";
+import { layerListHTML, wireEvents } from "./layer-list";
+import { maskListHTML, wireMaskEvents } from "./mask-list";
+import { typeSection } from "./type-section";
 import { esc } from "./_esc";
 
 const TYPE_MIN_HEIGHT = 72;

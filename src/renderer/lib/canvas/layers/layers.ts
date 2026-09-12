@@ -1,4 +1,4 @@
-/* ── Lumina Canvas — Unified layer operations (koharu-style panel) ── */
+/** Lumina Canvas — Unified layer operations (koharu-style panel) */
 import { state } from "../../state";
 import { canvas } from "../index";
 import { invalidateComposite } from "../render";

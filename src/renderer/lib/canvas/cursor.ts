@@ -1,13 +1,8 @@
-/* ── Lumina Canvas — Cursor management ── */
+/** Cursor management — hover + transformer anchor cursors. */
 import { state } from "../state";
 import { canvas } from "./index";
 
-/** Global hover-cursor handler — keeps the cursor in sync with what's under
- * the mouse. Konva.Transformer sets an inline resize cursor on stage.content
- * (its anchor mouseenter) but never restores it after a resize drag ends,
- * leaving a stale cursor behind — even across tool switches. This handler
- * re-asserts the correct cursor on every mousemove, computing the resize
- * cursor per-anchor instead of deferring to Konva. */
+/** Re-assert correct cursor on every mousemove (fixes stale Konva cursors). */
 let _cursorBound = false;
 export function bindHoverCursor(): void {
   if (_cursorBound) return;

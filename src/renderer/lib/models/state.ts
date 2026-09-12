@@ -1,8 +1,4 @@
-/**
- * Shared mutable state for the model manager.
- * Kept as a plain object so submodules can read/write
- * without circular dependency chains.
- */
+/** Shared mutable state for the model manager. */
 import type { DeviceInfo, DownloadProgress, ModelInfo } from "../../types";
 import type { RuntimeProgress } from "../../types";
 

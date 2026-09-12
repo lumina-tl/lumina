@@ -1,15 +1,4 @@
-/* ── Select Tool — stage interactions: lasso (freeform) + rect (marquee) ──
- * Photoshop-style modifiers:
- *   - plain drag   : single selection — existing selections clear the moment
- *                    a new one starts (click empty to deselect)
- *   - Shift + drag : add — the new shape becomes its own selection; if it
- *                    overlaps an existing selection they MERGE into one
- *   - Alt + drag   : subtract — the shape is carved out of every selection
- *                    it touches (rect − rect exact, polygon − rect clipped)
- *   - Alt + click  : remove that selection
- * Window-level move/up listeners keep the drag alive even when the pointer
- * leaves the canvas.
- */
+/** Select tool — stage interactions: lasso (freeform) + rect (marquee). */
 import { state } from "../../../state";
 import { canvas } from "../../index";
 import { history } from "../../../history";
@@ -28,7 +17,7 @@ import {
   type SelectionShape,
 } from "./shared";
 import { updatePreview, clearPreview, refreshOverlay } from "./render";
-import { syncContextBar, hideContextBar } from "./contextBar";
+import { syncContextBar, hideContextBar } from "./context-bar";
 
 type Modifier = "add" | "subtract" | null;
 

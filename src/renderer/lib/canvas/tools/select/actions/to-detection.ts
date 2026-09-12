@@ -1,8 +1,4 @@
-/* ── Select Tool — action: selection(s) → text detection ──
- * Converts every committed selection into a text detection (axis-aligned
- * bbox, status "adjusted") plus its mirrored dialogue layer. No OCR — the
- * user runs that explicitly with the OCR button when wanted.
- */
+/** Select action — convert selection(s) to text detection. */
 import { state } from "../../../../state";
 import { history } from "../../../../history";
 import { canvas } from "../../../index";
@@ -12,7 +8,7 @@ import { defaultTypography, loadGlobalTypography } from "../../../../../types";
 import type { PageLayer, TextDetection } from "../../../../../types";
 import { selections, clearSelections, shapeAABB, isHoleShape } from "../shared";
 import { refreshOverlay } from "../render";
-import { hideContextBar } from "../contextBar";
+import { hideContextBar } from "../context-bar";
 import { sortReadingOrder } from "../../../../utils/reading-order";
 
 export function toDetection(): void {

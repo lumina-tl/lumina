@@ -1,10 +1,4 @@
-/* ── Paint Tool — stroke engine ──
- * Brush/eraser stamp a pre-rendered radial-gradient sprite along the
- * pointer path (hardness 0-100). Bucket runs a BFS flood fill against the
- * COMPOSITE image (what the user sees) and writes the result into the
- * cleanup layer. All strokes draw into the runtime cleanup canvas at
- * natural size; the caller serializes it to a versioned PNG on stroke-end.
- */
+/** Stroke engine — brush/eraser stamps + bucket BFS flood fill. */
 import type { Page } from "../../../../types";
 import { paintSettings, ensureCleanupCanvas, compositeRegion } from "./shared";
 
@@ -15,7 +9,7 @@ const MAX_SAMPLE_STEP = 0.25; // stamps every 25% of brush diameter
 let _sprite: HTMLCanvasElement | null = null;
 let _spriteKey = "";
 
-/** Build the radial-gradient stamp for current size/hardness/opacity. */
+/** Build radial-gradient stamp for current size/hardness/opacity. */
 function sprite(): HTMLCanvasElement {
   const s = paintSettings();
   const key = [s.size, s.hardness, s.opacity, s.color, "brush"].join("|");
@@ -128,7 +122,7 @@ export interface StrokePoint {
   y: number;
 }
 
-/** Stamp one sprite centered at image px (x,y). */
+/** Stamp one sprite at image px (x, y). */
 function stamp(
   page: Page,
   c: HTMLCanvasElement,
@@ -143,7 +137,7 @@ function stamp(
   ctx.drawImage(img, Math.round(x) - cx, Math.round(y) - cy);
 }
 
-/** Stamp a line between a and b (image px) — interpolated for smoothness. */
+/** Stamp a line between a and b (image px) — interpolated. */
 function stampLine(
   page: Page,
   c: HTMLCanvasElement,

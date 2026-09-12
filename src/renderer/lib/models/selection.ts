@@ -1,4 +1,4 @@
-/* ── Model Selection ── Resolve which model id is active per kind. */
+/** Resolve which model id is active per kind. */
 import { defaultFor } from "./descriptions";
 import { s, loadSelected } from "./state";
 

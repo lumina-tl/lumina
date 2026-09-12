@@ -1,6 +1,4 @@
-/* ── Lucide icon rendering (bundled) ──
- * npm build of lucide requires the explicit `icons` map —
- * unlike the UMD/CDN build which bundles every icon. */
+/** Lucide icon rendering (requires explicit icon map). */
 import { createIcons as _createIcons, icons } from "lucide";
 import type { CreateIconsOptions } from "lucide";
 

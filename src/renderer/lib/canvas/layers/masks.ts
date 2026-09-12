@@ -1,8 +1,4 @@
-/* ── Lumina Canvas — Inpaint mask layer operations ──
- * Photoshop-style mask layers: each inpaint patch is an independent layer
- * that can be hidden, deleted (= revert that region to the original image),
- * or have its opacity adjusted.
- */
+/** Inpaint mask + cleanup mask operations. */
 import { state } from "../../state";
 import { canvas } from "../index";
 import { invalidateComposite } from "../render";

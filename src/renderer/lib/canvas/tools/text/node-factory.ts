@@ -1,12 +1,9 @@
-/* ── Text Tool — Konva.Text node factory (visual + interactive) ──
- * Auto-fit uses the cypy-style algorithm in fontFit.ts (preset selection,
- * scoring loop, ≤15% overflow tolerance). Results are computed in image
- * space; fontSize is stored back on the layer so it stays stable. */
+/** Konva.Text node factory — visual + interactive. */
 import Konva from "konva";
 import { canvas } from "../../index";
 import type { PageLayer, Typography } from "../../../../types";
 import { imgToStage } from "./shared";
-import { fitTextToBox } from "./fontFit";
+import { fitTextToBox } from "./font-fit";
 
 export function makeNode(layer: PageLayer, text: string): Konva.Group {
   const sr = canvas.getScaleRatio();

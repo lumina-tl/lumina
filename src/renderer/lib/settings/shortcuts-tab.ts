@@ -1,4 +1,4 @@
-/* ── Settings: Shortcuts tab (keybinding list + capture) ── */
+/** Settings: Shortcuts tab (keybinding list + capture) */
 import * as i18n from "../i18n";
 import { ui } from "../ui";
 import { shortcuts } from "../shortcuts";

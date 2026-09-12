@@ -1,4 +1,4 @@
-/* ── Text Tool — shared state & coordinate helpers ── */
+/** Text Tool — shared state & coordinate helpers */
 import Konva from "konva";
 import { state } from "../../../state";
 import { canvas } from "../../index";

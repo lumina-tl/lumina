@@ -1,4 +1,4 @@
-/* ── Lumina UI Helpers ── */
+/** Lumina UI Helpers */
 import { state } from "../state";
 import * as i18n from "../i18n";
 import { canvas } from "../canvas/index";

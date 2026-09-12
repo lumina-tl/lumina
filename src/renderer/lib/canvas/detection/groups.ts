@@ -1,4 +1,4 @@
-/* ── Lumina Canvas — Detection group factories & bbox sync helpers ── */
+/** Lumina Canvas — Detection group factories & bbox sync helpers */
 import Konva from "konva";
 import { state, CONST } from "../../state";
 import { canvas } from "../index";
@@ -9,7 +9,7 @@ import { models } from "../../models";
 import { ocr } from "../../pipeline/ocr";
 import * as i18n from "../../i18n";
 import type { BBox, TextDetection } from "../../../types";
-import { groupRegistry } from "./groupRegistry";
+import { groupRegistry } from "./group-registry";
 import { applyTextSelection } from "./selection";
 
 // ── Transformer accessors (called from render.ts) ──
@@ -24,8 +24,7 @@ canvas._getTextTransformer = function () {
 
 // ── Re-OCR submenu children: one row per installed OCR model ──
 
-/** Children for the "Re-OCR" menu item — run OCR on detection `idx` with a
- *  chosen model. Missing models are greyed out (downloadable in settings). */
+/** "Re-OCR" context-menu items — run OCR on a detection with chosen model. */
 function _ocrReRunItems(idx: number): MenuItem[] {
   const current = models.selectedModel("ocr");
   return models

@@ -1,4 +1,4 @@
-/* ── Shared mutable state + constants for the export window. ── */
+/** Shared mutable state + constants for the export window. */
 
 import type { Page } from "../../types";
 

@@ -1,4 +1,4 @@
-/* ── Lumina Context Menu ── */
+/** Lumina Context Menu */
 import * as i18n from "../i18n";
 
 export interface MenuItem {

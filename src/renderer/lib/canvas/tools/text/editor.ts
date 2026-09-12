@@ -1,4 +1,4 @@
-/* ── Text Tool — in-place editing (textarea overlay) ── */
+/** Text Tool — in-place editing (textarea overlay) */
 import Konva from "konva";
 import { state } from "../../../state";
 import { canvas } from "../../index";
@@ -12,8 +12,7 @@ import {
 import { layerTextNodes } from "./shared";
 import { getTransformer } from "./transformer";
 
-/** Commit and remove the open editor. Empty text on an existing layer
- * deletes the layer (Photoshop behavior). */
+/** Commit and remove editor. Empty text on existing layer deletes it. */
 export function removeEditor(commit: boolean): void {
   const ta = getEditor();
   if (!ta) return;
@@ -79,12 +78,7 @@ document.addEventListener("mousedown", function () {
   if (!_pressInsideBox()) removeEditor(true);
 });
 
-/** Vertically center SINGLE-line content in the box (Photoshop-like): only
- * when the text is exactly one visual line (no explicit newlines AND no
- * wrap) does line-height = box height push it to the middle. Multi-line
- * content keeps normal line spacing — a tall box must NOT stretch each line
- * to full box height (that would push every line after the first out of
- * view). */
+/** Vertically center single-line content (Photoshop-like). */
 function _fitLineHeight(ta: HTMLTextAreaElement): void {
   ta.style.lineHeight = "1.2";
   const fs = parseFloat(ta.style.fontSize) || 16;
@@ -183,10 +177,7 @@ export function startEdit(layerId: string): void {
   _fitLineHeight(ta);
 }
 
-/** Re-apply the editing visual state after a full canvas.render() (zoom, pan,
- * tool change, resize commit…) — the rebuilt node's glyphs would otherwise
- * show the committed text as a "shadow" under the textarea, and the textarea
- * itself must track the new zoom/pan. */
+/** Re-apply editing visuals after canvas.render() (zoom/pan/resize). */
 export function refreshEditingState(): void {
   const id = getEditingLayerId();
   const ta = getEditor();

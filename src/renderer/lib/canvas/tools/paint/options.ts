@@ -1,8 +1,4 @@
-/* ── Header paint options bar (brush/eraser/bucket/eyedropper) ──
- * Show/hide is driven by paintool's onToolChange wrapper (syncOptionsBar);
- * this module only wires the controls. All changes persist via the
- * paintSettings setters (localStorage).
- */
+/** Paint options bar — brush/eraser/bucket/eyedropper controls. */
 import {
   paintSettings,
   setPaintColor,

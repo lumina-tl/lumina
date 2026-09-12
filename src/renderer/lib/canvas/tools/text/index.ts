@@ -1,19 +1,4 @@
-/* ── Text Tool — public entry point ──
- * Photoshop-style text tool:
- *   - Point text  : single click → default box, grows with content
- *   - Paragraph   : click-drag marquee → fixed box, wrapped text
- *   - Transformer : move (drag), resize (side anchors), scale font (corners)
- *   - In-place edit: textarea overlaid exactly on the text box
- *
- * Module layout:
- *   shared.ts       — node list, editor state, coordinate helpers
- *   nodeFactory.ts  — Konva.Text factory (auto-fit)
- *   nodes.ts        — node lifecycle + event wiring (renderLayerTextNodes)
- *   transformer.ts  — Konva.Transformer (move/resize/scale)
- *   editor.ts       — in-place textarea editing
- *   create.ts       — free text layer creation
- *   interactions.ts — stage marquee/click bindings
- */
+/** Text tool — public entry point. */
 import { getEditor } from "./shared";
 import { removeEditor } from "./editor";
 import { bindStageInteractions } from "./interactions";

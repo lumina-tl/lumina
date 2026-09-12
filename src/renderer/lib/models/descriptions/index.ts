@@ -1,8 +1,4 @@
-/* ── Model description registry ──
- * Bilingual (en/id) copy per model id. Merge of category files; the
- * renderer fills `ModelInfo.description` from here in models.check(), so
- * the backend no longer ships descriptions.
- */
+/** Model description registry — bilingual (en/id) copy per model id. */
 export interface ModelDesc {
   en: string;
   id: string;

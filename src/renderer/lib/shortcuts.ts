@@ -1,4 +1,4 @@
-/* ── Lumina Shortcuts — Keybinding Manager ── */
+/** Lumina Shortcuts — Keybinding Manager */
 import * as i18n from "./i18n";
 import { history } from "./history";
 import { tools } from "./ui/tools";

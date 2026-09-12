@@ -1,8 +1,4 @@
-/* ── Select Tool — floating action bar near the active selection ──
- * Photoshop-style context window: a small toolbar anchored above the active
- * selection with the convert action(s). Also wraps canvas.render so the
- * ants and the bar track zoom/pan/page changes.
- */
+/** Select tool — floating action bar near active selection. */
 import { canvas } from "../../index";
 import { state } from "../../../state";
 import * as i18n from "../../../i18n";
@@ -14,7 +10,7 @@ import {
   clearSelections,
 } from "./shared";
 import { refreshOverlay } from "./render";
-import { toDetection } from "./actions/toDetection";
+import { toDetection } from "./actions/to-detection";
 
 let _bar: HTMLDivElement | null = null;
 

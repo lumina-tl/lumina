@@ -1,7 +1,4 @@
-/* ── Model descriptions: OCR ──
- * Bilingual copy shown in Settings → Models. Keyed by backend registry id.
- * Edit freely — the renderer rebuilds, no backend restart needed.
- */
+/** Bilingual model descriptions — OCR. */
 import type { ModelDescMap } from "./index";
 
 export const OCR_DESCS: ModelDescMap = {

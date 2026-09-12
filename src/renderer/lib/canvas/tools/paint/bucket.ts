@@ -1,7 +1,4 @@
-/* ── Bucket fill (single click) ──
- * Flood-fills the cleanup layer against the composite image and commits
- * immediately (same undo granularity as a brush stroke).
- */
+/** Bucket fill — flood-fills cleanup layer against composite (single click). */
 import type { Page } from "../../../../types";
 import { canvas } from "../../index";
 import { blitCleanupIntoComposite } from "../../render";

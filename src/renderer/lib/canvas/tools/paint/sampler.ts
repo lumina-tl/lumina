@@ -1,7 +1,4 @@
-/* ── Composite-color sampling (eyedropper / bucket seed) ──
- * Reads the 1×1 composite region (bg + visible inpaint patches + cleanup)
- * and returns the hex color, or null for fully transparent pixels.
- */
+/** Composite-color sampling (eyedropper / bucket seed). */
 import type { Page } from "../../../../types";
 import { compositeRegion } from "./shared";
 

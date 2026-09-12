@@ -1,4 +1,4 @@
-/* ── Lumina i18n — localization loaded from JSON via IPC ── */
+/** Lumina i18n — localization loaded from JSON via IPC */
 
 type TranslationData = Record<string, Record<string, string>>;
 

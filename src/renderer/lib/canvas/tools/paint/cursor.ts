@@ -1,12 +1,4 @@
-/* ── Paint cursor (Photoshop-style: crosshair + tool icon + brush circle) ──
- * Follows the pointer while a paint tool is active: crosshair lines for
- * bucket/eyedropper, a brush-size circle for brush/eraser, and a tool icon
- * badge offset from the center.
- *
- * Passing altKey=true (Alt held) turns the cursor into the eyedropper look
- * — pipette icon + crosshair, no brush circle — so the momentary
- * Alt+click sampling is visibly indicated before you click.
- */
+/** Paint cursor — crosshair + tool icon + brush circle. */
 import { state } from "../../../state";
 import { canvas } from "../../index";
 import { createIcons } from "../../../ui/icons";
@@ -43,7 +35,7 @@ export function hideCursor(): void {
   if (_cursor) _cursor.style.display = "none";
 }
 
-/** Re-render the cursor at the last known pointer position (Alt key toggle). */
+/** Re-render cursor at last known pointer position (Alt key toggle). */
 export function refreshCursor(altKey: boolean): void {
   updateCursor(_lastX, _lastY, altKey);
 }

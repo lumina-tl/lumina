@@ -1,8 +1,4 @@
-/* ── Lumina Canvas — Konva group registry (shared state) ──
- * Holds the per-render text/bubble groups and transformers so the split
- * modules (groups/selection/mutations/layers) can share them without
- * circular imports.
- */
+/** Shared Konva group registry (text/bubble groups + transformer). */
 import Konva from "konva";
 
 const _textGroups: Konva.Group[] = [];

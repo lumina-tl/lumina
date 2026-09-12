@@ -1,9 +1,4 @@
-/* ── Sidebar: LayersPanel (koharu-style) ──
- * Rows from the unified PageLayer model:
- *   [icon] name (preview text, truncated)   [move ↑↓ / delete on hover] [eye]
- *          kind label (Dialogue / Free text)
- *   selected row expands into source/translation editor.
- */
+/** Layer list panel — rows from unified PageLayer model with editors. */
 import * as i18n from "../i18n";
 import { canvas } from "../canvas/index";
 import { state } from "../state";

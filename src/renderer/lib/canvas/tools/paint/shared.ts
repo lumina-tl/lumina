@@ -1,8 +1,4 @@
-/* ── Paint Tool — shared state & coordinate/composite helpers ──
- * Persistent brush settings (localStorage), the per-page cleanup layer
- * lifecycle, stage↔image coordinate mapping, and composite-color sampling
- * (bg + inpaint patches + cleanup) for the eyedropper and bucket.
- */
+/** Paint shared state — brush settings, cleanup lifecycle, coord mapping. */
 import { state } from "../../../state";
 import { canvas } from "../../index";
 import { markSourcesDirty } from "../../render";
@@ -79,7 +75,7 @@ export function setPaintContiguous(v: boolean): void {
   persist();
 }
 
-/** Restore every paint setting to its default (options bar reset button). */
+/** Restore paint settings to defaults (options bar reset). */
 export function resetPaintSettings(): void {
   _settings = defaultSettings();
   persist();
@@ -87,7 +83,7 @@ export function resetPaintSettings(): void {
 
 // ── Cleanup layer lifecycle ──
 
-/** Create the raster layer (never auto-created by paint tools). */
+/** Create cleanup raster layer (never auto-created by paint tools). */
 export function ensureCleanupMask(page: Page): CleanupMask {
   if (!page.cleanupMask) {
     page.cleanupMask = {
@@ -102,7 +98,7 @@ export function ensureCleanupMask(page: Page): CleanupMask {
   return page.cleanupMask;
 }
 
-/** Lazy-allocate the runtime paint surface at natural size. */
+/** Lazy-allocate cleanup canvas at natural size. */
 export function ensureCleanupCanvas(page: Page): HTMLCanvasElement | null {
   const mask = page.cleanupMask;
   if (!mask) return null;

@@ -1,10 +1,4 @@
-/* ── Auto-save — periodically persists the session to the current .lmi ──
- * Default ON, every 60 s. Skips while a pipeline op (detect / ocr /
- * inpaint / translate) or a model download is running, when nothing is
- * dirty, no pages are loaded, or there is no save target yet (the first
- * save is always manual so the user picks a location — auto-save never
- * pops the dialog).
- */
+/** Periodically persist session to current .lmi (skips during pipeline/download). */
 import { state } from "../state";
 import { isDirty, getSavePath } from "./dirty";
 import { models } from "../models";

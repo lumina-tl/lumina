@@ -1,6 +1,4 @@
-/* ── Reusable floating-window behavior: drag via titlebar, resize via corner grip ──
- * Used by the settings and export modals so both behave like a real window.
- */
+/** Reusable floating-window: drag via titlebar, resize via corner grip. */
 
 export const MODAL_EDGE = 8;
 

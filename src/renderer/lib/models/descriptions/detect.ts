@@ -1,7 +1,4 @@
-/* ── Model descriptions: Text Detection ──
- * Bilingual copy shown in Settings → Models. Keyed by backend registry id.
- * Edit freely — the renderer rebuilds, no backend restart needed.
- */
+/** Bilingual model descriptions — Text Detection. */
 import type { ModelDescMap } from "./index";
 
 export const DETECT_DESCS: ModelDescMap = {

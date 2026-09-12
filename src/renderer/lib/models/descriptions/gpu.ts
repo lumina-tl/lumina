@@ -1,13 +1,4 @@
-/* ── Dynamic per-model GPU badge (Settings → Models) ──
- * Mirrors the backend's resolve_providers() logic so the badge reflects
- * the EP a model's sessions will actually get: the GPU toggle override,
- * the model's own EP preference (backend `prefer`, or a composite plan for
- * multi-session OCR), and the EPs the installed wheel actually ships.
- *
- * A model that wants an EP this build lacks (e.g. a CUDA-only model on the
- * DirectML wheel) falls back to CPU at session creation — surfaced here as
- * an orange warning.
- */
+/** Dynamic per-model GPU badge — mirrors backend EP resolution logic. */
 import * as i18n from "../../i18n";
 import type { DeviceInfo, ModelInfo } from "../../../types";
 
@@ -22,11 +13,7 @@ export interface GpuBadge {
   parts?: string[];
 }
 
-/** Session EP plans for multi-session models; mirrors the backend configs
- *  (the `PREFER_*` constants under python/services/ocr). Single-preference
- *  models are not listed — they use `ModelInfo.prefer` from the backend.
- *  The badge shows the PRIMARY session's EP plus a short note for the parts
- *  that stay on CPU. */
+/** EP plans for multi-session OCR models (manga_ocr, paddleocr_vl, etc.). */
 const COMPOSITE_PLANS: Record<
   string,
   { primary: string; parts: Array<{ ep: string; note: string }> }

@@ -1,4 +1,4 @@
-/* ── Text Tool — Transformer (move / resize / scale font) ── */
+/** Text Tool — Transformer (move / resize / scale font) */
 import Konva from "konva";
 import { state } from "../../../state";
 import { canvas } from "../../index";

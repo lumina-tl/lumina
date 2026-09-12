@@ -1,4 +1,4 @@
-/* ── Lumina Canvas — Viewport (zoom, pan, sidebar resize) ── */
+/** Lumina Canvas — Viewport (zoom, pan, sidebar resize) */
 import Konva from "konva";
 import { state } from "../state";
 import { ui } from "../ui";

@@ -1,14 +1,4 @@
-/* ── Page bitmap lifecycle (D) ──
- * Keeps at most a few decoded page bitmaps in memory (active page + a small
- * LRU cache) instead of holding every page of a project decoded at once.
- * `ensurePageImage(page)` decodes on demand; `releasePageImage(page)` drops
- * the decoded bitmap (and the full-page cleanup canvas) for non-active pages.
- *
- * Thumbnails are generated CHEAP: at open/import every page gets one by
- * decoding directly at thumbnail size (createImageBitmap resize) — the
- * full-res bitmap is never materialized for a thumbnail. Pages visited later
- * reuse it, so the strip never decodes full-res images twice.
- */
+/** Page bitmap lifecycle — LRU cache with on-demand decode. */
 import type { Page } from "../../types";
 
 /** Max decoded page bitmaps held outside the active page. */

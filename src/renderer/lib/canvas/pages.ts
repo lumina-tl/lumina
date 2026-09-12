@@ -1,4 +1,4 @@
-/* ── Lumina Canvas — Page Strip Navigation ── */
+/** Lumina Canvas — Page Strip Navigation */
 import { state } from "../state";
 import * as i18n from "../i18n";
 import { ui } from "../ui";

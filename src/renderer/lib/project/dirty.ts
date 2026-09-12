@@ -1,8 +1,4 @@
-/* ── Session project state: dirty flag + active save path ──
- * history.ts marks dirty on every snapshot (the single chokepoint all
- * mutations flow through); project.ts clears it after save/open. A single
- * listener (wired in renderer.ts) updates the status bar + window title.
- */
+/** Session dirty flag + active save path. */
 import { state } from "../state";
 
 let _dirty = false;

@@ -1,8 +1,4 @@
-/* ── Select Tool — overlay rendering: live preview + marching ants ──
- * The overlay lives on its own Konva layer above the main layer, so it
- * survives the main render loop's full rebuild. Drawn in stage coords so it
- * tracks zoom/pan automatically (canvas.render → refreshOverlay).
- */
+/** Select overlay — live preview + marching ants on own Konva layer. */
 import Konva from "konva";
 import { canvas } from "../../index";
 import { state } from "../../../state";

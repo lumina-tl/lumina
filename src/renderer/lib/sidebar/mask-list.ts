@@ -1,10 +1,4 @@
-/* ── Sidebar: Masks panel (Photoshop-style) ──
- * One row per inpaint patch:
- *   [thumbnail] name (Mask N) + opacity%    [delete] [eye]
- *   opacity slider
- * Hiding a mask reveals the original pixels below it; deleting removes the
- * mask layer entirely (= revert that region to original); opacity blends it.
- */
+/** Mask list panel — opacity, visibility, delete per inpaint patch. */
 import * as i18n from "../i18n";
 import { canvas } from "../canvas/index";
 import { history } from "../history";

@@ -1,4 +1,4 @@
-/* ── Lumina Pipeline — Facade ── */
+/** Lumina Pipeline — Facade */
 import { detection } from "./detection";
 import { ocr } from "./ocr";
 import { translate } from "./translate";

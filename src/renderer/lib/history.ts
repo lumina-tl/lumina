@@ -1,8 +1,4 @@
-/* ── Lumina History — Undo/Redo (snapshot-based, per page) ──
- * Each imported image keeps its OWN undo/redo stack, keyed by the Page
- * object. Undo/redo acts on the active page only, so switching pages never
- * bleeds edits across images. Removing a page drops its stack.
- */
+/** Per-page undo/redo stack (snapshot-based). */
 import { state } from "./state";
 import { canvas } from "./canvas/index";
 import { invalidateComposite } from "./canvas/render";
@@ -25,9 +21,7 @@ interface HistoryEntry {
   idx: number;
 }
 
-/** JSON-safe snapshot of the selection tool's transient state (see
- * ``setSelectionHistoryHandlers``). Undo/redo restores committed rectangle /
- * lasso selections alongside page content. */
+/** Snapshot of selection tool transient state for undo/redo. */
 export interface SelectionSnapshotState {
   selections: unknown;
   activeId: string | null;
@@ -39,9 +33,7 @@ type SelectionRestore = (s: SelectionSnapshotState) => void;
 let _captureSelections: SelectionCapture | null = null;
 let _restoreSelections: SelectionRestore | null = null;
 
-/** Register the selection tool's serializers so history snapshots include
- * committed selections and undo/redo can bring them back (with the overlay
- * redrawn). Pass nulls to unregister. */
+/** Register selection tool serializers for history snapshots. */
 export function setSelectionHistoryHandlers(
   capture: SelectionCapture | null,
   restore: SelectionRestore | null,
@@ -61,9 +53,7 @@ function _entry(page: Page): HistoryEntry {
   return e;
 }
 
-/** Serialize ONE page's full editable state.
- * Page images stay in memory (not serialized) — masks are re-hydrated from
- * their PNG paths on apply. */
+/** Serialize one page's editable state (images not serialized). */
 function _serializePage(p: Page): string {
   return JSON.stringify({
     textDetections: p.textDetections,
@@ -112,9 +102,7 @@ interface PageSnapshot {
   } | null;
 }
 
-/** Re-hydrate mask PNGs from their imagePath — decoded images are never
- * serialized (undo stack, project files). Each load re-renders the active
- * page so masks appear as soon as they're ready. */
+/** Re-hydrate mask PNGs from imagePath after deserialization. */
 export function hydrateMaskImages(page: Page): void {
   (page.inpaintMasks || []).forEach((m) => {
     if (m.image) return;
@@ -142,11 +130,7 @@ export const history = {
     return page ? _entry(page) : null;
   },
 
-  /**
-   * Ensure every current page has a baseline snapshot. Only NEW pages get a
-   * fresh baseline — pages imported earlier keep their own undo history, so
-   * "import more" never wipes existing edits.
-   */
+  /** Ensure every page has a baseline snapshot. */
   reset(): void {
     state.pages.forEach(function (p) {
       const e = _entry(p);
@@ -158,11 +142,7 @@ export const history = {
     this._updateButtons();
   },
 
-  /**
-   * Push a snapshot for the ACTIVE page after a mutation. Pass
-   * ``{ dirty: false }`` for transient UI state that must be undoable but
-   * should not mark the project modified (e.g. selection edits).
-   */
+  /** Push a snapshot for the active page after a mutation. */
   snapshot(opts?: { dirty?: boolean }): void {
     if (this._restoring) return;
     const page = state.getActivePage();
@@ -178,13 +158,7 @@ export const history = {
     this._updateButtons();
   },
 
-  /**
-   * Overwrite the NEWEST snapshot with the current state. Used when an async
-   * step completes after the last snapshot (e.g. OCR text landing on boxes
-   * added by "convert to detection") so the whole operation stays a single
-   * undo step instead of two. No-op when the newest entry is no longer on
-   * top of the stack (an undo/redo happened in between) or nothing changed.
-   */
+  /** Overwrite newest snapshot to merge async steps into one undo. */
   replace(): void {
     if (this._restoring) return;
     const page = state.getActivePage();

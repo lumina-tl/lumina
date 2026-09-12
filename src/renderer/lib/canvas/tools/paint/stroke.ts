@@ -1,10 +1,4 @@
-/* ── Brush / eraser drag stroke ──
- * Starts a stroke on mousedown and stamps the brush sprite along the
- * pointer path until mouseup/touchend, then commits (serialize + snapshot).
- * While dragging, each stamp blits the touched region 1:1 into the baked
- * composite (blitCleanupIntoComposite) instead of re-baking the whole page
- * — the screen just re-draws the composite via scheduleRender.
- */
+/** Brush/eraser drag stroke — stamps along pointer path, then commits. */
 import type { Page } from "../../../../types";
 import { canvas } from "../../index";
 import { markSourcesDirty, blitCleanupIntoComposite } from "../../render";
@@ -22,8 +16,7 @@ import { updateCursor } from "./cursor";
 let _dragging = false;
 let _points: Array<{ x: number; y: number }> = [];
 let _mode: "brush" | "eraser" | null = null;
-/** Bounding box (image px) of the current stroke — blitted to the composite
- *  once per stamped segment. */
+/** Bounding box (image px) of current stroke — blitted per stamped segment. */
 let _dirtyRect: { x: number; y: number; w: number; h: number } | null = null;
 
 export function handleStroke(

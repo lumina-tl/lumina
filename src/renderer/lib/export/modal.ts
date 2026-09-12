@@ -1,4 +1,4 @@
-/* ── Export modal window: build, wire up, close, and export. ── */
+/** Export modal window: build, wire up, close, and export. */
 
 import { createIcons } from "../ui/icons";
 import * as i18n from "../i18n";

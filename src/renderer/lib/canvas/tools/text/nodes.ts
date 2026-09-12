@@ -1,4 +1,4 @@
-/* ── Text Tool — node lifecycle & event wiring (called from render.ts) ── */
+/** Text Tool — node lifecycle & event wiring (called from render.ts) */
 import Konva from "konva";
 import { state } from "../../../state";
 import { canvas } from "../../index";
@@ -16,7 +16,7 @@ import {
 // the node mid-gesture and breaks Konva's native dblclick — a timestamp
 // check in the click handler is immune to that.
 const _lastClickAt: Record<string, number> = {};
-import { makeNode } from "./nodeFactory";
+import { makeNode } from "./node-factory";
 import {
   syncTransformerSelection,
   onNodeTransformEnd,
@@ -26,8 +26,7 @@ import {
 import { getEditor } from "./shared";
 import { startEdit, syncEditorBox, refreshEditingState } from "./editor";
 
-/** Rebuild all layer text nodes on the stage. One Konva.Text per layer —
- * both the visual rendering and the interaction target. */
+/** Rebuild all layer text nodes on stage (one Konva.Text per layer). */
 export function renderLayerTextNodes(): void {
   const konvaLayer = canvas.getLayer();
   const page = state.getActivePage();

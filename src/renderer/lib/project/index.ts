@@ -1,10 +1,4 @@
-/* ── Lumina project save (.lmi) — renderer side ──
- * Serializes the whole session (pages + layers + masks + translate
- * settings) into a ProjectSavePayload and hands it to main, which writes
- * the zip (copying source images + patch PNGs straight from disk).
- * Open is orchestrated in renderer.ts (it rebuilds the UI); this module
- * owns the payload + save/saveAs + dirty tracking.
- */
+/** Project save (.lmi) — serialize session and hand off to main process. */
 import { state } from "../state";
 import * as i18n from "../i18n";
 import { ui } from "../ui";

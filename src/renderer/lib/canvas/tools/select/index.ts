@@ -1,21 +1,4 @@
-/* ── Select Tool — public entry point ──
- * Photoshop-style selection tools (lasso + rectangle):
- *   - Drag        : single selection (existing ones clear when you start)
- *   - Shift+Drag  : add — overlapping shapes merge into one selection
- *   - Alt+Drag    : subtract — carve the shape out of selections
- *   - Click       : activate the selection under the cursor
- *   - Alt+Click   : remove that selection
- *   - Click empty : clear all selections
- *   - Context bar : floating toolbar anchored to the active selection with
- *                    "Convert to detection" (adds the box + runs OCR)
- *
- * Module layout:
- *   shared.ts       — selection types, state, coordinate helpers
- *   interactions.ts — stage drag bindings (lasso polyline / rect marquee)
- *   render.ts       — overlay: marching ants + live preview
- *   contextBar.ts   — floating action bar (also tracks the render loop)
- *   actions/        — one file per convert action (toDetection, …)
- */
+/** Select tool — public entry point (lasso + rectangle). */
 import { canvas } from "../../index";
 import { history, setSelectionHistoryHandlers } from "../../../history";
 import {
@@ -26,7 +9,7 @@ import {
   type Selection,
 } from "./shared";
 import { refreshOverlay } from "./render";
-import { hideContextBar, syncContextBar } from "./contextBar";
+import { hideContextBar, syncContextBar } from "./context-bar";
 import { bindStageInteractions } from "./interactions";
 
 let _bound = false;

@@ -1,4 +1,4 @@
-/* ── Lumina Pipeline — Detection ── */
+/** Lumina Pipeline — Detection */
 import { state } from "../state";
 import * as i18n from "../i18n";
 import { ui } from "../ui";

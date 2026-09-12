@@ -1,4 +1,4 @@
-/* ── Lumina Pipeline — OCR (manga-ocr via Python backend) ── */
+/** Lumina Pipeline — OCR (manga-ocr via Python backend) */
 import { state } from "../state";
 import * as i18n from "../i18n";
 import { ui } from "../ui";
@@ -6,7 +6,7 @@ import { history } from "../history";
 import { canvas } from "../canvas/index";
 import { sidebar } from "../sidebar";
 import { models } from "../models";
-import { normalizeAutoText } from "./textNorm";
+import { normalizeAutoText } from "./text-norm";
 import type { OcrResult } from "../../types";
 
 export const ocr = {

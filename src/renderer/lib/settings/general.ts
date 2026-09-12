@@ -1,10 +1,13 @@
-/* ── Settings: General tab (language + auto-save + OCR normalize) ── */
+/** Settings: General tab (language + auto-save + OCR normalize) */
 import * as i18n from "../i18n";
 import { canvas } from "../canvas/index";
 import { sidebar } from "../sidebar";
-import { shortcutsTab } from "./shortcutsTab";
+import { shortcutsTab } from "./shortcuts-tab";
 import * as autosave from "../project/autosave";
-import { getOcrNormalizeMode, setOcrNormalizeMode } from "../pipeline/textNorm";
+import {
+  getOcrNormalizeMode,
+  setOcrNormalizeMode,
+} from "../pipeline/text-norm";
 
 export const generalTab = {
   build(pane: HTMLElement): void {

@@ -1,16 +1,9 @@
-/* ── Lumina Canvas — Stage & Render ── */
+/** Stage & render — composite: bg image → inpaint patches → text layers. */
 import Konva from "konva";
 import { state } from "../state";
 import { canvas } from "./index";
 import { bindPanWhenStageReady } from "./viewport";
 import { renderLayerTextNodes } from "./tools/text";
-
-/**
- * Canvas render module.
- * Single Konva stage inside #canvas-container.
- * Composite order: original page image → inpaint mask images (one per
- * visible patch, alpha = feathered mask) → text layers.
- */
 let _stage: Konva.Stage | null = null;
 let _layer: Konva.Layer | null = null;
 let _bgImage: Konva.Image | null = null; // Konva.Image for background
@@ -89,19 +82,12 @@ function _getScaleRatio(): number {
   return _getBaseScaleRatio() * (state._zoomLevel || 1);
 }
 
-/** Long-side target for the baked composite — now NATIVE (1:1 with the page).
- *  The composite is rebuilt only when raster content changes (inpaint done,
- *  visibility toggled, undo, cleanup hydrated) — NEVER because of zoom/pan,
- *  so zooming to pixel level always samples the full-resolution bake. */
+/** Composite resolution — always 1:1 native (never downscaled). */
 function _compositeDs(): number {
   return 1;
 }
 
-/** Bake page + inpaint patches + cleanup into ONE offscreen canvas in IMAGE
- *  space at NATIVE resolution (ds = 1). Zoom/pan never touches this — only a
- *  change in the sources (markSourcesDirty), page, or background visibility
- *  invalidates it. Pages with NO masks and NO cleanup skip baking entirely:
- *  the raw `page.image` is drawn directly (full-res, sharp, zero memory). */
+/** Bake bg + inpaint + cleanup into one 1:1 offscreen canvas. */
 function _bakeComposite(
   page: ReturnType<typeof state.getActivePage>,
 ): { canvas: HTMLCanvasElement; ds: number } | null {
@@ -145,10 +131,7 @@ function _bakeComposite(
   return { canvas: c, ds: 1 };
 }
 
-/** Copy a just-painted region of the cleanup canvas into the baked composite
- *  (1:1, image space) — replaces a full re-bake during brush drags. The
- *  composite must already exist (stroke start bakes it). Purely raster, so
- *  the caller follows up with scheduleRender() for the screen draw. */
+/** Blit a cleanup region into the baked composite (brush drag fast-path). */
 export function blitCleanupIntoComposite(
   page: ReturnType<typeof state.getActivePage>,
   rect: { x: number; y: number; w: number; h: number },
@@ -167,9 +150,7 @@ export function blitCleanupIntoComposite(
   ctx.globalAlpha = 1;
 }
 
-/** Destroy every child of the main layer — children are recreated on each
- *  render, and Konva nodes keep listeners/caches alive unless destroyed.
- *  removeChildren() alone was leaking node objects under fast zoom/pan. */
+/** Destroy main-layer children (prevent Konva node leaks). */
 function _destroyLayerChildren(): void {
   if (!_layer) return;
   for (const kid of _layer.getChildren()) kid.destroy();
@@ -325,7 +306,7 @@ function _render(): void {
   _layer.draw();
 }
 
-/** Drop the baked composite for the given page (called on page removal). */
+/** Drop baked composite for a page (on page removal). */
 export { _bakeComposite };
 export function invalidateComposite(pageId: string | null): void {
   if (

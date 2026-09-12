@@ -1,8 +1,4 @@
-/* ── Select Tool — shared state & types ──
- * Photoshop-style selection tool state. Selections are transient UI state
- * (module-level, like the textool editor) — they are NOT persisted to the
- * project and clear on page switch / explicit clear.
- */
+/** Select shared state — selections, coord mapping, geometry ops. */
 import { canvas } from "../../index";
 
 export type SelectionShape =
@@ -273,10 +269,7 @@ function _polyArea(pts: Array<{ x: number; y: number }>): number {
   return Math.abs(a) / 2;
 }
 
-/** Polygon minus rect → exact boundary loops (outer + holes, each a loop).
- * The old 4-strip Sutherland-Hodgman clip could not represent a disjoint
- * intersection of a concave polygon, emitting "bridge" edges (extra lines).
- * This uses the same edge-splitting + probe classification as unionOutline. */
+/** Polygon minus rect → exact boundary loops. */
 function _polygonMinusRect(
   points: Array<{ x: number; y: number }>,
   r: Rect,
@@ -287,9 +280,7 @@ function _polygonMinusRect(
   );
 }
 
-/** True when `shape` sits fully inside another shape of the same selection —
- * a "hole" loop produced by carving. Rendered as an inner outline but never
- * converted to its own detection, and excluded from later unions. */
+/** True when shape is a hole loop inside another shape of the same selection. */
 export function isHoleShape(
   shapes: SelectionShape[],
   shape: SelectionShape,

@@ -1,18 +1,4 @@
-/* ── Lumina — bubble-assigned fit box ──
- * Detection emits a tight text box around the glyphs PLUS, for balloon
- * text, the surrounding bubble shell. OCR/inpaint keep using the tight text
- * box (their crops must hug the glyphs), but the typesetting auto-fit gets
- * a larger area: the interior of the bubble that contains the text, so the
- * translation renders at a natural, readable size instead of shrinking into
- * the glyph-tight rectangle.
- *
- * Association is purely geometric (text bbox center inside the bubble bbox,
- * innermost bubble wins) so it works for both RT-DETR (which also labels
- * balloon text "text_bubble") and RF-DETR (which emits every text as class
- * "text"). A balloon hosting more than one text detection (the detector
- * split a dialogue into separate lines) is left untouched — fitting two
- * layers into the same bubble would stack them on top of each other.
- */
+/** Assign each text detection to its innermost enclosing bubble for auto-fit. */
 import type { BBox } from "../../types";
 
 function centerIn(bubble: BBox, t: BBox): boolean {

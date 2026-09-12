@@ -4,7 +4,7 @@
 import * as i18n from "../i18n";
 import { createIcons } from "../ui/icons";
 import { generalTab } from "./general";
-import { shortcutsTab } from "./shortcutsTab";
+import { shortcutsTab } from "./shortcuts-tab";
 import { translationTab } from "./translation";
 import { modelsTab } from "./models";
 import { applySettingsWindow, initSettingsWindow } from "./window";

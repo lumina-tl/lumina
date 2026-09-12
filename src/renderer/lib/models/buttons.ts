@@ -1,4 +1,4 @@
-/* ── Pipeline Button Gating ── Enable/disable header buttons based on model + image state. */
+/** Enable/disable header buttons based on model + image state. */
 import * as i18n from "../i18n";
 import { s, el } from "./state";
 import { selectedReady, allReady } from "./selection";

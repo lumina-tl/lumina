@@ -1,8 +1,4 @@
-/* ── Paint tool guard helpers ──
- * isPaintTool: which tools the paint pipeline handles.
- * requireCleanup: paint tools need the cleanup raster layer to exist —
- * if missing, toast + jump to the Masks tab.
- */
+/** Paint tool guard — isPaintTool + requireCleanup. */
 import { state } from "../../../state";
 import { ui } from "../../../ui";
 import { sidebar } from "../../../sidebar";

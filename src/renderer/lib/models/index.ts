@@ -1,10 +1,4 @@
-/* ── Lumina Model Manager ──
- * Public API — composes state, selection, buttons, and progress submodules.
- *
- * Startup only CHECKS — downloads are manual, from Settings → Models.
- * (The tiny AngleNet aux model is the exception: the backend auto-
- * downloads it in the background, since it's needed for textAngle.)
- */
+/** Model manager public API — composes state, selection, buttons, progress. */
 import * as i18n from "../i18n";
 import { describe } from "./descriptions";
 import type { DeviceInfo, DownloadProgress, ModelInfo } from "../../types";

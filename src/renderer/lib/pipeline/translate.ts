@@ -8,7 +8,7 @@ import { ui } from "../ui";
 import { history } from "../history";
 import { canvas } from "../canvas/index";
 import { sidebar } from "../sidebar";
-import { normalizeAutoText } from "./textNorm";
+import { normalizeAutoText } from "./text-norm";
 import type { TextDetection } from "../../types";
 
 const STORAGE_KEY = "lumina-translate";

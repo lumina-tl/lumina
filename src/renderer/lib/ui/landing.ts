@@ -1,12 +1,4 @@
-/* ── Lumina Landing — minimal centered welcome ──
- * Own module so the welcome DOM can be rebuilt on every show (fresh
- * recents without an i18n-subscription hook). Static labels are rendered
- * through i18n.t at build time; the container (#landing) is a slim shell.
- *
- * Rendering happens in two places:
- *  - init() — first paint (app start)
- *  - show() — every time the landing reappears (fresh recents + labels)
- */
+/** Minimal centered welcome screen with recents list. */
 import * as i18n from "../i18n";
 import { createIcons } from "./icons";
 import type { RecentsData } from "../../types";

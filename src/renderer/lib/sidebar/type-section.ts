@@ -1,7 +1,4 @@
-/* ── Sidebar: TypeSection (koharu-style typography inspector) ──
- * Fixed-height section at the top of the sidebar. Hidden entirely when no
- * text layer is selected. Every change applies live to the selected layer.
- */
+/** Typography inspector — fixed-height section at top of sidebar. */
 import { state } from "../state";
 import * as i18n from "../i18n";
 import { canvas } from "../canvas/index";

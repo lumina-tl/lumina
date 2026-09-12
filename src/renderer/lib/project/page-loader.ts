@@ -1,4 +1,4 @@
-/* ── Lumina Page Loader ── */
+/** Lumina Page Loader */
 import * as L from "../state";
 import * as pageImages from "./page-images";
 import { canvas } from "../canvas/index";

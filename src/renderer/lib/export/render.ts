@@ -1,8 +1,8 @@
-/* ── Offscreen 1:1 page rendering for export. ── */
+/** Offscreen 1:1 page rendering for export. */
 
 import Konva from "konva";
 import { canvas } from "../canvas/index";
-import { makeNode } from "../canvas/tools/text/nodeFactory";
+import { makeNode } from "../canvas/tools/text/node-factory";
 import { ensureCleanupCanvas } from "../canvas/tools/paint/shared";
 import * as pageImages from "../project/page-images";
 import type { Page } from "../../types";
@@ -39,10 +39,7 @@ export async function ensureMaskImages(page: Page): Promise<void> {
   }
 }
 
-/** Reload the cleanup layer from its PNG before compositing. Export can run
- * right after open/undo where the runtime canvas isn't hydrated yet — the
- * PNG is the persisted truth, so re-drawing it is always safe. Skipped when
- * `_hydrated` says the canvas already matches imagePath. */
+/** Hydrate cleanup canvas from PNG before compositing for export. */
 function ensureCleanupForExport(page: Page): Promise<void> {
   const mask = page.cleanupMask;
   if (!mask || !mask.imagePath || mask._hydrated) return Promise.resolve();

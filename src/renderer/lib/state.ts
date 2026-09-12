@@ -1,4 +1,4 @@
-/* ── Lumina State & Constants ── */
+/** Lumina State & Constants */
 import type { Page, ToolId } from "../types";
 
 export const CONST = {
