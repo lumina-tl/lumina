@@ -1,4 +1,4 @@
-"""OpenRouter — OpenAI-compatible chat at a fixed endpoint, own key + model."""
+"""OpenRouter — OpenAI-compatible chat."""
 from __future__ import annotations
 
 from .._base import (

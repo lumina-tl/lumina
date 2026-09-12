@@ -1,9 +1,4 @@
-"""Baberu OCR — multilingual (ja/zh/en) manga bubble recognition.
-
-115M vision-to-text model (DINOv2 encoder + causal decoder) shipped as
-three ONNX graphs (vision, prefill, step w/ KV cache). Char-level vocab
-(14,630 symbols) keeps SFX and full/half-width mixing intact.
-"""
+"""Baberu OCR — multilingual manga bubble recognition (115M, 3 ONNX graphs)."""
 from __future__ import annotations
 
 import json
@@ -72,7 +67,7 @@ class BaberuOcrModel(BaseOcrModel):
         self._vocab: Optional[_Vocab] = None
 
     def unload(self) -> None:
-        """Release all ONNX sessions (frees VRAM/RAM). Next call reloads."""
+        """Release all ONNX sessions (frees VRAM/RAM)."""
         self._vis = None
         self._pre = None
         self._stp = None
@@ -84,9 +79,6 @@ class BaberuOcrModel(BaseOcrModel):
 
         so = make_session_options()
         log.info("Loading Baberu OCR ONNX...")
-        # Vision = one forward pass -> GPU. Decoder prefill/step are
-        # autoregressive (many tiny sequential calls) -> CPU (DirectML
-        # launch overhead would outweigh any speedup there).
         self._vis = create_session(
             self.model_dir / VISION_FILE, prefer=PREFER_VISION, sess_options=so
         )

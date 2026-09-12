@@ -1,19 +1,4 @@
-"""Minimal leveled logger for the Lumina backend.
-
-Usage::
-
-    from utils.logger import log
-
-    log.debug("per-step detail")
-    log.info("model loaded")
-    log.warn("cache miss")
-    log.error("request failed")
-
-Levels: ``debug < info < warn < error``. Default level is ``info``;
-override with the ``LUMINA_LOG_LEVEL`` env var. Thread-safe (model
-downloads run on a worker thread). Every line keeps the ``[Lumina]``
-prefix so the Electron main process output stays greppable.
-"""
+"""Leveled logger. Levels: debug < info < warn < error. Env: LUMINA_LOG_LEVEL."""
 from __future__ import annotations
 
 import os

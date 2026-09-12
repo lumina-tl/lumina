@@ -1,25 +1,4 @@
-"""PaddleOCR-VL 1.6 — vision-language OCR (NaViT vision + ERNIE decoder).
-
-Recognizes whole regions of text at once (multi-language), so Lumina feeds
-it region crops made of several detected boxes — see supports_regions /
-ocr_regions. Three ONNX graphs: vision encoder (GPU), token embedding
-table (CPU), KV-cache decoder (CPU).
-
-Known int8 caveats (model card):
-  - quality degrades on long sequences -> each region is capped to a few
-    boxes and oversized crops are downscaled to <= MAX_PATCHES.
-  - this int8 build is FASTER on CPU than on Intel Arc iGPU -> decoder CPU.
-
-Prompt: <|begin_of_sentence|>User: <|IMAGE_START|>{placeholders}<|IMAGE_END|>OCR:\nAssistant:\n
-with one <|IMAGE_PLACEHOLDER|> per merged (2x2) image patch.
-
-Split: preprocess.py (NaViT patchify), vision.py (vision encoder session),
-decoder.py (embedding + KV-cache decode). This module only orchestrates.
-
-Crops below min_pixels are grown with surrounding page content (native
-resolution) instead of being upscaled — matches how the HF demo reads
-blocks and avoids the blur that makes the int8 model hallucinate.
-"""
+"""PaddleOCR-VL 1.6 — vision-language OCR (NaViT + ERNIE decoder)."""
 from __future__ import annotations
 
 import json
@@ -59,7 +38,7 @@ class PaddleOcrVlModel(BaseOcrModel):
         self._std = (0.5, 0.5, 0.5)
 
     def unload(self) -> None:
-        """Release all ONNX sessions + tokenizer (frees VRAM/RAM)."""
+        """Release all ONNX sessions (frees VRAM/RAM)."""
         self._vis = None
         self._dec = None
 
@@ -85,18 +64,10 @@ class PaddleOcrVlModel(BaseOcrModel):
     def supports_regions(self) -> bool:
         return True
 
-    # ── inference ────────────────────────────────────────────────────────
-
     def _expand_window(
         self, img, x0: int, y0: int, x1: int, y1: int
     ) -> tuple[int, int, int, int]:
-        """Grow a crop window to ~min_pixels of NATIVE page content.
-
-        Small tight crops (a box or two) are below min_pixels; upscaling
-        them blurs glyphs and makes the int8 model hallucinate. Instead we
-        enlarge the window with surrounding page content so the model sees
-        a native-resolution block — the same regime it was demoed in.
-        """
+        """Grow crop window to ~min_pixels of native page content."""
         target = self._min_pixels * 1.5
         for _ in range(64):
             w, h = x1 - x0, y1 - y0
@@ -125,7 +96,7 @@ class PaddleOcrVlModel(BaseOcrModel):
         return img.crop((x0, y0, x1, y1))
 
     def _ocr_region(self, img, box: dict) -> str:
-        """Full pipeline on one crop: vision -> prefill -> step loop."""
+        """Vision encode + decode on one crop."""
         vis, dec = self._vis, self._dec
         assert vis is not None and dec is not None
         crop = self._crop_for_ocr(img, box)
@@ -138,11 +109,8 @@ class PaddleOcrVlModel(BaseOcrModel):
         )
         return dec.decode(vis.encode(pixel_values, grid))
 
-    # ── API ──────────────────────────────────────────────────────────────
-
     def ocr_boxes(self, image_path: str, boxes: list[dict]) -> list[str]:
-        """Per-box fallback path (also used when a region's line count
-        doesn't match its box count)."""
+        """Per-box fallback path."""
         from PIL import Image
 
         self._load()
@@ -155,9 +123,7 @@ class PaddleOcrVlModel(BaseOcrModel):
         return texts
 
     def ocr_regions(self, image_path: str, regions: list[dict]) -> list[list[str]]:
-        """Region mode: one VLM pass per region, output split into lines
-        aligned to the region's boxes (reading order). Falls back to
-        per-box recognition when the line count doesn't match."""
+        """Region mode: one VLM pass per region, split into lines."""
         from PIL import Image
 
         self._load()

@@ -1,16 +1,4 @@
-"""Big-LaMa inpainting via ONNX Runtime (CPU only).
-
-One RGBA patch PNG per box (RGB = pixels, A = feathered mask). Crops each
-box with context padding, builds a text mask, letterboxes to a square
-input (aspect-preserving), runs the graph, scales the output, and resizes
-back.
-
-CPU only: LaMa's FFC blocks crash under DirectML (microsoft/onnxruntime#
-24744, 80070057 E_INVALIDARG in the DML kernel) and this quantized graph
-also fails on CUDA EP (DequantizeLinear "Unsupported quantization type").
-The GPU toggle is therefore ignored — PREFER = "cpu" in config keeps it on
-CPU regardless of LUMINA_EP.
-"""
+"""LaMa inpainting (CPU only). One RGBA patch PNG per box."""
 from __future__ import annotations
 
 import time
@@ -49,9 +37,7 @@ class LamaModel(BaseInpaintModel):
             raise ValueError(f"Cannot read image: {image_path}")
         h, w = img.shape[:2]
 
-        # Optional model-produced full-page text mask; cropped per box it
-        # replaces the heuristic Otsu mask (which fails on colorful pages).
-        # Falls back to Otsu when missing or empty.
+        # Full-page text mask; falls back to Otsu when missing/empty.
         page_mask = None
         if mask_path:
             if Path(mask_path).is_file():
@@ -108,8 +94,7 @@ class LamaModel(BaseInpaintModel):
 
             crop = img[y0:y1, x0:x1]
 
-            # Detected text box relative to the crop — constrains the mask
-            # to the text region so context-margin art is never erased.
+            # Text box coords relative to crop — constrains mask to text region.
             box_rect = (
                 int(box["x"]) - x0,
                 int(box["y"]) - y0,

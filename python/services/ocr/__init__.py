@@ -1,9 +1,4 @@
-"""OCR services — pluggable model registry.
-
-Add a new model: create `<folder>/model.py` exposing a `BaseOcrModel`
-subclass, then register it in `MODELS`. Dispatch logic (region grouping)
-lives here.
-"""
+"""OCR model registry + region grouping."""
 from __future__ import annotations
 
 from typing import Optional
@@ -22,8 +17,6 @@ MODELS: dict[str, BaseOcrModel] = {
 }
 DEFAULT_MODEL = "manga_ocr"
 
-# Module-level progress callback — legacy main.py pattern sets this before
-# calling download_model(); model classes accept a per-call callback too.
 progress_callback: ProgressCallback = None
 
 
@@ -60,21 +53,12 @@ def download_model(callback: ProgressCallback = None) -> None:
             m.download(cb)
 
 
-# Region mode: adjacent boxes are chained into one crop for models that
-# support it (vision-language OCR). Per-box models ignore regions entirely.
-REGION_GAP = 48  # px — boxes closer than this on both axes chain together
-REGION_MAX_BOXES = 10  # safety cap: a region never spans more boxes than this
+REGION_GAP = 48  # px — boxes closer than this chain together
+REGION_MAX_BOXES = 10
 
 
 def _group_regions(boxes: list[dict]) -> list[dict]:
-    """Chain reading-order boxes into region crops.
-
-    Greedy: boxes arrive in reading order (from detection). A box merges
-    into the current region when its AABB is within ``REGION_GAP`` of it
-    on both axes; otherwise the region closes and a new one starts. The
-    box cap keeps each region short enough for the model's sequence limit.
-    Returns ``[{"boxes": [...], "x", "y", "w", "h"}, ...]``.
-    """
+    """Chain reading-order boxes into region crops (AABB within REGION_GAP)."""
     regions: list[dict] = []
     cur: Optional[dict] = None
     for b in boxes:
@@ -106,8 +90,6 @@ def ocr_boxes(
         raise ValueError(f"Unknown OCR model: {model}")
     m = MODELS[model]
     if m.supports_regions():
-        # Vision-language models read several boxes at once (region crop).
-        # ocr_regions guarantees per-region output aligned to its boxes.
         per_region = m.ocr_regions(image_path, _group_regions(boxes))
         return [line for r in per_region for line in r]
     return m.ocr_boxes(image_path, boxes)

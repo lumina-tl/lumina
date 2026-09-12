@@ -3,7 +3,7 @@ from __future__ import annotations
 
 MODEL_ID = "mayocream/lama-manga-onnx"
 MODEL_FILENAME = "lama-manga.onnx"
-PREFER = "cuda"  # CUDA only — never DirectML (FFC MatMul crash)
+PREFER = "cuda"  # FFC MatMul crash on DirectML
 
 INPUT_SIZE = 512  # square input after letterboxing
 CONTEXT_PAD = 32  # art margin kept around each text box

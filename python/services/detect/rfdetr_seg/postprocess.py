@@ -44,11 +44,7 @@ def postprocess(
     orig_w: int,
     orig_h: int,
 ) -> tuple[dict, Optional[np.ndarray]]:
-    """Decode outputs -> detection lists + full-page removal mask.
-
-    The mask is the union of TEXT instance masks only (SFX count as artwork,
-    per koharu), dilated + closed with a scale-aware radius; None when no text.
-    """
+    """Decode outputs into detection lists + optional full-page text mask."""
     import cv2 as cv
 
     scores = 1.0 / (1.0 + np.exp(-labels[..., :4]))  # [1, 300, 4]

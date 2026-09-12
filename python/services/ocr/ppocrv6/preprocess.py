@@ -1,4 +1,4 @@
-"""PP-OCRv6 preprocessing — PaddleX RecResizeImg mirror + line splitting."""
+"""RecResizeImg + line splitting."""
 from __future__ import annotations
 
 import math
@@ -14,15 +14,7 @@ def to_bgr(crop) -> np.ndarray:
 
 
 def _looks_vertical(img: np.ndarray) -> bool:
-    """True if the crop is laid out as vertical columns.
-
-    The plain h > w heuristic misfires on tall multi-line horizontal
-    bubbles (e.g. a 241x407 crop of 10 stacked lines): it rotates 90°
-    CCW and the recognizer hallucinates garbage. Real vertical text has
-    narrow single-character columns, so each row band (one glyph) covers
-    only a small fraction of the crop width. Multi-line horizontal text
-    has full words per row band — much higher coverage.
-    """
+    """True if crop is vertical columns (row-band coverage < 0.5)."""
     h, w = img.shape[:2]
     if h <= w:
         return False  # wide crop -> horizontal
@@ -60,18 +52,7 @@ def _looks_vertical(img: np.ndarray) -> bool:
 
 
 def split_lines(img: np.ndarray) -> tuple[list[np.ndarray], bool]:
-    """Split a bubble crop into line-level crops for recognition.
-
-    PP-OCRv6 is line-level; a whole bubble (multi-line/column) fails.
-    Vertical crops are rotated 90° CCW (columns read right-to-left, so
-    the rightmost column lands on top). Lines are found by grouping
-    character boxes that overlap in y — robust to columns only ~1px
-    apart, where projection-based banding fails.
-
-    Returns (lines, vertical): line crops in reading order and whether
-    the bubble was vertical. Callers join vertical columns without
-    newline (one logical line), horizontal lines with "\n".
-    """
+    """Split bubble crop into line-level crops. Returns (lines, vertical)."""
     import cv2
 
     vertical = _looks_vertical(img)
@@ -121,12 +102,7 @@ def split_lines(img: np.ndarray) -> tuple[list[np.ndarray], bool]:
 
 
 def preprocess(img: np.ndarray) -> np.ndarray:
-    """Mirror PaddleX RecResizeImg -> [3, 48, W] float32 in [-1, 1].
-
-    Vertical crops (h > w) are rotated 90° CCW first: the model is
-    horizontal-only, and CCW rotation maps Japanese vertical reading
-    order (columns right-to-left, chars top-to-bottom) to LTR.
-    """
+    """RecResizeImg -> [3, 48, W] float32 in [-1, 1]."""
     import cv2
 
     img_c, img_h, base_img_w = REC_IMAGE_SHAPE

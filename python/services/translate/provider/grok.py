@@ -1,4 +1,4 @@
-"""Grok (Groq) — OpenAI-compatible chat at a fixed endpoint, own key + model."""
+"""Grok (Groq) — OpenAI-compatible chat."""
 from __future__ import annotations
 
 from .._base import (

@@ -1,13 +1,4 @@
-"""Manga-finetuned LaMa — better reconstruction on manga text regions.
-
-Identical pipeline to the base LaMa (see `lama`), manga-tuned weights and
-0..1 graph output scaled back by OUTPUT_SCALE. Kept self-contained like the
-other model folders: no imports across model folders.
-
-CUDA only: DirectML is unsupported (FFC MatMul crash, microsoft/onnxruntime
-#24744); PREFER = "cuda" in config — CUDA when onnxruntime-gpu is
-installed, else CPU, never DirectML.
-"""
+"""Manga-finetuned LaMa. Same pipeline as lama/, manga-tuned weights."""
 from __future__ import annotations
 
 import time
@@ -46,9 +37,7 @@ class LamaMangaModel(BaseInpaintModel):
             raise ValueError(f"Cannot read image: {image_path}")
         h, w = img.shape[:2]
 
-        # Optional model-produced full-page text mask; cropped per box it
-        # replaces the heuristic Otsu mask (which fails on colorful pages).
-        # Falls back to Otsu when missing or empty.
+        # Full-page text mask; falls back to Otsu when missing/empty.
         page_mask = None
         if mask_path:
             if Path(mask_path).is_file():
@@ -105,8 +94,7 @@ class LamaMangaModel(BaseInpaintModel):
 
             crop = img[y0:y1, x0:x1]
 
-            # Detected text box relative to the crop — constrains the mask
-            # to the text region so context-margin art is never erased.
+            # Text box coords relative to crop — constrains mask to text region.
             box_rect = (
                 int(box["x"]) - x0,
                 int(box["y"]) - y0,

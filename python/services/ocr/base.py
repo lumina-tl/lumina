@@ -1,9 +1,4 @@
-"""OCR model contract + shared lifecycle.
-
-Subclasses only set name/model_id/model_dir_name/required_files/
-download_files; download (multi-file), ready/size checks, and unload
-are inherited.
-"""
+"""Shared lifecycle for OCR models (multi-file download, ready checks)."""
 from __future__ import annotations
 
 import os
@@ -67,8 +62,6 @@ class BaseOcrModel(ABC):
 
         log.info(f"Downloading OCR model {self.model_id} ...")
 
-        # Grand total = sum of HEAD Content-Length, so progress never
-        # overshoots 100% on multi-file models. ?download=true resolves xet blobs.
         grand_total = 0
         sizes: dict[str, int] = {}
         for url, f in pending:
@@ -132,10 +125,5 @@ class BaseOcrModel(ABC):
         return False
 
     def ocr_regions(self, image_path: str, regions: list[dict]) -> list[list[str]]:
-        """Region-based recognition; default = per-box fallback.
-
-        ``regions`` items: {"boxes": [...], "x", "y", "w", "h"} — boxes in
-        reading order, bbox covering them all. Returns one list of strings
-        per region aligned to that region's boxes.
-        """
+        """Region-based recognition; default = per-box fallback."""
         return [self.ocr_boxes(image_path, r["boxes"]) for r in regions]

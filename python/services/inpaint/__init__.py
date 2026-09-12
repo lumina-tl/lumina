@@ -1,8 +1,4 @@
-"""Inpaint services — pluggable model registry.
-
-Add a new model: create `<folder>/model.py` exposing a `BaseInpaintModel`
-subclass, then register it in `MODELS`.
-"""
+"""Inpaint model registry — add new model packages + one MODELS entry."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -18,8 +14,6 @@ MODELS: dict[str, BaseInpaintModel] = {
 }
 DEFAULT_MODEL = "lama_manga"
 
-# Module-level progress callback — legacy main.py pattern sets this before
-# calling download_model(); model classes accept a per-call callback too.
 progress_callback: ProgressCallback = None
 
 

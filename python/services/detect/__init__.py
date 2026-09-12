@@ -1,8 +1,4 @@
-"""Detection services — pluggable model registry.
-
-New model = new package under this folder (named after its registry id)
-+ one entry in ``MODELS``; main.py and the renderer need no changes.
-"""
+"""Detection model registry — add new model packages + one MODELS entry."""
 from __future__ import annotations
 
 from typing import Optional

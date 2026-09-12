@@ -1,7 +1,4 @@
-"""manga-ocr (mayocream/manga-ocr-onnx) — Japanese text recognition.
-
-Encoder runs once per crop (GPU), decoder greedy-decodes until SEP (CPU).
-"""
+"""manga-ocr — Japanese text recognition."""
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
@@ -52,8 +49,6 @@ class MangaOcrModel(BaseOcrModel):
 
         so = make_session_options()
         log.info("Loading manga-ocr ONNX...")
-        # Encoder = one forward pass -> GPU. Decoder is autoregressive
-        # (300 tiny sequential calls) -> CPU (DirectML launch overhead).
         self._enc = create_session(
             self.model_dir / "encoder_model.onnx",
             prefer=PREFER_ENC,

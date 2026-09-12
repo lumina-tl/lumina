@@ -1,30 +1,4 @@
-"""ONNX Runtime execution-provider resolution + GPU detection.
-
-Windows reality (Lumina is a desktop app; most users are on Windows):
-
-  - ``onnxruntime-directml`` (DX12): one wheel covers NVIDIA, AMD, and
-    Intel GPUs (incl. iGPUs) and still ships CPUExecutionProvider as a
-    fallback. This is the bundled default.
-  - ``onnxruntime-gpu`` (CUDA): fastest on NVIDIA but needs CUDA + cuDNN
-    DLLs installed — opt-in only. Both wheels install the same
-    ``onnxruntime`` module, so they cannot coexist in one venv.
-
-Provider selection is resolved per session by :func:`create_session`:
-
-  - ``LUMINA_EP`` env: ``auto`` (default) | ``cuda`` | ``dml`` | ``cpu``.
-    An explicit env override wins over per-call ``prefer``.
-  - Without an override: CUDA EP when the wheel supports it, else DirectML
-    when supported, else CPU. GPU EPs are only *attempted* — a session
-    that fails to build (missing DLLs, outdated driver) automatically
-    falls back to CPU so the app keeps working.
-  - Autoregressive decoders (manga-ocr decoder, Baberu prefill/step) pass
-    ``prefer="cpu"`` — many tiny sequential calls where DirectML launch
-    overhead outweighs any speedup.
-
-:func:`get_device_info` powers ``GET /device`` (Settings → Models badge):
-the active EP and the GPU list (Win32_VideoController via PowerShell,
-cached once per backend process).
-"""
+"""ONNX Runtime EP resolution + GPU detection."""
 from __future__ import annotations
 
 import os
@@ -37,22 +11,7 @@ from utils.logger import log
 
 
 def _register_nvidia_dlls() -> None:
-    """Make pip-installed CUDA DLLs (nvidia-*-cu12) loadable on Windows.
-
-    ``onnxruntime-gpu`` depends on the pip ``nvidia-*`` packages, which
-    install their DLLs under ``site-packages/nvidia/<pkg>/bin``. Those dirs
-    are NOT on PATH, so CUDA EP fails at session creation with e.g.
-    "cublasLt64_12.dll which is missing". Prepending them to PATH fixes it
-    (``os.add_dll_directory`` is not honored by ORT's provider loader).
-    No-op on non-Windows or when the DLLs are absent (CPU-only or DML
-    wheel).
-
-    Resolution: prefer the ``nvidia`` folder sitting NEXT TO the loaded
-    ``onnxruntime`` package (``onnxruntime.__file__``'s parent), falling
-    back to the site-packages purelib. The bundled layout ships ORT in a
-    separate folder (runtime/ort/<variant>) so ``sysconfig`` purelib does
-    NOT point at it — ``onnxruntime.__file__`` is the only reliable anchor.
-    """
+    """Prepend pip-installed CUDA DLL dirs to PATH on Windows."""
     if os.name != "nt":
         return
     try:
@@ -93,7 +52,7 @@ _DEVICE_CACHE: Optional[dict] = None
 
 
 def get_available_providers() -> list[str]:
-    """EPs the installed wheel actually supports (may be CPU-only)."""
+    """EPs the installed wheel supports."""
     if ort is None:
         return []
     try:
@@ -104,12 +63,7 @@ def get_available_providers() -> list[str]:
 
 
 def resolve_providers(prefer: Optional[str] = None) -> list[str]:
-    """Provider list for ``InferenceSession``, in priority order.
-
-    ``prefer`` is one of ``"auto"`` | ``"cuda"`` | ``"dml"`` | ``"cpu"``;
-    an explicit ``LUMINA_EP`` env value overrides it (user intent wins).
-    GPU EPs are only included when the installed wheel supports them.
-    """
+    """Provider list for InferenceSession, in priority order."""
     env = os.environ.get("LUMINA_EP", "").strip().lower()
     if env in ("cuda", "dml", "cpu"):
         pref = env
@@ -156,12 +110,7 @@ def create_session(
     prefer: Optional[str] = None,
     sess_options: Optional[Any] = None,
 ) -> Any:
-    """Build an InferenceSession with resolved providers.
-
-    GPU session creation can fail at runtime (missing CUDA DLLs, outdated
-    driver, D3D device failure). Falls back to CPU for that session so the
-    app never breaks; the failure is logged once per model.
-    """
+    """Build InferenceSession with resolved providers; falls back to CPU on failure."""
     if ort is None:  # pragma: no cover
         raise RuntimeError("onnxruntime is not installed")
     providers = resolve_providers(prefer)
@@ -191,7 +140,7 @@ def create_session(
 
 
 def _windows_gpu_names() -> list[str]:
-    """GPU names via Win32_VideoController (PowerShell). Cached."""
+    """GPU names via Win32_VideoController (PowerShell)."""
     global _GPU_NAMES_CACHE
     if _GPU_NAMES_CACHE is not None:
         return _GPU_NAMES_CACHE

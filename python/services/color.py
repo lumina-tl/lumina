@@ -1,26 +1,4 @@
-"""Text style detection — dominant glyph color + rotation per text box.
-
-Used right after detection so each dialogue layer can inherit the color
-and slant of the original typesetting instead of the global default.
-
-Method (per box):
-  1. Background = median color of the 2px border strips (text rarely
-     touches the box edges).
-  2. Foreground = pixels whose RGB distance from the background exceeds a
-     threshold — these are the glyph strokes (+ anti-aliased edges).
-  3. Text color = median of the foreground pixels, returned as #rrggbb.
-  4. Text angle = direction of maximum variance of the foreground pixels
-     (PCA on glyph coordinates), normalized to [-45, 45]° from horizontal.
-     Positive = clockwise lean (matches Konva's rotation convention).
-
-Rotation is only reported when the glyph blob is clearly elongated
-(eigenvalue ratio guard) — a single character has no dominant direction
-and would otherwise produce a random angle.
-
-Robust for dark text on light bubbles and light text on dark bubbles.
-Returns None for color/angle when a box is too small, empty, or entirely
-filled (no usable foreground/background separation).
-"""
+"""Dominant glyph color + rotation per text box (PCA-based)."""
 from __future__ import annotations
 
 import math

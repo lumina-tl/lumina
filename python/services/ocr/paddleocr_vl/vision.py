@@ -1,10 +1,4 @@
-"""PaddleOCR-VL vision encoder (NaViT) — single ONNX session.
-
-The exported NaViT graph has identity Reshape nodes (empty shape tensor)
-whose DML kernel fails with ERROR_INVALID_PARAMETER on EVERY adapter (AMD
-iGPU and NVIDIA alike — verified), so this graph must run on CPU or CUDA.
-PREFER_VISION = "cuda": CUDA EP when available, else CPU — never DirectML.
-"""
+"""NaViT vision encoder — single ONNX session (CPU/CUDA only, no DML)."""
 from __future__ import annotations
 
 from pathlib import Path

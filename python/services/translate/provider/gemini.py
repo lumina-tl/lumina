@@ -1,4 +1,4 @@
-"""Google Gemini — batch translation via the generateContent API."""
+"""Google Gemini batch translation."""
 from __future__ import annotations
 
 from .._base import (

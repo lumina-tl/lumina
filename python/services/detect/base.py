@@ -1,9 +1,4 @@
-"""Detect model contract + shared ONNX lifecycle.
-
-Subclasses set ``name`` / ``model_id`` / ``model_filename`` / ``prefer``
-and implement ``detect()``; download, session loading, and ready/size
-checks are inherited.
-"""
+"""Shared ONNX lifecycle for detection models."""
 from __future__ import annotations
 
 import os
@@ -106,7 +101,7 @@ class BaseDetectModel(ABC):
         log.info(f"Detect model download complete: {self.model_path}")
 
     def unload(self) -> None:
-        """Release the ONNX session (frees VRAM/RAM). Reloads on next detect()."""
+        """Release ONNX session (frees VRAM/RAM)."""
         self._session = None
 
     def _load_session(self):

@@ -1,4 +1,4 @@
-"""LaMa Manga input preparation: per-box text mask + square letterbox + blobs."""
+"""Per-box text mask + square letterbox + blobs."""
 from __future__ import annotations
 
 import cv2 as cv
@@ -10,12 +10,7 @@ from .config import INPUT_SIZE, MASK_BINARY, MASK_DILATE
 def build_mask(
     crop: np.ndarray, box_rect: tuple[int, int, int, int]
 ) -> np.ndarray:
-    """Glyph-precise Otsu mask constrained inside the text box.
-
-    Otsu is computed inside the box ONLY (box_rect = detected text box
-    relative to the crop), so context-margin art is never erased. Handles
-    dark glyphs on light panels and light glyphs on dark panels.
-    """
+    """Otsu mask inside text box only — preserves surrounding art."""
     gray = cv.cvtColor(crop, cv.COLOR_BGR2GRAY)
     bx0, by0, bx1, by1 = box_rect
     box_gray = gray[by0:by1, bx0:bx1]
@@ -50,12 +45,7 @@ def build_mask(
 def letterbox(
     crop: np.ndarray, mask: np.ndarray
 ) -> tuple[np.ndarray, np.ndarray, int, int, int, int]:
-    """Aspect-preserving square padding (image pads with edges, mask with 0).
-
-    Direct resize to INPUT_SIZE squishes wide/short crops and made LaMa
-    hallucinate distorted art, so the crop is scaled to fit and centered.
-    Returns the padded image, padded mask, scaled size, and pad offsets.
-    """
+    """Aspect-preserving square padding (image=edges, mask=0)."""
     ch, cw = crop.shape[:2]
     s = INPUT_SIZE
     scale = s / max(cw, ch)

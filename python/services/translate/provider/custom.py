@@ -1,8 +1,4 @@
-"""Custom LLM provider — user-configured base URL, OpenAI- or Anthropic-compatible.
-
-Reads llmBaseUrl + llmStyle from settings and delegates the chat call to the
-matching protocol module.
-"""
+"""Custom LLM provider — user-configured base URL + style."""
 from __future__ import annotations
 
 from .._base import (
@@ -34,8 +30,6 @@ def _chat(
     user: str,
     json_mode: bool = False,
 ) -> str:
-    # Import only the protocol for the configured style so the other SDK
-    # never loads (one provider = one SDK).
     if style == "anthropic":
         from ..protocol.anthropic import chat as chat_anthropic
 

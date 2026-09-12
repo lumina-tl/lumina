@@ -1,12 +1,4 @@
-"""PaddleOCR-VL decoder — token embedding + KV-cache ERNIE decode.
-
-Two ONNX graphs: decoder_q8 (KV-cache decode) and embedding.onnx (a
-404MB token-lookup table). Both stay on CPU: the embedding read per token
-would cost more in GPU transfer than the CPU lookup itself, and this int8
-decoder build is FASTER on CPU than on Intel Arc iGPU. The decoder graph
-uses PREFER_DECODER ("cuda") like the vision graph — CUDA when available,
-else CPU, never DirectML.
-"""
+"""KV-cache ERNIE decoder + token embedding."""
 from __future__ import annotations
 
 import re
@@ -66,8 +58,6 @@ class Decoder:
             prefer=PREFER_DECODER,
             sess_options=so,
         )
-        # Embedding stays CPU: a 404MB token-lookup table read per token —
-        # GPU transfer would cost more than the CPU lookup itself.
         emb = create_session(
             model_dir / EMBEDDING_FILE,
             prefer=PREFER_EMBEDDING,
@@ -100,9 +90,6 @@ class Decoder:
         hdim = shp[3] if isinstance(shp[3], int) else 128
         self._kv_zero_shape = (1, heads, 0, hdim)
         self._kv_dtype = _tensor_dtype(kv)
-        # Decoder outputs are "present.<layer>.<key|value>" but the matching
-        # inputs are "past_key_values.<layer>.<key|value>" — map them so the
-        # step loop feeds the KV cache back under the input names.
         self._dec_out_names = [o.name for o in dec.get_outputs()]
         self._kv_feed: dict[str, str] = {}
         for on in self._dec_out_names:

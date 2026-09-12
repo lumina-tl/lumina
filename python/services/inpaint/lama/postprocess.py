@@ -1,4 +1,4 @@
-"""LaMa output handling: scale, un-letterbox, feather, and package a patch."""
+"""Scale, un-letterbox, feather, and package a patch."""
 from __future__ import annotations
 
 import cv2 as cv
@@ -18,14 +18,9 @@ def compose_patch(
     *,
     clamp: bool = False,
 ) -> np.ndarray:
-    """Convert the raw CHW graph output into an RGBA patch (BGR + alpha).
+    """CHW graph output → RGBA patch (RGB = inpainted pixels, A = feathered mask).
 
-    RGB = inpainted pixels scaled back to 0..255, A = feathered glyph mask
-    (same blur the compositor uses) so edges blend into the artwork.
-
-    When *clamp* is True the alpha channel is zeroed outside *box_rect*,
-    preventing context-padding bleed into neighbouring patches.  Isolated
-    boxes (no neighbours) leave *clamp* False so the feather stays intact.
+    clamp=True zeros alpha outside box_rect to prevent bleed into neighbours.
     """
     result = np.asarray(output, dtype=np.float32) * OUTPUT_SCALE
     result = np.transpose(result, (1, 2, 0))

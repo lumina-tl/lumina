@@ -1,4 +1,4 @@
-"""PP-OCRv6 postprocessing — CTC greedy decoding."""
+"""CTC greedy decoding."""
 from __future__ import annotations
 
 import numpy as np

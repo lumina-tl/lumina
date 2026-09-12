@@ -1,8 +1,4 @@
-"""Anthropic Messages API client (official anthropic SDK).
-
-Uses the official SDK like the OpenAI one — httpx-based, so Cloudflare-
-protected endpoints are not blocked (raw urllib gets HTTP 403 error 1010).
-"""
+"""Anthropic Messages API client."""
 from __future__ import annotations
 
 import re

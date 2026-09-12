@@ -81,12 +81,7 @@ def _render_template(template: str, values: dict) -> str:
 def build_system_instruction(
     config: dict, target: str, previous_line: str | None = None
 ) -> str:
-    """Render the system instruction; previous_line falls back to config.
-
-    Config may carry ``previousLines`` (per-text list, aligned by index) —
-    the full list is joined into one continuity context so single-call mode
-    (per-text loop) sends ALL preceding dialogue, not just the first entry.
-    """
+    """Render the system instruction from config template + target."""
     if previous_line is None:
         prev = config.get("previousLines") or config.get("previousLine") or ""
         if isinstance(prev, list):
@@ -117,8 +112,6 @@ def build_single_prompt(
     return prompt
 
 
-# Segment type hints from the detector (FE passes them through); mapped to a
-# human-readable register label for the model.
 _SEGMENT_TYPE_LABELS = {
     "text_bubble": "dialogue (speech bubble)",
     "bubble": "dialogue (speech bubble)",
@@ -132,21 +125,7 @@ def build_batch_prompt(
     previous_lines: list[str] | None = None,
     types: list[str] | None = None,
 ) -> str:
-    """User prompt for one JSON chat completion over many texts.
-
-    The input is a JSON array of {id, text, type?, context?} objects in
-    reading order; the expected output is a JSON object mapping each id to
-    its translation. JSON escapes line breaks natively, so multiline bubble
-    text needs no sentinel character.
-
-    ``previous_lines`` (optional, aligned with ``texts`` by index) is the
-    already-translated preceding dialogue, oldest first, giving the model the
-    FULL page context so it can complete truncated OCR text and keep names
-    consistent — not just the immediately previous line.
-
-    ``types`` (optional, aligned with ``texts`` by index) is the detector's
-    segment type (text_bubble/text_free/...), so the model can match register.
-    """
+    """User prompt for one JSON chat completion over many texts."""
     ctx = previous_lines or [""] * len(texts)
     ty = types or [""] * len(texts)
     segments: list[dict] = []

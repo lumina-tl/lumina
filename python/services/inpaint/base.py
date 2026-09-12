@@ -1,8 +1,4 @@
-"""Inpaint model contract + shared lifecycle.
-
-Subclasses only set name/model_id/model_filename/prefer (from config);
-download, session loading, ready/size checks, and unload are inherited.
-"""
+"""Shared ONNX lifecycle for inpaint models."""
 from __future__ import annotations
 
 import os
@@ -108,7 +104,7 @@ class BaseInpaintModel(ABC):
         log.info(f"Inpaint model download complete: {self.model_path}")
 
     def unload(self) -> None:
-        """Release the ONNX session (frees VRAM/RAM). Next call reloads."""
+        """Release ONNX session (frees VRAM/RAM)."""
         self._session = None
 
     def _load_session(self):
@@ -119,9 +115,6 @@ class BaseInpaintModel(ABC):
                 self.download()
 
             log.info(f"Loading inpaint ONNX model: {self.model_path}")
-            # EP preference comes from each model's config (self.prefer):
-            # lama="cpu" (FFC crashes DML; quantized graph crashes CUDA),
-            # lama_manga="cuda" (never DirectML).
             self._session = create_session(
                 self.model_path,
                 prefer=self.prefer,

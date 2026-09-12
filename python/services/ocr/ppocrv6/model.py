@@ -1,11 +1,4 @@
-"""PP-OCRv6 medium rec — multilingual text recognition (CTC, one pass).
-
-The character dictionary lives in inference.yml, so the download is just
-the two inference files.
-
-Split: preprocess.py (RecResizeImg + line splitting), postprocess.py (CTC
-decode). This module owns the session + character vocab and orchestrates.
-"""
+"""PP-OCRv6 medium rec — multilingual CTC text recognition."""
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
@@ -44,7 +37,7 @@ class PPOcrV6Model(BaseOcrModel):
         self._chars: list[str] = []
 
     def unload(self) -> None:
-        """Release the ONNX session (frees VRAM/RAM). Next call reloads."""
+        """Release ONNX session (frees VRAM/RAM)."""
         self._session = None
 
     def _load(self) -> None:

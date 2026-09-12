@@ -1,14 +1,4 @@
-"""AngleNet — lightweight manga text-rotation model (Kellenok/anglenet).
-
-A global companion model that is auto-downloaded in the background (and
-surfaces in /model/check as kind "aux"). Its only remaining job is the
-``textAngle`` slant for translated layers — the /detect pipeline stores
-``lean_deg()`` per crop, and typesetting rotates translated text to match
-the original. It is NOT used by any OCR model anymore.
-
-Model: models/anglenet/anglenet_v0_1_distill_64x64.onnx.
-All functions return None when the file is missing — graceful fallback.
-"""
+"""AngleNet — manga text-rotation model. Returns None when model missing."""
 from __future__ import annotations
 
 import math

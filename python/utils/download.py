@@ -1,10 +1,4 @@
-"""Shared model-download cancellation.
-
-Model downloads run on a background thread started by ``/model/download``.
-The user can cancel from the UI (``/model/cancel``); every download loop
-checks :func:`is_cancelled` and removes its ``.part`` temp file before
-raising :class:`DownloadCancelled` — no half-written files are left behind.
-"""
+"""Shared model-download cancellation."""
 
 import threading
 

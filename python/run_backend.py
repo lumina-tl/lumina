@@ -1,18 +1,4 @@
-"""Bundle launcher — prepend dynamic runtime paths, then start main.
-
-The embedded Python distribution ships a ``._pth`` file, which makes the
-interpreter IGNORE the ``PYTHONPATH`` environment variable. The Electron
-main process therefore passes extra import dirs (runtime/, the active
-onnxruntime variant folder, site-packages) through ``LUMINA_PYTHONPATH``
-(os.pathsep-joined) and we insert them into ``sys.path`` here, before any
-Lumina import happens.
-
-The CUDA runtime is extracted by the installer itself (NSIS customInstall),
-so this file never decompresses anything — it only wires up import paths.
-
-In development this file is not used — ``main.py`` is run directly with
-the venv interpreter, where normal path rules apply.
-"""
+"""Bundle launcher — prepend dynamic runtime paths, then start main."""
 from __future__ import annotations
 
 import os
