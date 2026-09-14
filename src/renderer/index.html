@@ -422,15 +422,28 @@
 
               <div class="pipeline-sep"></div>
 
-              <!-- Run All -->
-              <button
-                class="pipeline-btn pipeline-btn-all"
-                id="btn-pipeline-all"
-                title="Run all pipeline steps in sequence"
-              >
-                <i data-lucide="play" class="w-3.5 h-3.5"></i>
-                <span>Run All</span>
-              </button>
+              <!-- Run Preset (split button) -->
+              <div class="pipeline-group pipeline-preset-group">
+                <button
+                  class="pipeline-btn pipeline-btn-all"
+                  id="btn-pipeline-all"
+                  title="Run pipeline preset"
+                >
+                  <i data-lucide="play" class="w-3.5 h-3.5"></i>
+                  <span id="btn-pipeline-all-label">Full Pipeline</span>
+                </button>
+                <button
+                  class="pipeline-chevron"
+                  id="btn-pipeline-preset-chevron"
+                  title="Choose pipeline preset"
+                >
+                  <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                </button>
+                <div
+                  class="pipeline-dropdown pipeline-preset-dropdown hidden"
+                  id="dropdown-preset"
+                ></div>
+              </div>
 
               <!-- Toggle Boxes -->
               <button

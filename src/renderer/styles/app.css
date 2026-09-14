@@ -3274,11 +3274,18 @@ body.resizing-row {
   background: #e94560;
   color: #fff;
   font-weight: 600;
-  border-radius: 6px;
+  border-radius: 0;
   padding: 0 10px;
 }
 .pipeline-btn-all:hover:not(:disabled) {
   background: #ff5c75;
+}
+/* Split button: round only the group, not inner buttons */
+.pipeline-preset-group {
+  border-radius: 6px;
+}
+.pipeline-preset-group .pipeline-chevron {
+  border-radius: 0 5px 5px 0;
 }
 .pipeline-icon-btn {
   display: inline-flex;

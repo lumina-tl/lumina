@@ -4,7 +4,13 @@
  */
 import * as i18n from "../i18n";
 import { models } from "../models";
-import { pipeline } from "../pipeline";
+import {
+  pipeline,
+  loadPreset,
+  savePreset,
+  PRESETS,
+  type PresetId,
+} from "../pipeline";
 import { translateSettings } from "../pipeline/translate";
 import { settings } from "../settings/index";
 import { state } from "../state";
@@ -183,6 +189,67 @@ function _closeDropdowns(): void {
   document.querySelectorAll(".pipeline-chevron").forEach((el) => {
     el.classList.remove("active");
   });
+}
+
+/* ── Pipeline Preset ── */
+
+const _presetLabels: Record<string, string> = {
+  full: "Full Pipeline",
+  clean: "Clean Only",
+};
+
+function _updatePresetLabel(): void {
+  const label = document.getElementById("btn-pipeline-all-label");
+  const id = loadPreset();
+  if (label) label.textContent = _presetLabels[id] || "Full Pipeline";
+}
+
+function _togglePresetDropdown(btn: HTMLElement): void {
+  const dropdown = document.getElementById("dropdown-preset");
+  if (!dropdown) return;
+
+  if (_activeDropdown === "preset") {
+    _closeDropdowns();
+    return;
+  }
+
+  _closeDropdowns();
+  _activeDropdown = "preset";
+  btn.classList.add("active");
+  dropdown.classList.remove("hidden");
+
+  const current = loadPreset();
+  let html = `<div class="pipeline-dropdown-header">
+    <span>Pipeline Preset</span>
+  </div>
+  <div class="pipeline-dropdown-list">`;
+
+  for (const p of PRESETS) {
+    const isSelected = p.id === current;
+    html += `
+      <div class="pipeline-dropdown-item ${isSelected ? "selected" : ""}" data-preset-id="${_esc(p.id)}">
+        <div class="pipeline-item-check">
+          ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-lumina"></i>' : ""}
+        </div>
+        <div class="pipeline-item-name">${_esc(p.label)}</div>
+      </div>`;
+  }
+
+  html += `</div>`;
+  dropdown.innerHTML = html;
+
+  dropdown.querySelectorAll(".pipeline-dropdown-item").forEach((item) => {
+    item.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const presetId = item.getAttribute("data-preset-id") as PresetId | null;
+      if (!presetId) return;
+      savePreset(presetId);
+      _updatePresetLabel();
+      _closeDropdowns();
+    });
+  });
+
+  createIcons({ root: dropdown });
 }
 
 /** Render and toggle dropdown popover */
@@ -466,13 +533,26 @@ export const pipelineBar = {
       }
     });
 
-    // Run All pipeline step button
-    _bar
-      .querySelector("#btn-pipeline-all")
-      ?.addEventListener("click", async () => {
-        _closeDropdowns();
-        await pipeline.runAll();
+    // Run pipeline preset button
+    const allBtn = _bar.querySelector("#btn-pipeline-all");
+    allBtn?.addEventListener("click", async () => {
+      _closeDropdowns();
+      await pipeline.runPreset(loadPreset());
+    });
+
+    // Preset dropdown chevron
+    const presetChevron = _bar.querySelector(
+      "#btn-pipeline-preset-chevron",
+    ) as HTMLElement | null;
+    if (presetChevron) {
+      presetChevron.addEventListener("click", (e) => {
+        e.stopPropagation();
+        _togglePresetDropdown(presetChevron);
       });
+    }
+
+    // Set initial label
+    _updatePresetLabel();
 
     // Close dropdowns on outside click or escape
     document.addEventListener("click", (e) => {
