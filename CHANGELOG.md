@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Page strip drag-and-drop reordering.** Dragging thumbnails in the bottom page strip now correctly reorders pages, with a visible drop indicator showing where the page will land.
 - **Black canvas after deleting all pages.** Importing images from the landing screen no longer shows a blank black canvas.
+- **Inpainting quality on long strip pages.** Mask from detection model is now properly bounded to each text box, preventing the model from overpainting surrounding artwork on long vertical pages like manhwa or manhua.
 
 ## [0.4.0] - 13-09-2026
 
