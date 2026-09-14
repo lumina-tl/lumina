@@ -1887,6 +1887,16 @@ body.resizing-row {
   transform: scale(0.92);
 }
 
+.page-thumb.drop-before {
+  border-color: #3b82f6;
+  box-shadow: -2px 0 0 0 #3b82f6;
+}
+
+.page-thumb.drop-after {
+  border-color: #3b82f6;
+  box-shadow: 2px 0 0 0 #3b82f6;
+}
+
 .page-thumb img {
   width: 100%;
   height: 100%;

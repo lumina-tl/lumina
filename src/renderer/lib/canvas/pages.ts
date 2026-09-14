@@ -14,6 +14,19 @@ import * as landing from "../ui/landing";
 import { isDirty, markDirty } from "../project/dirty";
 import type { Page } from "../../types";
 
+/* ── Drag-and-drop reorder state ── */
+let _dragIdx: number | null = null;
+
+function clearDropIndicators(): void {
+  const items = document.getElementById("page-strip-items");
+  if (!items) return;
+  items
+    .querySelectorAll(".page-thumb.drop-before, .page-thumb.drop-after")
+    .forEach(function (el) {
+      el.classList.remove("drop-before", "drop-after");
+    });
+}
+
 /** Render page strip thumbnails */
 canvas.renderPageStrip = function (): void {
   const strip = document.getElementById("page-strip");
@@ -64,40 +77,57 @@ canvas.renderPageStrip = function (): void {
 
     // Drag and Drop reordering
     thumb.addEventListener("dragstart", function (e) {
+      e.stopPropagation();
+      _dragIdx = i;
       if (e.dataTransfer) {
-        e.dataTransfer.setData("text/plain", String(i));
         e.dataTransfer.effectAllowed = "move";
+        // Fallback for browsers that require data to allow drop
+        e.dataTransfer.setData("text/plain", String(i));
       }
-      thumb.classList.add("dragging");
+      requestAnimationFrame(function () {
+        thumb.classList.add("dragging");
+      });
     });
 
     thumb.addEventListener("dragend", function () {
       thumb.classList.remove("dragging");
-      const dropTargets = items.querySelectorAll(".page-thumb.drag-over");
-      dropTargets.forEach((el) => el.classList.remove("drag-over"));
+      _dragIdx = null;
+      clearDropIndicators();
     });
 
     thumb.addEventListener("dragover", function (e) {
       e.preventDefault();
+      if (_dragIdx === null || _dragIdx === i) return;
       if (e.dataTransfer) {
         e.dataTransfer.dropEffect = "move";
       }
-      if (!thumb.classList.contains("dragging")) {
-        thumb.classList.add("drag-over");
-      }
+      clearDropIndicators();
+      // Determine whether cursor is in the left or right half of the thumb
+      const rect = thumb.getBoundingClientRect();
+      const midX = rect.left + rect.width / 2;
+      const before = e.clientX < midX;
+      thumb.classList.toggle("drop-before", before);
+      thumb.classList.toggle("drop-after", !before);
     });
 
     thumb.addEventListener("dragleave", function () {
-      thumb.classList.remove("drag-over");
+      thumb.classList.remove("drop-before", "drop-after");
     });
 
     thumb.addEventListener("drop", function (e) {
       e.preventDefault();
-      thumb.classList.remove("drag-over");
-      if (!e.dataTransfer) return;
-      const fromIdx = parseInt(e.dataTransfer.getData("text/plain"), 10);
-      if (isNaN(fromIdx) || fromIdx === i) return;
-      canvas.reorderPage(fromIdx, i);
+      e.stopPropagation();
+      clearDropIndicators();
+      if (_dragIdx === null || _dragIdx === i) return;
+      const fromIdx = _dragIdx;
+      // Determine insertion index based on cursor position within target
+      const rect = thumb.getBoundingClientRect();
+      const midX = rect.left + rect.width / 2;
+      const insertBefore = e.clientX < midX;
+      let toIdx = insertBefore ? i : i + 1;
+      // Adjust if dragging from before the insertion point
+      if (fromIdx < toIdx) toIdx--;
+      canvas.reorderPage(fromIdx, toIdx);
     });
 
     // Click to switch page
