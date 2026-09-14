@@ -104,48 +104,33 @@ canvas._initWheelZoom = function (): void {
 
 /** Pan via select-tool background drag or middle-mouse drag */
 let _panBound = false;
-export function bindPanWhenStageReady(): void {
-  if (_panBound || !canvas.getStage()) return;
-  _panBound = true;
-  canvas._initPanDrag();
+let _panWindowBound = false;
+const _panState = {
+  active: false,
+  last: null as { x: number; y: number } | null,
+};
+
+/** Reset so next bindPanWhenStageReady() re-binds to a fresh stage. */
+export function resetPanBinding(): void {
+  _panBound = false;
 }
 
-canvas._initPanDrag = function (): void {
-  let panning = false;
-  let last: { x: number; y: number } | null = null;
-
-  function bind(s: Konva.Stage | null): void {
-    if (!s) return;
-    s.on("mousedown touchstart", function (e) {
-      const middleBtn = e.evt && e.evt.button === 1;
-      const onBackground =
-        e.target === s || (e.target.name && e.target.name() === "bg");
-      if (middleBtn) {
-        // middle-mouse pans regardless of tool
-      } else if (state.activeTool === "select" && onBackground) {
-        // select tool pans on background drag
-      } else {
-        return;
-      }
-      panning = true;
-      last = { x: e.evt.clientX, y: e.evt.clientY };
-      const container = document.getElementById("canvas-container");
-      if (container) container.style.cursor = "grabbing";
-      e.evt.preventDefault();
-    });
-
+export function bindPanWhenStageReady(): void {
+  if (!canvas.getStage()) return;
+  // Window-level listeners survive stage destroy — register once
+  if (!_panWindowBound) {
+    _panWindowBound = true;
     window.addEventListener("mousemove", function (e) {
-      if (!panning || !last) return;
-      state._panX = (state._panX || 0) + (e.clientX - last.x);
-      state._panY = (state._panY || 0) + (e.clientY - last.y);
-      last = { x: e.clientX, y: e.clientY };
+      if (!_panState.active || !_panState.last) return;
+      state._panX = (state._panX || 0) + (e.clientX - _panState.last.x);
+      state._panY = (state._panY || 0) + (e.clientY - _panState.last.y);
+      _panState.last = { x: e.clientX, y: e.clientY };
       _clampPan();
       canvas.scheduleRender();
     });
-
     window.addEventListener("mouseup", function () {
-      if (!panning) return;
-      panning = false;
+      if (!_panState.active) return;
+      _panState.active = false;
       const container = document.getElementById("canvas-container");
       if (!container) return;
       const t = state.activeTool;
@@ -161,9 +146,28 @@ canvas._initPanDrag = function (): void {
               : "default";
     });
   }
-
-  bind(canvas.getStage());
-};
+  if (_panBound) return;
+  _panBound = true;
+  // Stage-level listener — re-bound on each new stage
+  const s = canvas.getStage()!;
+  s.on("mousedown touchstart", function (e) {
+    const middleBtn = e.evt && e.evt.button === 1;
+    const onBackground =
+      e.target === s || (e.target.name && e.target.name() === "bg");
+    if (middleBtn) {
+      // middle-mouse pans regardless of tool
+    } else if (state.activeTool === "select" && onBackground) {
+      // select tool pans on background drag
+    } else {
+      return;
+    }
+    _panState.active = true;
+    _panState.last = { x: e.evt.clientX, y: e.evt.clientY };
+    const container = document.getElementById("canvas-container");
+    if (container) container.style.cursor = "grabbing";
+    e.evt.preventDefault();
+  });
+}
 
 /** Wire zoom control buttons in the overlay */
 canvas._initZoomControls = function (): void {

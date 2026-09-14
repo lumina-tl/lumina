@@ -3,7 +3,7 @@ import { state } from "../state";
 import * as i18n from "../i18n";
 import { ui } from "../ui";
 import { canvas } from "./index";
-import { invalidateComposite } from "./render";
+import { invalidateComposite, destroyStage } from "./render";
 import * as pageImages from "../project/page-images";
 import { hydrateCleanupCanvas } from "./tools/paint/shared";
 import { hydrateMaskImages } from "../history";
@@ -243,8 +243,7 @@ canvas.removePage = async function (idx: number): Promise<void> {
   } else {
     // No pages left — show landing
     landing.show();
-    const stage = canvas.getStage();
-    if (stage) stage.destroy();
+    destroyStage();
   }
   canvas.renderPageStrip();
   ui.updatePageIndicator();

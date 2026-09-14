@@ -1,8 +1,8 @@
 /** Stage & render — composite: bg image → inpaint patches → text layers. */
 import Konva from "konva";
 import { state } from "../state";
-import { canvas } from "./index";
-import { bindPanWhenStageReady } from "./viewport";
+import { canvas, resetDeselectBinding } from "./index";
+import { bindPanWhenStageReady, resetPanBinding } from "./viewport";
 import { renderLayerTextNodes } from "./tools/text";
 let _stage: Konva.Stage | null = null;
 let _layer: Konva.Layer | null = null;
@@ -18,6 +18,17 @@ const _dirtySources = new Set<unknown>();
 
 export function markSourcesDirty(sources: Iterable<unknown>): void {
   for (const s of sources) _dirtySources.add(s);
+}
+
+/** Destroy the Konva stage and null all references so a fresh one is created on next render. */
+export function destroyStage(): void {
+  _stage?.destroy();
+  _stage = null;
+  _layer = null;
+  _bgImage = null;
+  state._compositeCache = null;
+  resetPanBinding();
+  resetDeselectBinding();
 }
 
 export function scheduleRender(): void {

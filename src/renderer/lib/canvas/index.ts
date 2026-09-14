@@ -66,7 +66,6 @@ export interface CanvasAPI {
   zoomReset(): void;
   initBindings(): void;
   _initWheelZoom(): void;
-  _initPanDrag(): void;
   _initZoomControls(): void;
   _initKeyboard(): void;
   _initSidebarResize(): void;
@@ -140,7 +139,6 @@ export const canvas: CanvasAPI = {
   zoomReset() {},
   initBindings() {},
   _initWheelZoom() {},
-  _initPanDrag() {},
   _initZoomControls() {},
   _initKeyboard() {},
   _initSidebarResize() {},
@@ -182,6 +180,9 @@ canvas._initKeyboard = function (): void {
 
 /** Wire deselect-on-empty-click once */
 let _deselectBound = false;
+export function resetDeselectBinding(): void {
+  _deselectBound = false;
+}
 canvas._initDeselectClick = function (): void {
   if (_deselectBound) return;
   const stage = canvas.getStage();
@@ -229,6 +230,5 @@ canvas.initBindings = function (): void {
   canvas._initKeyboard();
   canvas._initSidebarResize();
   canvas._initWheelZoom();
-  canvas._initPanDrag();
   canvas._initZoomControls();
 };
