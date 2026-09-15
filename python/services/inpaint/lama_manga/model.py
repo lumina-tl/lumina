@@ -11,7 +11,7 @@ import numpy as np
 from utils.logger import log
 
 from ..base import BaseInpaintModel, _cache_dir
-from .config import CONTEXT_PAD, MASK_DILATE, MODEL_FILENAME, MODEL_ID, PREFER
+from .config import CONTEXT_PAD, MODEL_FILENAME, MODEL_ID, PREFER
 from . import postprocess as pp
 from . import preprocess as prep
 
@@ -104,17 +104,6 @@ class LamaMangaModel(BaseInpaintModel):
             )
             if page_mask is not None:
                 mask = page_mask[y0:y1, x0:x1].copy()
-                # Clip mask to box_rect — discard dilated pixels outside box
-                # so LaMa keeps clean art context around the text.
-                clip = np.zeros_like(mask)
-                clip[box_rect[1]:box_rect[3], box_rect[0]:box_rect[2]] = 255
-                mask = cv.bitwise_and(mask, clip)
-                # Small re-dilation to catch edge characters that extend
-                # slightly outside the detection box boundary.
-                kern = cv.getStructuringElement(
-                    cv.MORPH_ELLIPSE, (MASK_DILATE * 2 + 1,) * 2
-                )
-                mask = cv.dilate(mask, kern)
                 # Model missed this box (no mask pixels) -> heuristic fallback
                 if cv.countNonZero(mask) < max(1, mask.size // 100):
                     log.debug(
