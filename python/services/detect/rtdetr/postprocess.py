@@ -64,16 +64,14 @@ def postprocess(
         conf = round(float(score), 4)
         cls_name = CLASS_MAP.get(int(cls_id), "bubble")
 
-        if cls_name == "bubble":
-            bubble_detections.append({"bbox": bbox, "confidence": conf})
-        else:
+        if cls_name != "bubble":
             text_detections.append(
                 {"bbox": bbox, "type": cls_name, "confidence": conf}
             )
 
     log.debug(
         f"RT-DETR postprocess: {total} candidates "
-        f"-> {len(text_detections)} text, {len(bubble_detections)} bubbles "
+        f"-> {len(text_detections)} text "
         f"(threshold={SCORE_THRESHOLD})"
     )
     return {

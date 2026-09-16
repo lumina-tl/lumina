@@ -35,8 +35,5 @@ class RTDetrModel(BaseDetectModel):
 
         labels, boxes, scores = pp.split_outputs(session, outputs)
         result = pp.postprocess(labels, boxes, scores, w, h)
-        log.info(
-            f"Detected {len(result['textDetections'])} text, "
-            f"{len(result['bubbleDetections'])} bubbles"
-        )
+        log.info(f"Detected {len(result['textDetections'])} text")
         return result

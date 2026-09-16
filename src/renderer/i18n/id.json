@@ -205,8 +205,8 @@
   "ctx.deselect": "Batalkan pilihan",
 
   "toast.detectFirstRun": "menyiapkan mesin deteksi, mohon tunggu...",
-  "toast.detectRunning": "Mendeteksi teks dan bubble...",
-  "toast.detectDone": "Selesai — {{texts}} teks, {{bubbles}} bubble terdeteksi",
+  "toast.detectRunning": "Mendeteksi teks...",
+  "toast.detectDone": "Selesai — {{texts}} kotak teks terdeteksi",
   "toast.detectFailed": "Deteksi gagal",
 
   "toast.ocrNoText": "Jalankan Deteksi dulu — belum ada kotak teks untuk OCR",

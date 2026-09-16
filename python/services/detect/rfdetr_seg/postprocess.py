@@ -90,9 +90,7 @@ def postprocess(
                 {"bbox": bbox, "type": "text_free", "confidence": conf}
             )
             text_masks.append(np.asarray(masks[0, i]))
-        elif name == "bubble":
-            bubble_detections.append({"bbox": bbox, "confidence": conf})
-        # onomatopoeia (1), panel (3) and unknown classes are skipped
+        # bubble (2), onomatopoeia (1), panel (3) and unknown classes are skipped
 
     result = {
         "textDetections": text_detections,
@@ -100,7 +98,7 @@ def postprocess(
     }
     log.debug(
         f"RF-DETR postprocess: {total} candidates "
-        f"-> {len(text_detections)} text, {len(bubble_detections)} bubbles, "
+        f"-> {len(text_detections)} text, "
         f"{len(text_masks)} masks (thresholds={CLASS_THRESHOLDS})"
     )
 

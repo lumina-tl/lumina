@@ -188,7 +188,10 @@ def detect(req: DetectRequest):
                     det["textAngle"] = style["angle"]
         return DetectResponse(
             textDetections=[TextDetection(**d) for d in texts],
-            bubbleDetections=[BubbleDetection(**d) for d in result["bubbleDetections"]],
+            bubbleDetections=[
+                BubbleDetection(**d)
+                for d in result.get("bubbleDetections", [])
+            ],
             maskPath=result.get("maskPath"),
         )
     except Exception as e:

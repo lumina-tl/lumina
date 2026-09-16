@@ -57,8 +57,6 @@ export interface TextDetection extends BaseDetection {
   textAngle?: number;
 }
 
-export interface BubbleDetection extends BaseDetection {}
-
 /* ── Unified layer model (koharu-style) ──
  * Detection results become text-dialogue layers; the text tool creates
  * text-free layers. Rendered over the original page image (mask layers sit
@@ -220,9 +218,6 @@ export interface DetectResult {
     textColor?: string;
     textAngle?: number;
   }>;
-  /** Bubble shells around balloon text — used to widen the auto-fit box of
-   * dialogue inside a bubble (bubble interior = safe typesetting area). */
-  bubbleDetections?: Array<{ bbox: BBox; confidence?: number }>;
   /** Full-page binary text mask (model-produced, rfdetr_seg only) */
   maskPath?: string | null;
   error?: string;

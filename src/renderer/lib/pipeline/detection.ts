@@ -10,7 +10,6 @@ import type { DetectResult, PageLayer, TextDetection } from "../../types";
 import { sortReadingOrder } from "../utils/reading-order";
 import { log } from "../logger";
 import { defaultTypography, loadGlobalTypography } from "../../types";
-import { assignBubbleFitBoxes } from "../utils/bubble-box";
 
 export const detection = {
   /** Run detection on active page */
@@ -61,20 +60,7 @@ export const detection = {
       );
       page.textDetections = sortedTexts;
       page.maskPath = result.maskPath ?? null;
-      log.debug(
-        "fe",
-        `detect: done texts=${sortedTexts.length} bubbles=${(result.bubbleDetections || []).length}`,
-      );
-
-      // Balloon text gets a roomier typesetting box: the interior of its
-      // bubble shell. OCR & inpaint keep the glyph-tight text boxes above;
-      // only the dialogue layer bbox (which drives auto-fit + render) is
-      // widened so translated text fills the bubble instead of shrinking
-      // into the tight text rectangle.
-      const fitBoxes = assignBubbleFitBoxes(
-        sortedTexts,
-        result.bubbleDetections || [],
-      );
+      log.debug("fe", `detect: done texts=${sortedTexts.length}`);
 
       page._selectedTextIdx = null;
 
@@ -84,11 +70,10 @@ export const detection = {
         return l.type === "text-free";
       });
       const dialogueLayers: PageLayer[] = sortedTexts.map(function (d, i) {
-        const fit = fitBoxes[i];
         return {
           id: "layer-t" + i,
           type: "text-dialogue" as const,
-          bbox: fit ? Object.assign({}, fit) : Object.assign({}, d.bbox),
+          bbox: Object.assign({}, d.bbox),
           source: d.text || "",
           translation: d.translated || "",
           // New dialogue layers inherit the global type defaults; the
@@ -119,7 +104,6 @@ export const detection = {
       ui.toast(
         i18n.t("toast.detectDone", {
           texts: page.textDetections.length,
-          bubbles: 0,
         }),
         "success",
         3000,

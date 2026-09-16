@@ -37,7 +37,7 @@ class DetectRequest(BaseModel):
 
 class DetectResponse(BaseModel):
     textDetections: list[TextDetection]
-    bubbleDetections: list[BubbleDetection]
+    bubbleDetections: list[BubbleDetection] = []
     # Full-page binary text mask (model-produced, rfdetr_seg only). When
     # present, /inpaint uses it instead of the heuristic Otsu masking.
     maskPath: str | None = None

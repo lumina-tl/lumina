@@ -36,8 +36,7 @@ class RfDetrSegModel(BaseDetectModel):
             log.debug(f"Mask saved: {result['maskPath']}")
 
         log.info(
-            f"Detected {len(result['textDetections'])} text, "
-            f"{len(result['bubbleDetections'])} bubbles "
+            f"Detected {len(result['textDetections'])} text "
             f"(mask: {'yes' if mask is not None else 'no'})"
         )
         return result
