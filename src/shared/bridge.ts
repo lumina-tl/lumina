@@ -15,6 +15,9 @@ export type {
   ExportImageFile,
   ExportPayload,
   ExportResult,
+  ShowSaveDialogOptions,
+  ShowSaveDialogResult,
+  WritePsdFilePayload,
 } from "./types/export";
 export type {
   RuntimeState,

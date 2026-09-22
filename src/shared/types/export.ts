@@ -15,3 +15,19 @@ export interface ExportResult {
   dir: string | null;
   count: number;
 }
+
+// ── PSD save-as ──
+
+export interface ShowSaveDialogOptions {
+  defaultPath?: string;
+}
+
+export interface ShowSaveDialogResult {
+  canceled: boolean;
+  filePath?: string;
+}
+
+export interface WritePsdFilePayload {
+  filePath: string;
+  data: Uint8Array;
+}

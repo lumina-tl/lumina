@@ -8,7 +8,13 @@ import type {
   ProjectSaveResult,
 } from "./project";
 import type { DownloadProgress, ModelCheck } from "./model";
-import type { ExportPayload, ExportResult } from "./export";
+import type {
+  ExportPayload,
+  ExportResult,
+  ShowSaveDialogOptions,
+  ShowSaveDialogResult,
+  WritePsdFilePayload,
+} from "./export";
 import type {
   FontInfo,
   ModelsPathState,
@@ -49,6 +55,8 @@ export interface LuminaAPI {
   onRequestCloseCheck(cb: () => void): void;
   confirmClose(ok: boolean): Promise<void>;
   exportImages(payload: ExportPayload): Promise<ExportResult>;
+  showSaveDialog(opts?: ShowSaveDialogOptions): Promise<ShowSaveDialogResult>;
+  writePsdFile(payload: WritePsdFilePayload): Promise<void>;
   writeTempPng(payload: TempPngWritePayload): Promise<TempPngWriteResult>;
   checkForUpdates(): Promise<CheckUpdateResult>;
   downloadUpdate(): Promise<void>;

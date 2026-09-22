@@ -10,6 +10,9 @@ import {
   type ProjectPageData,
   type ProjectSavePayload,
   type ProjectSaveResult,
+  type ShowSaveDialogOptions,
+  type ShowSaveDialogResult,
+  type WritePsdFilePayload,
 } from "../../shared/bridge";
 import { CACHE_DIR } from "../backend/cache";
 import { handle, windowFromEvent } from "../core/ipc";
@@ -220,10 +223,38 @@ async function handleConfirmDiscard(
       : "cancel";
 }
 
+async function handleShowSaveDialog(
+  event: IpcMainInvokeEvent,
+  opts?: ShowSaveDialogOptions,
+): Promise<ShowSaveDialogResult> {
+  const res = await dialog.showSaveDialog(windowFromEvent(event)!, {
+    title: "Save As",
+    defaultPath: opts?.defaultPath || "project.lmi",
+    filters: [
+      { name: "Lumina Project", extensions: ["lmi"] },
+      { name: "Photoshop Document", extensions: ["psd"] },
+    ],
+  });
+  if (res.canceled || !res.filePath) return { canceled: true };
+  return { canceled: false, filePath: res.filePath };
+}
+
+async function handleWritePsdFile(
+  _event: IpcMainInvokeEvent,
+  payload: WritePsdFilePayload,
+): Promise<void> {
+  const dir = path.dirname(payload.filePath);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(payload.filePath, Buffer.from(payload.data));
+  log.info(`PSD saved: ${payload.filePath}`);
+}
+
 export function registerProjectHandlers(): void {
   handle(IPC.saveProject, handleSave);
   handle(IPC.openProject, handleOpen);
   handle(IPC.confirmDiscard, handleConfirmDiscard);
+  handle(IPC.showSaveDialog, handleShowSaveDialog);
+  handle(IPC.writePsdFile, handleWritePsdFile);
 }
 
 export function isLumiFileArg(arg: string): boolean {

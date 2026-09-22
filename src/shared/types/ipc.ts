@@ -51,6 +51,10 @@ export const IPC = {
   // Export
   exportImages: "export-images",
 
+  // Save as PSD
+  showSaveDialog: "show-save-dialog",
+  writePsdFile: "write-psd-file",
+
   // Paint tool
   writeTempPng: "write-temp-png",
 

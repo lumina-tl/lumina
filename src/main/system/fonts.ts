@@ -59,6 +59,36 @@ function readFamily(filePath: string): string | null {
   return null;
 }
 
+/** Read PostScript name (nameID 6) from font file. */
+function readPostScriptName(
+  buf: Buffer,
+  numTables: number,
+  dirOffset: number,
+): string | null {
+  for (let i = 0; i < numTables; i++) {
+    const off = dirOffset + i * 16;
+    if (buf.slice(off, off + 4).toString() !== "name") continue;
+    const nameOff = buf.readUInt32BE(off + 8);
+    const count = buf.readUInt16BE(nameOff + 2);
+    const strOff = nameOff + buf.readUInt16BE(nameOff + 4);
+    for (let j = 0; j < count; j++) {
+      const rec = nameOff + 6 + j * 12;
+      if (buf.readUInt16BE(rec + 6) !== 6) continue; // nameID 6 = PostScript name
+      const len = buf.readUInt16BE(rec + 8);
+      const o = buf.readUInt16BE(rec + 10);
+      const platform = buf.readUInt16BE(rec);
+      return platform === 3 || platform === 0
+        ? buf
+            .slice(strOff + o, strOff + o + len)
+            .swap16()
+            .toString("utf16le")
+        : buf.slice(strOff + o, strOff + o + len).toString("latin1");
+    }
+    break;
+  }
+  return null;
+}
+
 function fontDirs(): string[] {
   const dirs: string[] = [];
   if (process.platform === "win32") {
@@ -88,12 +118,18 @@ function scanFonts(): FontInfo[] {
   const pushFile = (filePath: string, fallback: string) => {
     try {
       const buf = fs.readFileSync(filePath);
+      let dirOffset = 12;
+      if (buf.slice(0, 4).toString() === "ttcf") {
+        dirOffset = buf.readUInt32BE(12) + 12;
+      }
+      const numTables = buf.readUInt16BE(dirOffset - 8);
       const family = readFamily(filePath) || fallback;
-      const meta = readMeta(buf, buf.readUInt16BE(4), 12);
+      const meta = readMeta(buf, numTables, dirOffset);
+      const psName = readPostScriptName(buf, numTables, dirOffset) || "";
       const key = `${family}|${meta.weight}|${meta.italic}`;
       if (!seen.has(key)) {
         seen.add(key);
-        fonts.push({ family, path: filePath, ...meta });
+        fonts.push({ family, path: filePath, ...meta, postScriptName: psName });
       }
     } catch {
       fonts.push({
@@ -101,6 +137,7 @@ function scanFonts(): FontInfo[] {
         path: filePath,
         weight: 400,
         italic: false,
+        postScriptName: "",
       });
     }
   };

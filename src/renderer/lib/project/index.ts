@@ -13,6 +13,7 @@ import { translateSettings } from "../pipeline/translate";
 import * as landing from "../ui/landing";
 import type { TranslateConfig } from "../pipeline/translate";
 import { log } from "../logger";
+import { ensureMaskImages } from "../export/render";
 import {
   getSavePath,
   setSavePath,
@@ -133,9 +134,55 @@ export const project = {
       return false;
     }
     try {
-      // Wait for any in-flight brush stroke commit so cleanup PNGs are on disk
       await pendingCommit.current;
-      const res = await window.lumina.saveProject(buildPayload(getSavePath()));
+      let savePath = getSavePath();
+
+      // No path yet — show Save As dialog
+      if (!savePath) {
+        const dlg = await window.lumina.showSaveDialog();
+        if (dlg.canceled || !dlg.filePath) return false;
+        savePath = dlg.filePath;
+        setSavePath(savePath);
+      }
+
+      // PSD path → build multi-page PSD and write
+      if (savePath.toLowerCase().endsWith(".psd")) {
+        const { buildPsdDocument } = await import("../export/psd/build");
+        const { serializePsd } = await import("../export/psd/write");
+        // Preload all images
+        for (const p of state.pages) {
+          await ensureMaskImages(p);
+          await pageImages.ensurePageImage(p);
+        }
+        const total = state.pages.length;
+        const toast = ui.toast(
+          `${i18n.t("export.running")} (0/${total})`,
+          "running",
+          0,
+        );
+        const psd = await buildPsdDocument(state.pages, (cur) => {
+          toast.textContent = `${i18n.t("export.running")} (${cur}/${total})`;
+        });
+        ui.dismissToast(toast);
+        const saving = ui.toast("Saving PSD...", "running", 0);
+        const data = serializePsd(psd);
+        await window.lumina.writePsdFile({ filePath: savePath, data });
+        ui.dismissToast(saving);
+        clearDirty();
+        if (!opts?.silent) {
+          ui.toast(
+            i18n.t("project.saved") + ": " + _basename(savePath),
+            "success",
+            3000,
+          );
+        }
+        return true;
+      }
+
+      // LMI path → existing flow
+      if (!savePath.toLowerCase().endsWith(".lmi")) savePath += ".lmi";
+      setSavePath(savePath);
+      const res = await window.lumina.saveProject(buildPayload(savePath));
       if (res.canceled || !res.path) return false;
       setSavePath(res.path);
       clearDirty();
@@ -157,10 +204,71 @@ export const project = {
   /** Force the Save dialog regardless of the current target */
   async saveAs(): Promise<boolean> {
     const prev = getSavePath();
-    setSavePath(null);
-    const ok = await this.save();
-    if (!ok) setSavePath(prev);
-    return ok;
+    if (state.pages.length === 0) {
+      ui.toast(i18n.t("project.nothingToSave"), "warn");
+      return false;
+    }
+    try {
+      await pendingCommit.current;
+      const dlg = await window.lumina.showSaveDialog({
+        defaultPath: prev || "project.lmi",
+      });
+      if (dlg.canceled || !dlg.filePath) return false;
+      const savePath = dlg.filePath;
+
+      // PSD path → build multi-page PSD and write
+      if (savePath.toLowerCase().endsWith(".psd")) {
+        const { buildPsdDocument } = await import("../export/psd/build");
+        const { serializePsd } = await import("../export/psd/write");
+        for (const p of state.pages) {
+          await ensureMaskImages(p);
+          await pageImages.ensurePageImage(p);
+        }
+        const total = state.pages.length;
+        const toast = ui.toast(
+          `${i18n.t("export.running")} (0/${total})`,
+          "running",
+          0,
+        );
+        const psd = await buildPsdDocument(state.pages, (cur) => {
+          toast.textContent = `${i18n.t("export.running")} (${cur}/${total})`;
+        });
+        ui.dismissToast(toast);
+        const saving = ui.toast("Saving PSD...", "running", 0);
+        const data = serializePsd(psd);
+        await window.lumina.writePsdFile({ filePath: savePath, data });
+        ui.dismissToast(saving);
+        clearDirty();
+        ui.toast(
+          i18n.t("project.saved") + ": " + _basename(savePath),
+          "success",
+          3000,
+        );
+        return true;
+      }
+
+      // LMI path
+      let lmiPath = savePath;
+      if (!lmiPath.toLowerCase().endsWith(".lmi")) lmiPath += ".lmi";
+      setSavePath(lmiPath);
+      const res = await window.lumina.saveProject(buildPayload(lmiPath));
+      if (res.canceled || !res.path) {
+        if (prev) setSavePath(prev);
+        return false;
+      }
+      setSavePath(res.path);
+      clearDirty();
+      ui.toast(
+        i18n.t("project.saved") + ": " + _basename(res.path),
+        "success",
+        3000,
+      );
+      return true;
+    } catch (e) {
+      log.error("fe", `SaveAs failed: ${e}`);
+      ui.toast(i18n.t("project.saveError"), "error", 4000);
+      return false;
+    }
   },
 
   /** Rebuild the UI after pages/savePath changed (open/import) */

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Pipeline preset dropdown.** "Run All" split button lets you pick "Full Pipeline" or "Clean Only" preset. Choice persists across sessions.
+- **Save as PSD document** add support to save as photshop document. this features is `preview` only, not stable yet.
 
 ### Fixed
 

@@ -40,7 +40,7 @@ export async function ensureMaskImages(page: Page): Promise<void> {
 }
 
 /** Hydrate cleanup canvas from PNG before compositing for export. */
-function ensureCleanupForExport(page: Page): Promise<void> {
+export function ensureCleanupForExport(page: Page): Promise<void> {
   const mask = page.cleanupMask;
   if (!mask || !mask.imagePath || mask._hydrated) return Promise.resolve();
   const c = ensureCleanupCanvas(page);

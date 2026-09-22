@@ -4,6 +4,7 @@ export interface FontInfo {
   path: string;
   weight: number;
   italic: boolean;
+  postScriptName: string;
 }
 
 export interface TempPngWritePayload {

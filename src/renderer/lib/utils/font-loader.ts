@@ -17,6 +17,7 @@ export async function loadSystemFonts(): Promise<void> {
     path: string;
     weight: number;
     italic: boolean;
+    postScriptName: string;
   }> = [];
   try {
     fonts = (await window.lumina.getFonts()) || [];

@@ -20,6 +20,7 @@
     "dist:all": "npm run build && npm run bundle:dml && npm run bundle:cuda && electron-builder --config scripts/electron-builder.config.mjs --publish never && electron-builder --config scripts/electron-builder.config.cuda.mjs --publish never"
   },
   "dependencies": {
+    "ag-psd": "^31.0.2",
     "electron-updater": "^6.8.9",
     "konva": "^10.3.1",
     "lucide": "^1.33.0"

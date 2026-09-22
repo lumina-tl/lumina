@@ -65,7 +65,7 @@
 - [x] refactor codebase to be more modular and maintainable
 - [ ] add multi selection feature
 - [x] fix font fitting visually changed when zoom in/out
-- [ ] save as psd
+- [x] save as psd
 - [x] normalize log and add more debug log
 - [x] redesign UI
 - [ ] testing and hunt another bugs

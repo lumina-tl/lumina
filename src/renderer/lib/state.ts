@@ -30,6 +30,7 @@ export interface AppState {
     path: string;
     weight: number;
     italic: boolean;
+    postScriptName: string;
   }>;
   sidebarCollapsed: boolean;
   sidebarWidth: number;
@@ -77,6 +78,7 @@ export const state: AppState = new (class implements AppState {
     path: string;
     weight: number;
     italic: boolean;
+    postScriptName: string;
   }> = [];
   sidebarCollapsed = false;
   sidebarWidth = 260;
