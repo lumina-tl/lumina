@@ -12,7 +12,6 @@ import {
   PRESETS,
   type PresetId,
 } from "../pipeline";
-import { translateSettings } from "../pipeline/translate";
 import { settings } from "../settings/index";
 import { state } from "../state";
 import { canvas } from "../canvas/index";
@@ -255,7 +254,7 @@ function _togglePresetDropdown(btn: HTMLElement): void {
 
 /** Render and toggle dropdown popover */
 function _toggleDropdown(
-  kind: "detect" | "ocr" | "translate" | "inpaint",
+  kind: "detect" | "ocr" | "inpaint",
   btn: HTMLElement,
 ): void {
   const dropdown = document.getElementById(`dropdown-${kind}`);
@@ -271,20 +270,13 @@ function _toggleDropdown(
   btn.classList.add("active");
   dropdown.classList.remove("hidden");
 
-  if (kind === "translate") {
-    _renderTranslateDropdown(dropdown);
-  } else {
-    _renderModelDropdown(kind, dropdown);
-  }
+  _renderModelDropdown(kind, dropdown);
 
   createIcons({ root: dropdown });
 }
 
-/** Render Model Picker Dropdown (Detect, OCR, Inpaint) */
-function _renderModelDropdown(
-  kind: "detect" | "ocr" | "inpaint",
-  root: HTMLElement,
-): void {
+/** Render model picker dropdown. */
+function _renderModelDropdown(kind: "detect" | "ocr" | "inpaint", root: HTMLElement): void {
   const list = models.list().filter((m) => m.kind === kind);
   const current = models.selectedModel(kind);
   const recId = RECOMMENDED[kind] || "";
@@ -447,7 +439,6 @@ function _renderTranslateDropdown(root: HTMLElement): void {
       settings.open("translation");
     });
 }
-
 /** Wire auto-hide / dimming when user interacts with canvas */
 function _initAutoHide(): void {
   const canvasContainer = document.getElementById("canvas-container");
@@ -520,10 +511,9 @@ export const pipelineBar = {
     });
 
     // Model dropdown triggers
-    const kinds: Array<"detect" | "ocr" | "translate" | "inpaint"> = [
+    const kinds: Array<"detect" | "ocr" | "inpaint"> = [
       "detect",
       "ocr",
-      "translate",
       "inpaint",
     ];
     kinds.forEach((k) => {

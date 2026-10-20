@@ -2,7 +2,6 @@
 import * as i18n from "../i18n";
 import { canvas } from "../canvas/index";
 import { state } from "../state";
-import { translate } from "../pipeline/translate";
 import { history } from "../history";
 import type { Page, PageLayer } from "../../types";
 import { esc } from "./_esc";
@@ -14,67 +13,6 @@ const KIND_KEYS: Record<PageLayer["type"], string> = {
   image: "layers.kindImage",
   shape: "layers.kindShape",
 };
-
-// Active editor tab per selected layer id ("source" | "translation"), kept
-// across sidebar re-renders while the row stays selected. Collapsed rows are
-// pruned in wireEvents. Without this the default (content-derived) would
-// re-apply after every blur commit and yank the user between tabs while
-// typing.
-const _editorTabs: Record<string, "source" | "translation"> = {};
-
-function editorTabFor(layer: PageLayer): "source" | "translation" {
-  return (
-    _editorTabs[layer.id] ||
-    ((layer.translation || "").trim() ? "translation" : "source")
-  );
-}
-
-function editorTabButton(
-  which: "source" | "translation",
-  active: "source" | "translation",
-  hasContent: boolean,
-): string {
-  return (
-    '<button type="button" class="layer-editor-tab' +
-    (active === which ? " active" : "") +
-    '" data-tab="' +
-    which +
-    '">' +
-    "<span>" +
-    esc(i18n.t(which === "source" ? "layers.source" : "layers.translation")) +
-    "</span>" +
-    (hasContent ? '<span class="le-tab-dot"></span>' : "") +
-    "</button>"
-  );
-}
-
-// Content dots sit on INACTIVE tabs that hold text — a silent cue that the
-// hidden field is filled (the active tab's content is already visible).
-function syncEditorTabs(
-  row: HTMLElement,
-  active: "source" | "translation",
-  layer: PageLayer,
-): void {
-  row
-    .querySelectorAll<HTMLButtonElement>(".layer-editor-tab")
-    .forEach(function (b) {
-      const which = b.getAttribute("data-tab") as "source" | "translation";
-      b.classList.toggle("active", which === active);
-      const filled =
-        which === "source"
-          ? !!(layer.source || "").trim()
-          : !!(layer.translation || "").trim();
-      const show = filled && which !== active;
-      const dot = b.querySelector(".le-tab-dot");
-      if (show && !dot) {
-        const d = document.createElement("span");
-        d.className = "le-tab-dot";
-        b.appendChild(d);
-      } else if (!show && dot) {
-        dot.remove();
-      }
-    });
-}
 
 function layerName(layer: PageLayer): string {
   if (layer.type === "image") {
@@ -97,9 +35,21 @@ export function layerListHTML(page: Page | null): string {
     html += layerRowHTML(page, layer, i);
   });
 
-  // Virtual rows (NOT part of page.layers — that array maps 1:1 to
-  // textDetections): a group Mask row that toggles every inpaint patch at
-  // once, and the Background row = the imported page image.
+  // Virtual rows (not part of page.layers): group toggles and the imported
+  // page image.
+  const dialogueCount = page.layers.filter(
+    (layer) => layer.type === "text-dialogue",
+  ).length;
+  if (dialogueCount > 0) {
+    html += virtualRowHTML(
+      "dialogues",
+      i18n.t("layers.dialogueGroup"),
+      i18n.t("layers.dialogueGroupCount", { count: dialogueCount }),
+      page.layers.some(
+        (layer) => layer.type === "text-dialogue" && layer.visible,
+      ),
+    );
+  }
   if (page.inpaintMasks.length > 0) {
     html += virtualRowHTML(
       "mask",
@@ -124,7 +74,7 @@ export function layerListHTML(page: Page | null): string {
 
 /** Virtual rows act on whole groups, not single layers — no select/move/delete. */
 function virtualRowHTML(
-  kind: "mask" | "background",
+  kind: "dialogues" | "mask" | "background",
   name: string,
   sub: string,
   visible: boolean,
@@ -135,7 +85,11 @@ function virtualRowHTML(
     '">' +
     '<div class="layer-row-main">' +
     '<i data-lucide="' +
-    (kind === "mask" ? "eraser" : "image") +
+    (kind === "dialogues"
+      ? "message-square"
+      : kind === "mask"
+        ? "eraser"
+        : "image") +
     '" class="layer-icon"></i>' +
     '<div class="layer-name-wrap">' +
     '<span class="layer-name">' +
@@ -164,7 +118,6 @@ function layerRowHTML(page: Page, layer: PageLayer, idx: number): string {
   const kindLabel = i18n.t(KIND_KEYS[layer.type]);
   const name = esc(layerName(layer));
   const isText = layer.type === "text-dialogue" || layer.type === "text-free";
-  const canRetranslate = isText && (layer.source || "").trim().length > 0;
 
   let html =
     '<div class="layer-row' +
@@ -193,11 +146,6 @@ function layerRowHTML(page: Page, layer: PageLayer, idx: number): string {
     "</span>" +
     "</div>" +
     '<div class="detection-actions">' +
-    (canRetranslate
-      ? '<button class="det-btn" data-action="retranslate" draggable="false" title="' +
-        esc(i18n.t("layers.retranslate")) +
-        '"><i data-lucide="languages"></i></button>'
-      : "") +
     '<button class="det-btn det-btn-danger" data-action="delete" draggable="false" title="' +
     esc(i18n.t("sidebar.delete")) +
     '"' +
@@ -220,14 +168,8 @@ function layerRowHTML(page: Page, layer: PageLayer, idx: number): string {
     "</button>" +
     "</div>";
 
-  // Expanded editor for the selected text layer — one textarea at a time,
-  // switched through the Original | Translation tabs (the other field keeps
-  // its content; a dot on the inactive tab shows it's filled).
-  // Only shown after double-click (expanded) to avoid accidental editor pop-ups.
+  // Expanded editor for the selected text layer.
   if (selected && expanded && isText) {
-    const tab = editorTabFor(layer);
-    const hasSrc = (layer.source || "").trim().length > 0;
-    const hasTr = (layer.translation || "").trim().length > 0;
     html +=
       '<div class="layer-editor">' +
       '<div class="layer-editor-tabs">' +
@@ -260,17 +202,6 @@ export function wireEvents(): void {
   const items = document.querySelectorAll<HTMLElement>(
     ".layer-row[data-layer-id]",
   );
-  // Editor tabs are per-selection state: drop the stored tab as soon as the
-  // row collapses so a positional id reused elsewhere starts fresh.
-  items.forEach(function (el) {
-    if (!el.classList.contains("selected")) {
-      const id = el.getAttribute("data-layer-id");
-      if (id) {
-        delete _editorTabs[id];
-        // Collapse if this row lost selection.
-      }
-    }
-  });
   items.forEach(function (el) {
     el.addEventListener("click", function (e) {
       const target = e.target as HTMLElement;
@@ -297,7 +228,6 @@ export function wireEvents(): void {
         e.stopPropagation();
         const action = btn.getAttribute("data-action");
         if (action === "delete") canvas.deleteLayer(id);
-        else if (action === "retranslate") void translate.retranslateLayer(id);
         return;
       }
 
@@ -337,44 +267,6 @@ export function wireEvents(): void {
       canvas.expandLayer(id);
     });
   });
-
-  // Editor tab switching — the textarea loses focus on mousedown, so the
-  // existing blur handler commits pending edits BEFORE this click fires.
-  document
-    .querySelectorAll<HTMLButtonElement>(".layer-editor-tab")
-    .forEach(function (btn) {
-      btn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        const row = btn.closest(".layer-row") as HTMLElement | null;
-        if (!row) return;
-        const id = row.getAttribute("data-layer-id") as string;
-        const tab = btn.getAttribute("data-tab") as "source" | "translation";
-        const page = state.getActivePage();
-        const layer = page?.layers.find(function (l) {
-          return l.id === id;
-        });
-        if (!layer) return;
-        _editorTabs[id] = tab;
-        syncEditorTabs(row, tab, layer);
-        const ta = row.querySelector<HTMLTextAreaElement>(
-          ".layer-editor-textarea",
-        );
-        if (ta) {
-          ta.setAttribute("data-field", tab);
-          ta.classList.toggle(
-            "layer-editor-translation",
-            tab === "translation",
-          );
-          ta.placeholder = i18n.t(
-            tab === "source"
-              ? "layers.sourcePlaceholder"
-              : "layers.translationPlaceholder",
-          );
-          ta.value =
-            tab === "source" ? layer.source || "" : layer.translation || "";
-        }
-      });
-    });
 
   // Drag & drop reorder (replaces the old ↑/↓ buttons).
   // Rows only accept drops from layers of the SAME type — the dialogue
@@ -496,14 +388,11 @@ export function wireEvents(): void {
       const row = ta.closest(".layer-row") as HTMLElement | null;
       if (row) {
         const id = row.getAttribute("data-layer-id") as string;
-        const field = ta.getAttribute("data-field") as "source" | "translation";
         const page = state.getActivePage();
         const layer = page?.layers.find(function (l) {
           return l.id === id;
         });
-        if (layer)
-          ta.value =
-            field === "source" ? layer.source || "" : layer.translation || "";
+        if (layer) ta.value = layer.source || "";
       }
       ta.addEventListener("click", function (e) {
         e.stopPropagation();
@@ -512,8 +401,7 @@ export function wireEvents(): void {
         const r = ta.closest(".layer-row") as HTMLElement | null;
         if (!r) return;
         const id = r.getAttribute("data-layer-id") as string;
-        const field = ta.getAttribute("data-field") as "source" | "translation";
-        canvas.setLayerText(id, field, ta.value);
+        canvas.setLayerText(id, "source", ta.value);
       });
       ta.addEventListener("keydown", function (e) {
         if (e.key === "Escape") ta.blur();
@@ -571,7 +459,9 @@ export function wireEvents(): void {
         const eye = target.closest(".layer-eye") as HTMLButtonElement | null;
         if (eye) {
           e.stopPropagation();
-          if (el.getAttribute("data-virtual") === "mask")
+          const kind = el.getAttribute("data-virtual");
+          if (kind === "dialogues") canvas.toggleAllDialogues();
+          else if (kind === "mask")
             canvas.toggleAllMasks();
           else canvas.toggleBackgroundVisible();
           return;

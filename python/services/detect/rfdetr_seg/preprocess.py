@@ -8,9 +8,10 @@ from .config import IMAGENET_MEAN, IMAGENET_STD, INPUT_SIZE
 from utils.logger import log
 
 
-def preprocess(image_path: str) -> tuple[np.ndarray, int, int]:
-    """Load image -> NCHW tensor (stretch to 1152^2, ImageNet normalize)."""
-    img = Image.open(image_path).convert("RGB")
+def preprocess(img: Image.Image) -> tuple[np.ndarray, int, int]:
+    """Convert an image tile to NCHW (stretch to 1152^2, ImageNet normalize)."""
+    if img.mode != "RGB":
+        img = img.convert("RGB")
     w, h = img.size
     log.debug(f"RF-DETR preprocess: image {w}x{h}")
 

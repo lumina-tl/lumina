@@ -55,6 +55,22 @@ async function handleExport(
   return { canceled: false, dir, count: written };
 }
 
+async function handleExportOcrText(
+  event: IpcMainInvokeEvent,
+  content: string,
+): Promise<{ canceled: boolean; filePath?: string }> {
+  const res = await dialog.showSaveDialog(windowFromEvent(event)!, {
+    title: "Export OCR Text",
+    defaultPath: "ocr.txt",
+    filters: [{ name: "Text File", extensions: ["txt"] }],
+  });
+  if (res.canceled || !res.filePath) return { canceled: true };
+  fs.writeFileSync(res.filePath, content, "utf-8");
+  log.info(`OCR text exported: ${res.filePath}`);
+  return { canceled: false, filePath: res.filePath };
+}
+
 export function registerExportHandlers(): void {
   handle(IPC.exportImages, handleExport);
+  handle(IPC.exportOcrText, handleExportOcrText);
 }

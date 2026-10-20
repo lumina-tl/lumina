@@ -39,11 +39,7 @@ export const models = {
   /** Fetch device/GPU info once and notify subscribers. */
   async refreshDevice(): Promise<DeviceInfo | null> {
     try {
-      if (!useGpuSetting()) {
-        s.device = await window.lumina.setUseGpu(false);
-      } else {
-        s.device = await window.lumina.getDevice();
-      }
+      s.device = await window.lumina.setUseGpu(useGpuSetting());
       for (const cb of s.deviceCbs) cb(s.device);
     } catch {
       s.device = null;

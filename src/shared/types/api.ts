@@ -10,6 +10,7 @@ import type {
 import type { DownloadProgress, ModelCheck } from "./model";
 import type {
   ExportPayload,
+  ExportOcrTextResult,
   ExportResult,
   ShowSaveDialogOptions,
   ShowSaveDialogResult,
@@ -86,6 +87,7 @@ export interface LuminaAPI {
   onRequestCloseCheck(cb: () => void): void;
   confirmClose(ok: boolean): Promise<void>;
   exportImages(payload: ExportPayload): Promise<ExportResult>;
+  exportOcrText(content: string): Promise<ExportOcrTextResult>;
   showSaveDialog(opts?: ShowSaveDialogOptions): Promise<ShowSaveDialogResult>;
   writePsdFile(payload: WritePsdFilePayload): Promise<void>;
   writeTempPng(payload: TempPngWritePayload): Promise<TempPngWriteResult>;

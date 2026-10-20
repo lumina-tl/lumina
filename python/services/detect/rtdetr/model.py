@@ -2,10 +2,12 @@
 from __future__ import annotations
 
 import numpy as np
+from PIL import Image
 
 from utils.logger import log
 
 from ..base import BaseDetectModel
+from ..tiling import image_tiles, merge_detections
 from .config import MODEL_FILENAME, MODEL_ID, PREFER
 from . import postprocess as pp
 from . import preprocess as prep
@@ -23,17 +25,26 @@ class RTDetrModel(BaseDetectModel):
         session = self._load_session()
 
         log.debug(f"Detect input: {image_path}")
-        tensor, w, h = prep.preprocess(image_path)
-        # Second input = original size; graph then outputs boxes in absolute pixels
-        feed = {
-            "images": tensor,
-            "orig_target_sizes": np.array([[w, h]], dtype=np.int64),
-        }
-        log.debug(f"Feed: {[(k, list(v.shape)) for k, v in feed.items()]}")
-        outputs = [np.asarray(o) for o in session.run(None, feed)]
-        log.debug(f"ONNX outputs: {[list(o.shape) for o in outputs]}")
+        with Image.open(image_path) as source:
+            image = source.convert("RGB")
+        detections = []
+        tiles = image_tiles(image)
+        for tile, offset_x, offset_y in tiles:
+            tensor, w, h = prep.preprocess(tile)
+            # The graph returns absolute coordinates for the tile dimensions.
+            feed = {
+                "images": tensor,
+                "orig_target_sizes": np.array([[w, h]], dtype=np.int64),
+            }
+            outputs = [np.asarray(o) for o in session.run(None, feed)]
+            labels, boxes, scores = pp.split_outputs(session, outputs)
+            result = pp.postprocess(labels, boxes, scores, w, h)
+            for detection in result["textDetections"]:
+                detection["bbox"]["x"] += offset_x
+                detection["bbox"]["y"] += offset_y
+                detections.append(detection)
 
-        labels, boxes, scores = pp.split_outputs(session, outputs)
-        result = pp.postprocess(labels, boxes, scores, w, h)
-        log.info(f"Detected {len(result['textDetections'])} text")
-        return result
+        if len(tiles) > 1:
+            detections = merge_detections(detections)
+        log.info(f"Detected {len(detections)} text")
+        return {"textDetections": detections, "bubbleDetections": []}

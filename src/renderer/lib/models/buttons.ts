@@ -23,9 +23,6 @@ export function updateButtons(): void {
     s.hasImage && selectedReady("inpaint"),
     selectedReady("inpaint"),
   );
-  // Translate is API-based — only needs a page loaded.
-  const tr = el("btn-translate") as HTMLButtonElement | null;
-  if (tr) tr.disabled = !s.hasImage;
 
   const warn = el("btn-models") as HTMLButtonElement | null;
   if (warn) warn.hidden = allReady();

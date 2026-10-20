@@ -92,13 +92,32 @@ def resolve_providers(prefer: Optional[str] = None) -> list[str]:
         return [cuda, cpu] if cuda in avail else [cpu]
     if pref == "dml":
         return [dml, cpu] if dml in avail else [cpu]
-    # auto: CUDA (fastest) → DirectML (covers every Windows GPU incl.
-    # AMD/Intel) → CPU. Never more than one GPU EP is present in a wheel.
+    # CUDA only runs on NVIDIA hardware. DirectML is the GPU path for AMD and
+    # Intel adapters; selecting CUDA on those machines silently costs a CPU
+    # fallback after session creation fails.
     eps: list[str] = []
-    if cuda in avail:
-        eps.append(cuda)
-    if dml in avail:
-        eps.append(dml)
+    names = [name.lower() for name in _windows_gpu_names()] if os.name == "nt" else []
+    has_nvidia = any(
+        marker in name for name in names for marker in ("nvidia", "geforce", "quadro")
+    )
+    has_amd_or_intel = any(
+        marker in name
+        for name in names
+        for marker in ("amd", "radeon", "intel", "arc")
+    )
+    if has_amd_or_intel and not has_nvidia:
+        if dml in avail:
+            eps.append(dml)
+    elif has_nvidia:
+        if cuda in avail:
+            eps.append(cuda)
+        if dml in avail:
+            eps.append(dml)
+    else:
+        if cuda in avail:
+            eps.append(cuda)
+        if dml in avail:
+            eps.append(dml)
     eps.append(cpu)
     log.debug(f"Providers resolved: prefer={pref}, avail={avail}, result={eps}")
     return eps
@@ -285,12 +304,12 @@ def get_device_info() -> dict:
     elif os.name == "posix":
         gpus = _linux_gpu_names()
 
-    if not forced_cpu and cuda in eps:
-        provider, ep = "cuda", cuda
-    elif not forced_cpu and dml in eps:
-        provider, ep = "dml", dml
-    else:
-        provider, ep = "cpu", cpu
+    resolved = resolve_providers()
+    ep = resolved[0]
+    provider = {
+        cuda: "cuda",
+        dml: "dml",
+    }.get(ep, "cpu")
 
     info = {
         "provider": provider,  # "cuda" | "dml" | "cpu"

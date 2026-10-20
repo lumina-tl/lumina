@@ -8,9 +8,10 @@ from .config import INPUT_SIZE
 from utils.logger import log
 
 
-def preprocess(image_path: str) -> tuple[np.ndarray, int, int]:
-    """Load image -> NCHW tensor (stretch to 640^2, rescale 1/255, no mean/std)."""
-    img = Image.open(image_path).convert("RGB")
+def preprocess(img: Image.Image) -> tuple[np.ndarray, int, int]:
+    """Convert an image tile to NCHW (stretch to 640^2, rescale 1/255)."""
+    if img.mode != "RGB":
+        img = img.convert("RGB")
     w, h = img.size
     log.debug(f"RT-DETR preprocess: image {w}x{h}")
 

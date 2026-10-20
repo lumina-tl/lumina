@@ -5,7 +5,6 @@ import * as i18n from "../i18n";
 import { createIcons } from "../ui/icons";
 import { generalTab } from "./general";
 import { shortcutsTab } from "./shortcuts-tab";
-import { translationTab } from "./translation";
 import { modelsTab } from "./models";
 import { applySettingsWindow, initSettingsWindow } from "./window";
 
@@ -32,12 +31,6 @@ const TABS: TabDef[] = [
     labelKey: "settings.tabShortcuts",
     icon: "keyboard",
     ...shortcutsTab,
-  },
-  {
-    id: "translation",
-    labelKey: "settings.tabTranslation",
-    icon: "languages",
-    ...translationTab,
   },
   {
     id: "models",

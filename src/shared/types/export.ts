@@ -16,6 +16,11 @@ export interface ExportResult {
   count: number;
 }
 
+export interface ExportOcrTextResult {
+  canceled: boolean;
+  filePath?: string;
+}
+
 // ── PSD save-as ──
 
 export interface ShowSaveDialogOptions {

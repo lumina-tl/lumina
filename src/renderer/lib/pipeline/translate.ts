@@ -66,6 +66,20 @@ export const translateSettings = {
     try {
       const raw = storage.getItem(STORAGE_KEY);
       if (raw) cfg = { ...cfg, ...(JSON.parse(raw) as StoredConfig) };
+      if (cfg.geminiModel === "gemini-2.0-flash") {
+        cfg.geminiModel = "gemini-2.5-flash";
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          provider: cfg.provider,
+          targetLang: cfg.targetLang,
+          llmBaseUrl: cfg.llmBaseUrl,
+          llmModel: cfg.llmModel,
+          llmStyle: cfg.llmStyle,
+          llmInstruction: cfg.llmInstruction,
+          openrouterModel: cfg.openrouterModel,
+          grokModel: cfg.grokModel,
+          geminiModel: cfg.geminiModel,
+        } satisfies StoredConfig));
+      }
     } catch {
       /* keep defaults */
     }
@@ -234,6 +248,18 @@ export const translate = {
       });
       if (!result || !result.results)
         throw new Error(result?.detail || "Translation failed");
+      if (
+        !result.results.length ||
+        result.results.length !== withText.length ||
+        result.results.some((item) => !item.text?.trim()) ||
+        withText.some(
+          (_, index) => !result.results?.some((item) => item.index === index),
+        )
+      ) {
+        throw new Error(
+          "The translation provider returned empty text. Check the selected model and API settings.",
+        );
+      }
 
       log.debug(
         "fe",
@@ -339,6 +365,11 @@ export const translate = {
       });
       if (!result || !result.results || !result.results[0])
         throw new Error(result?.detail || "Translation failed");
+      if (result.results[0].index !== 0 || !result.results[0].text?.trim()) {
+        throw new Error(
+          "The translation provider returned empty text. Check the selected model and API settings.",
+        );
+      }
 
       const translated = normalizeAutoText(result.results[0].text || "");
       layer.translation = translated;

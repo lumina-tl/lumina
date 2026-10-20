@@ -13,6 +13,7 @@ export type {
 } from "./types/project";
 export type {
   ExportImageFile,
+  ExportOcrTextResult,
   ExportPayload,
   ExportResult,
   ShowSaveDialogOptions,

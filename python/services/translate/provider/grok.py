@@ -11,7 +11,7 @@ from .._base import (
 from ..protocol.openai import chat
 from utils.logger import log
 
-_BASE_URL = "https://api.groq.com/openai/v1"
+_BASE_URL = "https://api.x.ai/v1"
 
 
 def _resolve(config: dict) -> tuple[str, str, str]:

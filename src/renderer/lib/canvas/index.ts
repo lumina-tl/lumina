@@ -41,6 +41,7 @@ export interface CanvasAPI {
   setLayerText(id: string, field: "source" | "translation", text: string): void;
   toggleLayerVisible(id: string): void;
   toggleLayerLocked(id: string): void;
+  toggleAllDialogues(): void;
   deleteLayer(id: string): void;
   deleteMultipleLayers(ids: string[]): void;
   /** Insert layer `id` before `insertAt` (clamped to its type group) */
@@ -125,6 +126,7 @@ export const canvas: CanvasAPI = {
   setLayerText() {},
   toggleLayerVisible() {},
   toggleLayerLocked() {},
+  toggleAllDialogues() {},
   deleteLayer() {},
   deleteMultipleLayers() {},
   moveLayerTo() {},

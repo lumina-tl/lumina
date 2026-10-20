@@ -28,3 +28,25 @@ export function open(): void {
 export function openAll(): void {
   _open(state.pages.slice());
 }
+
+/** Save recognized dialogue text in page and layer order. */
+export async function exportOcrText(): Promise<void> {
+  const content = state.pages
+    .map((page) =>
+      page.layers
+        .filter((layer) => layer.type === "text-dialogue")
+        .map((layer) => (layer.source || "").trim())
+        .filter(Boolean)
+        .join("\n"),
+    )
+    .filter(Boolean)
+    .join("\n\n");
+
+  if (!content) {
+    ui.toast(i18n.t("export.ocrEmpty"), "warn");
+    return;
+  }
+
+  const result = await window.lumina.exportOcrText(content);
+  if (!result.canceled) ui.toast(i18n.t("export.ocrDone"), "success", 3000);
+}

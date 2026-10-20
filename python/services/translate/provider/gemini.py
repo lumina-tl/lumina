@@ -17,7 +17,7 @@ def translate_batch(
     texts: list[str], target: str, config: dict
 ) -> list[str]:
     api_key = config.get("geminiApiKey") or ""
-    model = config.get("geminiModel") or "gemini-3.5-flash-lite"
+    model = config.get("geminiModel") or "gemini-2.5-flash"
     if not api_key:
         raise TranslateError("Gemini API key not configured")
 

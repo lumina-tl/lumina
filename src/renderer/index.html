@@ -104,6 +104,14 @@
               >
               <span class="menu-item-shortcut">Ctrl+Shift+E</span>
             </button>
+            <button class="menu-item" id="btn-export-ocr">
+              <span class="menu-item-icon"
+                ><i data-lucide="file-text" class="w-3.5 h-3.5"></i
+              ></span>
+              <span class="menu-item-label" data-i18n="header.exportOcr"
+                >Export OCR text...</span
+              >
+            </button>
           </div>
         </div>
 
@@ -395,45 +403,21 @@
                 <div class="pipeline-dropdown hidden" id="dropdown-ocr"></div>
               </div>
 
-              <!-- Translate Action + Expandable Model Selector -->
-              <div class="pipeline-group" data-kind="translate">
-                <button
-                  class="pipeline-btn"
-                  id="btn-translate"
-                  disabled
-                  title="Translate text"
-                >
-                  <i data-lucide="languages" class="w-3.5 h-3.5"></i>
-                  <span data-i18n="header.translate">Translate</span>
-                </button>
-                <button
-                  class="pipeline-chevron"
-                  id="btn-translate-model"
-                  title="Select Translation Provider"
-                >
-                  <i data-lucide="chevron-down" class="w-3 h-3"></i>
-                </button>
-                <div
-                  class="pipeline-dropdown hidden"
-                  id="dropdown-translate"
-                ></div>
-              </div>
-
-              <!-- Inpaint Action + Expandable Model Selector -->
+              <!-- Clean detected text from speech bubbles -->
               <div class="pipeline-group" data-kind="inpaint">
                 <button
                   class="pipeline-btn"
                   id="btn-inpaint"
                   disabled
-                  title="Inpaint text boxes"
+                  title="Clean detected text"
                 >
                   <i data-lucide="eraser" class="w-3.5 h-3.5"></i>
-                  <span data-i18n="header.inpaint">Inpaint</span>
+                  <span data-i18n="header.inpaint">Clean</span>
                 </button>
                 <button
                   class="pipeline-chevron"
                   id="btn-inpaint-model"
-                  title="Select Inpaint Model"
+                  title="Select Cleaning Model"
                 >
                   <i data-lucide="chevron-down" class="w-3 h-3"></i>
                 </button>

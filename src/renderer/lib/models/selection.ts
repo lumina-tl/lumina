@@ -23,7 +23,7 @@ export function selectedReady(kind: string): boolean {
   return !!m && m.ready;
 }
 
-/** Every pipeline kind (detect / ocr / inpaint) has its selected model installed. */
+/** Every pipeline model has its selected model installed. */
 export function allReady(): boolean {
   const kinds = new Set(s.models.map((m) => m.kind).filter((k) => k !== "aux"));
   return kinds.size > 0 && Array.from(kinds).every((k) => selectedReady(k));

@@ -205,6 +205,11 @@ i18n.init().then(function () {
     .addEventListener("click", function () {
       exportModule.openAll();
     });
+  document
+    .getElementById("btn-export-ocr")!
+    .addEventListener("click", function () {
+      exportModule.exportOcrText();
+    });
 
   // ── Auto-update: show an update button when a newer published version
   //    exists. Click → download (progress reuses the model-download bar),
@@ -218,12 +223,6 @@ i18n.init().then(function () {
   document.getElementById("btn-ocr")!.addEventListener("click", function () {
     pipeline.runOcr();
   });
-
-  document
-    .getElementById("btn-translate")!
-    .addEventListener("click", function () {
-      pipeline.runTranslate();
-    });
 
   document
     .getElementById("btn-inpaint")!

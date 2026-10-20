@@ -163,6 +163,21 @@ canvas.toggleLayerVisible = function (id): void {
   history.snapshot();
 };
 
+// Virtual "Dialogues" row — one toggle that flips every dialogue layer.
+canvas.toggleAllDialogues = function (): void {
+  const page = state.getActivePage();
+  if (!page) return;
+  const dialogues = page.layers.filter((layer) => layer.type === "text-dialogue");
+  if (dialogues.length === 0) return;
+  const show = !dialogues.some((layer) => layer.visible);
+  dialogues.forEach((layer) => {
+    layer.visible = show;
+  });
+  canvas.render();
+  sidebar.render();
+  history.snapshot();
+};
+
 // Virtual "Mask" row — one toggle that flips every inpaint patch at once.
 canvas.toggleAllMasks = function (): void {
   const page = state.getActivePage();
