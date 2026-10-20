@@ -193,15 +193,18 @@ function _closeDropdowns(): void {
 
 /* ── Pipeline Preset ── */
 
-const _presetLabels: Record<string, string> = {
-  full: "Full Pipeline",
-  clean: "Clean Only",
+const _presetLabelKeys: Record<string, string> = {
+  full: "pipeline.full",
+  clean: "pipeline.cleanOnly",
 };
 
 function _updatePresetLabel(): void {
   const label = document.getElementById("btn-pipeline-all-label");
   const id = loadPreset();
-  if (label) label.textContent = _presetLabels[id] || "Full Pipeline";
+  if (label) {
+    label.dataset.i18n = _presetLabelKeys[id] || "pipeline.full";
+    label.textContent = i18n.t(label.dataset.i18n);
+  }
 }
 
 function _togglePresetDropdown(btn: HTMLElement): void {
@@ -220,7 +223,7 @@ function _togglePresetDropdown(btn: HTMLElement): void {
 
   const current = loadPreset();
   let html = `<div class="pipeline-dropdown-header">
-    <span>Pipeline Preset</span>
+    <span>${_esc(i18n.t("pipeline.preset"))}</span>
   </div>
   <div class="pipeline-dropdown-list">`;
 
@@ -231,7 +234,7 @@ function _togglePresetDropdown(btn: HTMLElement): void {
         <div class="pipeline-item-check">
           ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-lumina"></i>' : ""}
         </div>
-        <div class="pipeline-item-name">${_esc(p.label)}</div>
+        <div class="pipeline-item-name">${_esc(i18n.t(_presetLabelKeys[p.id] || "pipeline.full"))}</div>
       </div>`;
   }
 
@@ -282,9 +285,9 @@ function _renderModelDropdown(kind: "detect" | "ocr" | "inpaint", root: HTMLElem
   const recId = RECOMMENDED[kind] || "";
 
   const titleMap: Record<string, string> = {
-    detect: i18n.t("models.tabDetect") || "Detection Models",
-    ocr: i18n.t("models.tabOcr") || "OCR Models",
-    inpaint: i18n.t("models.tabInpaint") || "Inpainting Models",
+    detect: i18n.t("models.tabDetect"),
+    ocr: i18n.t("models.tabOcr"),
+    inpaint: i18n.t("models.tabInpaint"),
   };
 
   let html = `<div class="pipeline-dropdown-header">
@@ -293,7 +296,7 @@ function _renderModelDropdown(kind: "detect" | "ocr" | "inpaint", root: HTMLElem
   <div class="pipeline-dropdown-list">`;
 
   if (list.length === 0) {
-    html += `<div class="pipeline-dropdown-empty">No models available</div>`;
+    html += `<div class="pipeline-dropdown-empty">${_esc(i18n.t("models.noneAvailable"))}</div>`;
   } else {
     for (const m of list) {
       const isSelected = m.id === current;
@@ -312,8 +315,8 @@ function _renderModelDropdown(kind: "detect" | "ocr" | "inpaint", root: HTMLElem
           <div class="pipeline-item-status">
             ${
               isReady
-                ? '<span class="pipeline-badge pipeline-badge-ready">Ready</span>'
-                : '<span class="pipeline-badge pipeline-badge-dl"><i data-lucide="download" class="w-3 h-3"></i> Get</span>'
+                ? `<span class="pipeline-badge pipeline-badge-ready">${_esc(i18n.t("models.ready"))}</span>`
+                : `<span class="pipeline-badge pipeline-badge-dl"><i data-lucide="download" class="w-3 h-3"></i> ${_esc(i18n.t("models.download"))}</span>`
             }
           </div>
         </div>
@@ -325,7 +328,7 @@ function _renderModelDropdown(kind: "detect" | "ocr" | "inpaint", root: HTMLElem
   <div class="pipeline-dropdown-footer">
     <button class="pipeline-dropdown-link" id="link-open-model-settings">
       <i data-lucide="settings" class="w-3 h-3"></i>
-      <span>Manage Models...</span>
+      <span>${_esc(i18n.t("models.manage"))}</span>
     </button>
   </div>`;
 

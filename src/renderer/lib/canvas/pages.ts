@@ -60,7 +60,7 @@ canvas.renderPageStrip = function (): void {
       const badge = document.createElement("div");
       badge.className = "page-badge";
       badge.textContent = String(page.layers.length);
-      badge.title = `${page.layers.length} layer(s)`;
+      badge.title = i18n.t("pages.layers", { count: page.layers.length });
       thumb.appendChild(badge);
     }
 
@@ -144,7 +144,7 @@ canvas.renderPageStrip = function (): void {
   addBtn.title = i18n.t("pages.importMore");
   addBtn.innerHTML = `
     <i data-lucide="plus" class="w-4 h-4"></i>
-    <span class="text-[8px] font-semibold opacity-70 tracking-wider">ADD</span>
+    <span class="text-[8px] font-semibold opacity-70 tracking-wider">${i18n.t("pages.add")}</span>
   `;
   addBtn.addEventListener("click", function () {
     if (rendererRef && rendererRef.importImages) {
