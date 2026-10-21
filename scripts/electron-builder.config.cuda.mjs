@@ -31,7 +31,7 @@ const config = {
   // publishing itself is disabled so the workflow keeps full control.
   publish: {
     provider: "github",
-    owner: "lumina-tl",
+    owner: "AlanSanchez06",
     repo: "lumina",
     channel: "cuda",
   },
@@ -55,6 +55,7 @@ const config = {
   nsis: {
     oneClick: true,
     perMachine: false,
+    differentialPackage: true,
     artifactName: "Lumina-Setup-CUDA-${version}.exe",
     // No runtime extraction at setup anymore — the app fetches it at first
     // run. Small installer => differential app updates.

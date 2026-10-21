@@ -223,6 +223,10 @@ export interface Page {
   layers: PageLayer[];
   /** Inpaint patches — composited over the original image, one per mask layer */
   inpaintMasks: InpaintMask[];
+  /** Clean Only completion state; undefined supports older project files. */
+  _cleanOnlyProcessed?: boolean;
+  /** Detection has completed for the current Clean Only pass. */
+  _cleanOnlyDetectionDone?: boolean;
   /** Full-page raster paint layer (brush/eraser/bucket), null = not created */
   cleanupMask: CleanupMask | null;
   /** Full-page binary text mask from /detect — passed to /inpaint to skip Otsu */

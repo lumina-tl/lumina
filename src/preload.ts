@@ -16,6 +16,7 @@ function on<T>(channel: string, cb: (msg: T) => void): () => void {
 const api: LuminaAPI = {
   importImage: () => invoke(IPC.importImage),
   importImages: () => invoke(IPC.importImages),
+  importImageFolder: () => invoke(IPC.importImageFolder),
   apiPost: <T>(endpoint: string, body: unknown) =>
     invoke<T>(IPC.apiPost, endpoint, body),
   apiPostStream: <T>(

@@ -3,6 +3,7 @@ export const IPC = {
   // Image import
   importImage: "import-image",
   importImages: "import-images",
+  importImageFolder: "import-image-folder",
 
   // Backend proxy
   apiPost: "api-post",

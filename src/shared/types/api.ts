@@ -40,6 +40,7 @@ export interface StreamProgress {
 export interface LuminaAPI {
   importImage(): Promise<string | null>;
   importImages(): Promise<string[] | null>;
+  importImageFolder(): Promise<string[] | null>;
   apiPost<T = unknown>(endpoint: string, body: unknown): Promise<T>;
   apiPostStream<T = unknown>(
     endpoint: string,

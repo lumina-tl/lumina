@@ -64,8 +64,9 @@ export interface CanvasAPI {
   onToolChange(tool: string): void;
 
   renderPageStrip(): void;
-  switchPage(idx: number): void;
+  switchPage(idx: number): Promise<void>;
   removePage(idx: number): void;
+  closePages(indices: number[], keepPage?: import("../../types").Page): Promise<void>;
   reorderPage(fromIdx: number, toIdx: number): void;
   generateThumbnail(
     page: import("../../types").Page,
@@ -147,8 +148,9 @@ export const canvas: CanvasAPI = {
   onToolChange() {},
 
   renderPageStrip() {},
-  switchPage() {},
+  async switchPage() {},
   removePage() {},
+  async closePages() {},
   reorderPage() {},
   generateThumbnail() {
     return null;
@@ -287,8 +289,7 @@ canvas.updateBoxToggle = function (): void {
   const page = state.getActivePage();
   const hasDet =
     !!page && !!page.textDetections && page.textDetections.length > 0;
-  const hasMask = !!page && !!page.inpaintMasks && page.inpaintMasks.length > 0;
-  btn.disabled = !hasDet || hasMask;
+  btn.disabled = !hasDet;
   btn.classList.toggle("active", !!state.showDetBoxes);
 };
 

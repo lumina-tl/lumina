@@ -3,7 +3,6 @@ import { state } from "../../../../state";
 import { history } from "../../../../history";
 import { canvas } from "../../../index";
 import { sidebar } from "../../../../sidebar";
-import { tools } from "../../../../ui/tools";
 import { defaultTypography, loadGlobalTypography } from "../../../../../types";
 import type { PageLayer, TextDetection } from "../../../../../types";
 import { selections, clearSelections, shapeAABB, isHoleShape } from "../shared";
@@ -45,6 +44,8 @@ export function toDetection(): void {
         type: "text_free",
       };
       page.textDetections.push(det);
+      page._cleanOnlyProcessed = false;
+      page._cleanOnlyDetectionDone = true;
 
       // Insert the mirrored dialogue layer right after the existing dialogue
       // block (before free-text layers), keeping layers[i] === detections[i]
@@ -104,10 +105,8 @@ export function toDetection(): void {
   sidebar.render();
   history.snapshot();
 
-  // Selection is transient: clear it right after conversion and drop back to
-  // the select tool so the fresh boxes are immediately draggable/resizable.
+  // Keep the rectangle/lasso tool active so another manual box can be drawn.
   clearSelections();
   refreshOverlay();
   hideContextBar();
-  tools.setActive("select");
 }

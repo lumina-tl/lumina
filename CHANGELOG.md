@@ -105,6 +105,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Anthropic compatible protocol.** Removed Anthropic Messages API client, dependencies, and settings switches in favor of the industry-standard OpenAI `/v1/chat/completions` protocol for all custom and self-hosted inference (Ollama, LM Studio, vLLM, etc.).
 - **Bubble detections.** Detection pipeline no longer returns or processes speech bubble boxes — only text boxes and the full-page text mask (RF-DETR-seg) are kept. This simplifies the pipeline and reduces unnecessary compute on unused classes.
 
+## [0.4.1] - 20-10-2026
+
+### Changed
+
+- **In-app updates install in place.** Click the update button once to download and install the differential update; Lumina restarts automatically when ready. Unsaved work is checked before installation, so reinstalling the full setup file is no longer needed.
+
 ## [0.4.0] - 13-09-2026
 
 ### Added

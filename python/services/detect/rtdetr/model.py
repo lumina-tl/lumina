@@ -44,7 +44,6 @@ class RTDetrModel(BaseDetectModel):
                 detection["bbox"]["y"] += offset_y
                 detections.append(detection)
 
-        if len(tiles) > 1:
-            detections = merge_detections(detections)
+        detections = merge_detections(detections)
         log.info(f"Detected {len(detections)} text")
         return {"textDetections": detections, "bubbleDetections": []}

@@ -35,7 +35,11 @@ import * as exportModule from "./lib/export";
 import * as autosave from "./lib/project/autosave";
 import * as landing from "./lib/ui/landing";
 import { pipelineBar } from "./lib/ui/pipeline-bar";
-import { importImages, openImagePaths } from "./lib/project/page-loader";
+import {
+  importImages,
+  importImageFolder,
+  openImagePaths,
+} from "./lib/project/page-loader";
 import { initAutoUpdate } from "./lib/ui/auto-update";
 import { updateDirtyUI, setDirtyListener } from "./lib/project/dirty";
 import { resourceMonitor } from "./lib/ui/resource-monitor";
@@ -46,7 +50,7 @@ import {
 } from "./lib/ui/changelog-modal";
 
 // Expose for page strip "+" button
-setRendererImport(importImages);
+setRendererImport(importImages, importImageFolder);
 
 // ── Model check on startup (CHECK ONLY — downloads are manual) ──
 function checkModels(): void {
@@ -178,6 +182,7 @@ i18n.init().then(function () {
   // ── Landing welcome screen (recents + quick actions) ──
   landing.init({
     importImages: () => importImages(),
+    importFolder: () => importImageFolder(),
     openProject: (path?: string) => project.open(path),
     openImagePath: (path: string) => openImagePaths([path]),
   });
@@ -219,6 +224,11 @@ i18n.init().then(function () {
   document.getElementById("btn-detect")!.addEventListener("click", function () {
     pipeline.runDetection();
   });
+  document
+    .getElementById("btn-detect-all")!
+    .addEventListener("click", function () {
+      pipeline.runDetectionAll();
+    });
 
   document.getElementById("btn-ocr")!.addEventListener("click", function () {
     pipeline.runOcr();

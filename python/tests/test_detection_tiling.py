@@ -24,7 +24,7 @@ def test_short_image_is_not_cropped_or_resized():
     assert tiles[0][0].size == image.size
 
 
-def test_merge_detections_suppresses_overlapping_duplicates():
+def test_merge_detections_suppresses_same_box_even_when_types_differ():
     detections = [
         {
             "bbox": {"x": 10, "y": 20, "w": 30, "h": 40},
@@ -45,5 +45,25 @@ def test_merge_detections_suppresses_overlapping_duplicates():
 
     merged = merge_detections(detections)
 
-    assert len(merged) == 2
+    assert len(merged) == 1
+    assert merged[0]["confidence"] == 0.9
+
+
+def test_merge_detections_suppresses_near_contained_duplicate():
+    detections = [
+        {
+            "bbox": {"x": 10, "y": 20, "w": 100, "h": 80},
+            "type": "text_free",
+            "confidence": 0.9,
+        },
+        {
+            "bbox": {"x": 15, "y": 25, "w": 70, "h": 60},
+            "type": "text_free",
+            "confidence": 0.8,
+        },
+    ]
+
+    merged = merge_detections(detections)
+
+    assert len(merged) == 1
     assert merged[0]["confidence"] == 0.9

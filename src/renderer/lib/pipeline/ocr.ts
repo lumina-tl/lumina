@@ -108,6 +108,94 @@ export const ocr = {
     }
   },
 
+  /** Run OCR on every page in sequence without opening per-page prompts. */
+  runAll: async function (): Promise<void> {
+    if (state.isRunning || state.pages.length === 0) return;
+    state.isRunning = true;
+    const button = document.getElementById("btn-ocr") as HTMLButtonElement | null;
+    if (button) button.disabled = true;
+    let progressToast: ReturnType<typeof ui.toast> | null = null;
+    const failed: string[] = [];
+    let completed = 0;
+    try {
+      const model = models.selectedModel("ocr") || "manga_ocr";
+      for (let i = 0; i < state.pages.length; i++) {
+        const page = state.pages[i];
+        const alreadyProcessed =
+          page._cleanOnlyProcessed ??
+          (page.inpaintMasks.length > 0 && !page._cleanOnlyDetectionDone);
+        if (alreadyProcessed || !page._cleanOnlyDetectionDone) continue;
+        ui.dismissToast(progressToast);
+        progressToast = ui.toast(
+          i18n.t("toast.batchProgress", {
+            current: i + 1,
+            total: state.pages.length,
+            stage: i18n.t("header.ocr"),
+          }),
+          "running",
+          0,
+        );
+        if (page.textDetections.length === 0) {
+          continue;
+        }
+        try {
+          const result = await window.lumina.apiPost<{
+            results?: OcrResult[];
+            detail?: string;
+            error?: string;
+          }>("/ocr", {
+            imagePath: page.filePath,
+            boxes: page.textDetections.map((d) => d.bbox),
+            model,
+          });
+          if (!result || !result.results)
+            throw new Error(result?.detail || result?.error || "OCR failed");
+
+          result.results.forEach((r) => {
+            const text = normalizeAutoText(r.text || "");
+            const detection = page.textDetections[r.index];
+            if (detection) detection.text = text;
+            const layer = page.layers[r.index];
+            if (layer && layer.type === "text-dialogue") layer.source = text;
+          });
+          history.snapshotPage(page);
+          completed++;
+        } catch (err) {
+          failed.push(page.fileName);
+          log.error("fe", `OCR page ${i + 1} (${page.fileName}): ${err}`);
+        }
+      }
+      ui.dismissToast(progressToast);
+      progressToast = null;
+      canvas.render();
+      sidebar.render();
+      if (failed.length) {
+        ui.toast(
+          i18n.t("toast.batchPartial", {
+            stage: i18n.t("header.ocr"),
+            completed,
+            files: failed.join(", "),
+          }),
+          completed ? "warn" : "error",
+          6000,
+        );
+      } else if (completed > 0) {
+        ui.toast(
+          i18n.t("toast.batchDone", {
+            stage: i18n.t("header.ocr"),
+            count: completed,
+          }),
+          "success",
+          3000,
+        );
+      }
+    } finally {
+      ui.dismissToast(progressToast);
+      state.isRunning = false;
+      if (button) button.disabled = false;
+    }
+  },
+
   /** Run OCR on a subset of text detections (by index) — used by the box
    * context menu's "re-OCR" to re-run recognition on one box. Same endpoint
    * + layer mapping as run(); `modelId` overrides the selected OCR model. */

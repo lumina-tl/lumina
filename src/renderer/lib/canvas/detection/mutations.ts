@@ -11,6 +11,7 @@ import { dialogueLayerForTextIdx } from "./selection";
 canvas.deleteTextDetection = function (idx: number): void {
   const page = state.getActivePage();
   if (!page || idx < 0 || idx >= page.textDetections.length) return;
+  page._cleanOnlyProcessed = false;
   page.textDetections.splice(idx, 1);
   // Mirror deletion into the unified layer model
   const layer = dialogueLayerForTextIdx(page, idx);

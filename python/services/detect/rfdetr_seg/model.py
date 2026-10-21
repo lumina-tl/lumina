@@ -64,8 +64,7 @@ class RfDetrSegModel(BaseDetectModel):
                 )
                 has_mask = True
 
-        if len(tiles) > 1:
-            detections = merge_detections(detections)
+        detections = merge_detections(detections)
         result = {
             "textDetections": detections,
             "bubbleDetections": [],

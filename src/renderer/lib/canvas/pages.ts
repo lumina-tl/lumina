@@ -12,6 +12,8 @@ import { history } from "../history";
 import { createIcons } from "../ui/icons";
 import * as landing from "../ui/landing";
 import { isDirty, markDirty } from "../project/dirty";
+import { contextMenu } from "../ui/context-menu";
+import { models } from "../models";
 import type { Page } from "../../types";
 
 /* ── Drag-and-drop reorder state ── */
@@ -135,6 +137,41 @@ canvas.renderPageStrip = function (): void {
       canvas.switchPage(i);
     });
 
+    thumb.addEventListener("contextmenu", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      contextMenu.show(e.clientX, e.clientY, [
+        {
+          labelKey: "pages.closeThis",
+          danger: true,
+          action: function () {
+            void canvas.closePages([i]);
+          },
+        },
+        {
+          labelKey: "pages.closeOthers",
+          separatorBefore: true,
+          disabled: state.pages.length < 2,
+          action: function () {
+            void canvas.closePages(
+              state.pages
+                .map((_, idx) => idx)
+                .filter((idx) => idx !== i),
+              page,
+            );
+          },
+        },
+        {
+          labelKey: "pages.closeAll",
+          danger: true,
+          separatorBefore: true,
+          action: function () {
+            void canvas.closePages(state.pages.map((_, idx) => idx));
+          },
+        },
+      ]);
+    });
+
     items.appendChild(thumb);
   });
 
@@ -152,6 +189,20 @@ canvas.renderPageStrip = function (): void {
     }
   });
   items.appendChild(addBtn);
+
+  const addFolderBtn = document.createElement("div");
+  addFolderBtn.className = "page-thumb-add";
+  addFolderBtn.title = i18n.t("pages.importFolder");
+  addFolderBtn.innerHTML = `
+    <i data-lucide="folder-plus" class="w-4 h-4"></i>
+    <span class="text-[8px] font-semibold opacity-70 tracking-wider">${i18n.t("pages.folder")}</span>
+  `;
+  addFolderBtn.addEventListener("click", function () {
+    if (rendererRef && rendererRef.importFolder) {
+      rendererRef.importFolder();
+    }
+  });
+  items.appendChild(addFolderBtn);
 
   createIcons({
     nameAttr: "data-lucide",
@@ -194,9 +245,15 @@ canvas.reorderPage = function (fromIdx: number, toIdx: number): void {
 };
 
 /** Set by renderer entry — avoids circular import */
-let rendererRef: { importImages: () => Promise<void> } | null = null;
-export function setRendererImport(fn: () => Promise<void>): void {
-  rendererRef = { importImages: fn };
+let rendererRef: {
+  importImages: () => Promise<void>;
+  importFolder: () => Promise<void>;
+} | null = null;
+export function setRendererImport(
+  importImages: () => Promise<void>,
+  importFolder: () => Promise<void>,
+): void {
+  rendererRef = { importImages, importFolder };
 }
 
 /** Switch active page by index */
@@ -225,23 +282,50 @@ canvas.switchPage = async function (idx: number): Promise<void> {
   history._updateButtons();
 };
 
-/** Remove a page — confirms when the session has unsaved changes */
-canvas.removePage = async function (idx: number): Promise<void> {
+/** Close selected pages after one shared unsaved-changes confirmation. */
+canvas.closePages = async function (
+  indices: number[],
+  keepPage?: Page,
+): Promise<void> {
+  const validIndices = Array.from(new Set(indices))
+    .filter((idx) => idx >= 0 && idx < state.pages.length)
+    .sort((a, b) => a - b);
+  if (!validIndices.length) return;
+
   if (isDirty()) {
     const { guardUnsavedChanges } = await import("../project");
-    if (!(await guardUnsavedChanges(i18n.t("project.removeDetail")))) return;
+    const detail =
+      validIndices.length === 1
+        ? i18n.t("project.removeDetail")
+        : i18n.t("pages.closeMultipleDetail", { count: validIndices.length });
+    if (!(await guardUnsavedChanges(detail))) return;
   }
-  const removed = state.pages[idx];
-  state.removePage(idx);
-  if (removed) history.forgetPage(removed);
-  markDirty(); // removal is a mutation — keep the session dirty
-  invalidateComposite(removed?.fileName ?? null);
+
+  const activePage = state.getActivePage();
+  const activeIndex = state.activePageIdx ?? 0;
+  const removedPages = validIndices.map((idx) => state.pages[idx]);
+  validIndices
+    .slice()
+    .reverse()
+    .forEach((idx) => state.removePage(idx));
+  removedPages.forEach((page) => {
+    history.forgetPage(page);
+    invalidateComposite(page.fileName);
+  });
+  markDirty();
   canvas._clearGroups();
   if (state.pages.length > 0) {
-    state.activePageIdx = Math.min(idx, state.pages.length - 1);
-    canvas.render();
+    let nextPage: Page;
+    if (keepPage && state.pages.includes(keepPage)) nextPage = keepPage;
+    else if (activePage && state.pages.includes(activePage))
+      nextPage = activePage;
+    else nextPage = state.pages[Math.min(activeIndex, state.pages.length - 1)];
+    const nextIndex = state.pages.indexOf(nextPage);
+    state.activePageIdx = nextIndex;
+    await canvas.switchPage(nextIndex);
   } else {
-    // No pages left — show landing
+    state.activePageIdx = null;
+    models.setHasImage(false);
     landing.show();
     destroyStage();
   }
@@ -249,6 +333,11 @@ canvas.removePage = async function (idx: number): Promise<void> {
   ui.updatePageIndicator();
   if (sidebar && sidebar.render) sidebar.render();
   history._updateButtons();
+};
+
+/** Remove a page — confirms when the session has unsaved changes. */
+canvas.removePage = function (idx: number): void {
+  void canvas.closePages([idx]);
 };
 
 /** Generate a thumbnail data URL from page (for export, future) */

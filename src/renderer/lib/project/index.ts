@@ -149,6 +149,8 @@ function buildPayload(
           visible: m.visible,
           opacity: m.opacity,
         })),
+        _cleanOnlyProcessed: p._cleanOnlyProcessed,
+        _cleanOnlyDetectionDone: p._cleanOnlyDetectionDone,
         cleanupMask: p.cleanupMask
           ? {
               id: p.cleanupMask.id,
@@ -408,6 +410,8 @@ export const project = {
           return l;
         }),
         inpaintMasks: pd.inpaintMasks.map((m) => ({ ...m })),
+        _cleanOnlyProcessed: pd._cleanOnlyProcessed,
+        _cleanOnlyDetectionDone: pd._cleanOnlyDetectionDone,
         cleanupMask: pd.cleanupMask ? { ...pd.cleanupMask } : null,
         backgroundVisible: pd.backgroundVisible,
         _selectedTextIdx: null,

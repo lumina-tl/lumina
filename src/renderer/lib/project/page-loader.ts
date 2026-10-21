@@ -8,6 +8,8 @@ import { history } from "../history";
 import { project } from ".";
 import * as landing from "../ui/landing";
 import { models } from "../models";
+import { log } from "../logger";
+import * as i18n from "../i18n";
 import type { Page } from "../../types";
 
 /** Convert a raw Windows/POSIX file path into a valid file:// URL */
@@ -65,8 +67,28 @@ export async function importImages(): Promise<void> {
   await openImagePaths(filePaths);
 }
 
+/** Import every supported image under a selected folder. */
+export async function importImageFolder(): Promise<void> {
+  try {
+    const filePaths = await window.lumina.importImageFolder();
+    if (!filePaths) return;
+    if (filePaths.length === 0) {
+      ui.toast(i18n.t("toast.importFolderEmpty"), "warn", 4000);
+      return;
+    }
+    await openImagePaths(filePaths);
+  } catch (err) {
+    log.error("fe", `Folder import failed: ${err}`);
+    ui.toast(
+      err instanceof Error ? err.message : i18n.t("toast.importFailed"),
+      "error",
+    );
+  }
+}
+
 /** Import path: eager-decodes only the FIRST image, rest are lazy. */
 export async function openImagePaths(filePaths: string[]): Promise<void> {
+  const firstImportedIdx = L.state.pages.length;
   for (let i = 0; i < filePaths.length; i++) {
     const fp = filePaths[i];
     if (i === 0) {
@@ -97,11 +119,11 @@ export async function openImagePaths(filePaths: string[]): Promise<void> {
     }
   }
 
-  // Set active to first if none selected
-  if (L.state.activePageIdx === null && L.state.pages.length > 0) {
-    L.state.setActivePage(0);
-    // Eager-decode the active page now (it must render immediately).
-    await pageImages.ensurePageImage(L.state.pages[0]);
+  // Activate the first newly imported image, not the previously active page.
+  if (L.state.pages.length > firstImportedIdx) {
+    L.state.showDetBoxes = true;
+    models.setHasImage(true);
+    await canvas.switchPage(firstImportedIdx);
   }
 
   // Fill strip thumbnails cheaply (decode at thumb size, never full-res).
@@ -112,8 +134,6 @@ export async function openImagePaths(filePaths: string[]): Promise<void> {
   landing.hide();
   models.setHasImage(true);
 
-  canvas._clearGroups();
-  canvas.render();
   canvas.renderPageStrip();
   ui.updatePageIndicator();
   sidebar.render();

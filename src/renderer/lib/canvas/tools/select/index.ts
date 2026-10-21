@@ -64,8 +64,8 @@ canvas.onToolChange = function (tool: string): void {
 
 // ── Page switch: selections are transient, clear them ──
 const _origSwitchPage = canvas.switchPage;
-canvas.switchPage = function (idx: number): void {
-  _origSwitchPage(idx);
+canvas.switchPage = async function (idx: number): Promise<void> {
+  await _origSwitchPage(idx);
   clearSelections();
   refreshOverlay();
   hideContextBar();
@@ -74,6 +74,17 @@ canvas.switchPage = function (idx: number): void {
 const _origRemovePage = canvas.removePage;
 canvas.removePage = function (idx: number): void {
   _origRemovePage(idx);
+  clearSelections();
+  refreshOverlay();
+  hideContextBar();
+};
+
+const _origClosePages = canvas.closePages;
+canvas.closePages = async function (
+  indices: number[],
+  keepPage?: import("../../../../types").Page,
+): Promise<void> {
+  await _origClosePages(indices, keepPage);
   clearSelections();
   refreshOverlay();
   hideContextBar();

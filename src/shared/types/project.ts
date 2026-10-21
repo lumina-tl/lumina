@@ -15,6 +15,8 @@ export interface ProjectPageData {
   textDetections: unknown[];
   layers: unknown[];
   inpaintMasks: ProjectMaskData[];
+  _cleanOnlyProcessed?: boolean;
+  _cleanOnlyDetectionDone?: boolean;
   cleanupMask?: {
     id: string;
     visible: boolean;

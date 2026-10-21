@@ -41,7 +41,7 @@ def image_tiles(image: Image.Image) -> list[tuple[Image.Image, int, int]]:
 
 
 def merge_detections(detections: list[dict]) -> list[dict]:
-    """Remove duplicate boxes from overlapping tiles using confidence-ranked NMS."""
+    """Remove duplicate boxes using confidence-ranked non-maximum suppression."""
     kept: list[dict] = []
     for detection in sorted(
         detections, key=lambda item: item.get("confidence", 0), reverse=True
@@ -51,16 +51,21 @@ def merge_detections(detections: list[dict]) -> list[dict]:
         x1, y1 = x0 + box["w"], y0 + box["h"]
         duplicate = False
         for existing in kept:
-            if detection.get("type") != existing.get("type"):
-                continue
             other = existing["bbox"]
             ox0, oy0 = other["x"], other["y"]
             ox1, oy1 = ox0 + other["w"], oy0 + other["h"]
             intersection = max(0, min(x1, ox1) - max(x0, ox0)) * max(
                 0, min(y1, oy1) - max(y0, oy0)
             )
-            union = box["w"] * box["h"] + other["w"] * other["h"] - intersection
-            if union and intersection / union >= 0.5:
+            area = box["w"] * box["h"]
+            other_area = other["w"] * other["h"]
+            union = area + other_area - intersection
+            overlap = (
+                intersection / min(area, other_area)
+                if min(area, other_area)
+                else 0
+            )
+            if (union and intersection / union >= 0.5) or overlap >= 0.8:
                 duplicate = True
                 break
         if not duplicate:
