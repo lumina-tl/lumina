@@ -168,6 +168,20 @@ export const canvas: CanvasAPI = {
   _initDeselectClick() {},
 };
 
+const _stageCreatedHandlers = new Set<(stage: Konva.Stage) => void>();
+
+export function registerStageCreatedHandler(
+  handler: (stage: Konva.Stage) => void,
+): void {
+  _stageCreatedHandlers.add(handler);
+  const stage = canvas.getStage();
+  if (stage) handler(stage);
+}
+
+export function notifyStageCreated(stage: Konva.Stage): void {
+  _stageCreatedHandlers.forEach((handler) => handler(stage));
+}
+
 /** Keyboard shortcuts for canvas */
 canvas._initKeyboard = function (): void {
   document.addEventListener("keydown", function (e) {

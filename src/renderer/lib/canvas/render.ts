@@ -1,7 +1,11 @@
 /** Stage & render — composite: bg image → inpaint patches → text layers. */
 import Konva from "konva";
 import { state } from "../state";
-import { canvas, resetDeselectBinding } from "./index";
+import {
+  canvas,
+  notifyStageCreated,
+  resetDeselectBinding,
+} from "./index";
 import { bindPanWhenStageReady, resetPanBinding } from "./viewport";
 import { renderLayerTextNodes } from "./tools/text";
 import { addDetGroupToLayer } from "./detection/groups";
@@ -102,6 +106,7 @@ function _getOrCreateStage(): Konva.Stage | null {
   });
   _layer = new Konva.Layer();
   _stage.add(_layer);
+  notifyStageCreated(_stage);
 
   return _stage;
 }

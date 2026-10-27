@@ -1,6 +1,6 @@
 /** Select tool — stage interactions: lasso (freeform) + rect (marquee). */
 import { state } from "../../../state";
-import { canvas } from "../../index";
+import { canvas, registerStageCreatedHandler } from "../../index";
 import { history } from "../../../history";
 import {
   selections,
@@ -203,14 +203,8 @@ export function resetStageBinding(): void {
 
 export function bindStageInteractions(): void {
   if (_bound) return;
-  const bindWhenReady = function (): void {
-    const stage = canvas.getStage();
-    if (!stage) {
-      setTimeout(bindWhenReady, 500);
-      return;
-    }
-    _bound = true;
-
+  _bound = true;
+  registerStageCreatedHandler(function (stage) {
     const drag: DragState = {
       active: false,
       mode: null,
@@ -397,6 +391,5 @@ export function bindStageInteractions(): void {
       window.addEventListener("touchmove", onMove, { passive: false });
       window.addEventListener("touchend", onUp);
     });
-  };
-  bindWhenReady();
+  });
 }
