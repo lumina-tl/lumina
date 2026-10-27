@@ -167,7 +167,8 @@ export const models = {
   async refreshRuntime(): Promise<void> {
     try {
       const st = await window.lumina.getRuntimeStatus();
-      s.runtimeBusy = st.state === "downloading";
+      s.runtimeBusy =
+        st.state === "downloading" || st.state === "extracting";
     } catch {
       s.runtimeBusy = false;
     }

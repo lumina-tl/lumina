@@ -10,6 +10,7 @@ export interface ProjectMaskData {
 export interface ProjectPageData {
   fileName: string;
   filePath: string;
+  sourceFolderName?: string;
   naturalWidth: number;
   naturalHeight: number;
   textDetections: unknown[];

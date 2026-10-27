@@ -105,6 +105,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Anthropic compatible protocol.** Removed Anthropic Messages API client, dependencies, and settings switches in favor of the industry-standard OpenAI `/v1/chat/completions` protocol for all custom and self-hosted inference (Ollama, LM Studio, vLLM, etc.).
 - **Bubble detections.** Detection pipeline no longer returns or processes speech bubble boxes — only text boxes and the full-page text mask (RF-DETR-seg) are kept. This simplifies the pipeline and reduces unnecessary compute on unused classes.
 
+## [0.4.2] - 27-10-2026
+
+### Added
+
+- **Edit generated masks directly.** Select an inpaint mask and use the brush to add to that mask or the eraser to remove from it. Brush edits use the selected palette color and are saved with undo/redo support.
+- **Delete downloaded models.** The Models settings panel now lets you remove an installed model, including AngleNet, with confirmation.
+- **Cancel CUDA runtime installation.** The runtime progress notification can cancel both the download and extraction; a verified downloaded archive is kept when extraction is cancelled so it can be reused.
+- **Localized model descriptions.** Model descriptions are available in Spanish and update immediately when the app language changes. AngleNet’s role and fallback behavior are explained.
+
+### Changed
+
+- **Folder-based export.** Exported pages are grouped into a named folder, using the imported folder name when available and prompting for a name for individually imported images.
+- **Clean Only OCR choice.** The Clean Only preset lets you choose whether OCR should run.
+
+### Fixed
+
+- **CUDA extraction progress and reliability.** The installation notification now reports extraction progress, and the extractor drains process output to avoid pipe stalls.
+
 ## [0.4.1] - 20-10-2026
 
 ### Changed

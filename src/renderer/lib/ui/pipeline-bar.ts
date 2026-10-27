@@ -255,6 +255,43 @@ function _togglePresetDropdown(btn: HTMLElement): void {
   createIcons({ root: dropdown });
 }
 
+function _toggleCleanOcrDropdown(): void {
+  const dropdown = document.getElementById("dropdown-preset");
+  if (!dropdown) return;
+
+  if (_activeDropdown === "clean-ocr") {
+    _closeDropdowns();
+    return;
+  }
+
+  _closeDropdowns();
+  _activeDropdown = "clean-ocr";
+  dropdown.classList.remove("hidden");
+  dropdown.innerHTML = `
+    <div class="pipeline-dropdown-header">
+      <span>${_esc(i18n.t("pipeline.cleanOcrPrompt"))}</span>
+    </div>
+    <div class="pipeline-dropdown-list">
+      <div class="pipeline-dropdown-item" data-run-clean-ocr="true">
+        <div class="pipeline-item-check"></div>
+        <div class="pipeline-item-name">${_esc(i18n.t("pipeline.cleanWithOcr"))}</div>
+      </div>
+      <div class="pipeline-dropdown-item" data-run-clean-ocr="false">
+        <div class="pipeline-item-check"></div>
+        <div class="pipeline-item-name">${_esc(i18n.t("pipeline.cleanWithoutOcr"))}</div>
+      </div>
+    </div>`;
+
+  dropdown.querySelectorAll<HTMLElement>("[data-run-clean-ocr]").forEach((item) => {
+    item.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const includeOcr = item.dataset.runCleanOcr === "true";
+      _closeDropdowns();
+      await pipeline.runPreset("clean", { includeOcr });
+    });
+  });
+}
+
 /** Render and toggle dropdown popover */
 function _toggleDropdown(
   kind: "detect" | "ocr" | "inpaint",
@@ -534,8 +571,13 @@ export const pipelineBar = {
     // Run pipeline preset button
     const allBtn = _bar.querySelector("#btn-pipeline-all");
     allBtn?.addEventListener("click", async () => {
-      _closeDropdowns();
-      await pipeline.runPreset(loadPreset());
+      const preset = loadPreset();
+      if (preset === "clean") {
+        _toggleCleanOcrDropdown();
+      } else {
+        _closeDropdowns();
+        await pipeline.runPreset(preset);
+      }
     });
 
     // Preset dropdown chevron

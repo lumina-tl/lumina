@@ -3,8 +3,16 @@ import fs from "fs";
 import http from "http";
 import https from "https";
 
-export function fetchBuffer(url: string, redirects = 5): Promise<Buffer> {
+export function fetchBuffer(
+  url: string,
+  redirects = 5,
+  signal?: AbortSignal,
+): Promise<Buffer> {
   return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new Error("Runtime installation cancelled"));
+      return;
+    }
     const mod = url.startsWith("https:") ? https : http;
     const req = mod.get(
       url,
@@ -17,7 +25,7 @@ export function fetchBuffer(url: string, redirects = 5): Promise<Buffer> {
             reject(new Error(`Too many redirects for ${url}`));
             return;
           }
-          resolve(fetchBuffer(new URL(loc, url).toString(), redirects - 1));
+          resolve(fetchBuffer(new URL(loc, url).toString(), redirects - 1, signal));
           return;
         }
         if (res.statusCode !== 200) {
@@ -31,6 +39,11 @@ export function fetchBuffer(url: string, redirects = 5): Promise<Buffer> {
       },
     );
     req.on("error", reject);
+    signal?.addEventListener(
+      "abort",
+      () => req.destroy(new Error("Runtime installation cancelled")),
+      { once: true },
+    );
   });
 }
 
@@ -38,8 +51,13 @@ export function downloadFile(
   url: string,
   dest: string,
   onProgress?: (done: number, total: number) => void,
+  signal?: AbortSignal,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new Error("Runtime installation cancelled"));
+      return;
+    }
     const part = dest + ".part";
     try {
       fs.rmSync(part, { force: true });
@@ -60,6 +78,8 @@ export function downloadFile(
     const fail = (e: Error): void => {
       if (settled) return;
       settled = true;
+      req.destroy();
+      out.destroy();
       cleanup();
       reject(e);
     };
@@ -77,7 +97,12 @@ export function downloadFile(
           }
           out.close(() => {
             if (settled) return;
-            downloadFile(new URL(loc, url).toString(), dest, onProgress).then(
+            downloadFile(
+              new URL(loc, url).toString(),
+              dest,
+              onProgress,
+              signal,
+            ).then(
               resolve,
               fail,
             );
@@ -100,6 +125,11 @@ export function downloadFile(
       },
     );
     req.on("error", fail);
+    signal?.addEventListener(
+      "abort",
+      () => fail(new Error("Runtime installation cancelled")),
+      { once: true },
+    );
     out.on("finish", () => {
       out.close(() => {
         if (settled) return;

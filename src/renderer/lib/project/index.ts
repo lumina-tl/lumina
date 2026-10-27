@@ -131,6 +131,7 @@ function buildPayload(
       pages: state.pages.map((p) => ({
         fileName: p.fileName,
         filePath: p.filePath,
+        sourceFolderName: p.sourceFolderName,
         naturalWidth: p.naturalWidth,
         naturalHeight: p.naturalHeight,
         textDetections: p.textDetections,
@@ -391,6 +392,7 @@ export const project = {
       const page: Page = {
         filePath: pd.filePath,
         fileName: pd.fileName,
+        sourceFolderName: pd.sourceFolderName,
         image: null,
         naturalWidth: isActive ? pd.naturalWidth : (dims?.w ?? pd.naturalWidth),
         naturalHeight: isActive

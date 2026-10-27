@@ -149,13 +149,17 @@ function _bakeComposite(
   if (page.backgroundVisible !== false) ctx.drawImage(img, 0, 0, cw, ch);
   for (const m of page.inpaintMasks || []) {
     if (!m.visible || !m.image) continue;
+    const imageWidth =
+      "naturalWidth" in m.image ? m.image.naturalWidth : m.image.width;
+    const imageHeight =
+      "naturalHeight" in m.image ? m.image.naturalHeight : m.image.height;
     ctx.globalAlpha = m.opacity;
     ctx.drawImage(
       m.image,
       0,
       0,
-      m.image.naturalWidth || m.image.width,
-      m.image.naturalHeight || m.image.height,
+      imageWidth || m.image.width,
+      imageHeight || m.image.height,
       Math.round(m.bbox.x),
       Math.round(m.bbox.y),
       Math.round(m.bbox.w),
@@ -230,13 +234,17 @@ export function recompositeCleanupRegion(
   // 2. inpaint masks
   for (const m of page.inpaintMasks || []) {
     if (!m.visible || !m.image) continue;
+    const imageWidth =
+      "naturalWidth" in m.image ? m.image.naturalWidth : m.image.width;
+    const imageHeight =
+      "naturalHeight" in m.image ? m.image.naturalHeight : m.image.height;
     ctx.globalAlpha = m.opacity;
     ctx.drawImage(
       m.image,
       0,
       0,
-      m.image.naturalWidth || m.image.width,
-      m.image.naturalHeight || m.image.height,
+      imageWidth || m.image.width,
+      imageHeight || m.image.height,
       Math.round(m.bbox.x),
       Math.round(m.bbox.y),
       Math.round(m.bbox.w),

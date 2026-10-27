@@ -37,6 +37,7 @@ const api: LuminaAPI = {
   setUseGpu: (useGpu) => invoke(IPC.deviceConfigure, useGpu),
   checkModel: () => invoke(IPC.checkModel),
   downloadModel: (models) => invoke(IPC.downloadModel, models ?? []),
+  deleteModel: (modelId) => invoke(IPC.deleteModel, modelId),
   cancelDownload: () => invoke(IPC.cancelDownload),
   deleteModel: (modelId) => invoke(IPC.deleteModel, modelId),
   onDownloadProgress: (cb) => {
@@ -89,6 +90,7 @@ const api: LuminaAPI = {
   },
   openUpdateUrl: (url) => invoke(IPC.openUpdateUrl, url),
   getRuntimeStatus: () => invoke(IPC.runtimeStatus),
+  cancelRuntime: () => invoke(IPC.runtimeCancel),
   onRuntimeProgress: (cb) => {
     on(IPC.runtimeProgress, cb);
   },

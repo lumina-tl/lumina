@@ -4,6 +4,8 @@ import { canvas } from "../canvas/index";
 import { history } from "../history";
 import { state } from "../state";
 import { sidebar } from "../sidebar";
+import { tools } from "../ui/tools";
+import { ui } from "../ui";
 import type { Page, InpaintMask } from "../../types";
 import { esc } from "./_esc";
 
@@ -21,6 +23,11 @@ export function maskListHTML(page: Page | null): string {
     );
 
   let html = "";
+  html +=
+    '<button class="mask-add-btn" data-action="add-inpaint-zone">' +
+    '<i data-lucide="square-dashed"></i><span>' +
+    esc(i18n.t("masks.addZone")) +
+    "</span></button>";
   page.inpaintMasks.forEach(function (m, i) {
     html += maskRowHTML(page, m, i);
   });
@@ -124,6 +131,16 @@ function maskRowHTML(page: Page, mask: InpaintMask, idx: number): string {
         "%</span>" +
         "</div>"
       : "") +
+    (selected
+        ? '<div class="mask-edit-controls">' +
+          '<span class="mask-edit-hint">' +
+          esc(i18n.t("masks.editHint")) +
+          "</span>" +
+          '<button class="det-btn mask-edit-btn" title="' +
+          esc(i18n.t("masks.edit")) +
+          '"><i data-lucide="brush"></i></button>' +
+          "</div>"
+        : "") +
     "</div>" +
     '<div class="detection-actions">' +
     '<button class="det-btn det-btn-danger" data-action="delete" title="' +
@@ -143,6 +160,13 @@ function maskRowHTML(page: Page, mask: InpaintMask, idx: number): string {
 }
 
 export function wireMaskEvents(): void {
+  document
+    .querySelector<HTMLButtonElement>('[data-action="add-inpaint-zone"]')
+    ?.addEventListener("click", function () {
+      tools.setActive("rect");
+      ui.toast(i18n.t("masks.addZoneHint"), "info", 5000);
+    });
+
   const page = state.getActivePage();
   const items = document.querySelectorAll<HTMLElement>(
     ".layer-row[data-mask-id]",
@@ -151,9 +175,17 @@ export function wireMaskEvents(): void {
     el.addEventListener("click", function (e) {
       const target = e.target as HTMLElement;
       const id = el.getAttribute("data-mask-id") as string;
+      const edit = target.closest(".mask-edit-btn") as HTMLButtonElement | null;
       const btn = target.closest(".det-btn") as HTMLButtonElement | null;
       const eye = target.closest(".layer-eye") as HTMLButtonElement | null;
 
+      if (edit) {
+        e.stopPropagation();
+        if (page) page._selectedMaskId = id;
+        tools.setActive("brush");
+        ui.toast(i18n.t("masks.editHint"), "info", 5000);
+        return;
+      }
       if (eye) {
         e.stopPropagation();
         canvas.toggleMaskVisible(id);
@@ -165,7 +197,7 @@ export function wireMaskEvents(): void {
         return;
       }
       // Click on the row toggles the expanded options (opacity + delete)
-      if (target.closest(".mask-opacity")) return; // slider handles itself
+      if (target.closest(".mask-opacity, .mask-edit-controls")) return;
       if (page) {
         page._selectedMaskId = page._selectedMaskId === id ? null : id;
         sidebar.render();

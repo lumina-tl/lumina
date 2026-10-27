@@ -12,6 +12,12 @@ function _open(pages: Page[]): void {
     return;
   }
   st.order = pages.slice();
+  const sourceFolderName = pages[0].sourceFolderName;
+  st.folderName =
+    sourceFolderName &&
+    pages.every((page) => page.sourceFolderName === sourceFolderName)
+      ? sourceFolderName
+      : "";
   st.format = "png";
   st.quality = 92;
   st.selIdx = 0;

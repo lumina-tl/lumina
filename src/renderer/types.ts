@@ -189,7 +189,7 @@ export interface InpaintMask {
   visible: boolean;
   opacity: number; // 0-1
   /** Loaded patch image (runtime only — not serialized in history) */
-  image?: HTMLImageElement;
+  image?: HTMLImageElement | HTMLCanvasElement;
 }
 
 /** Full-page raster paint layer (brush/eraser/bucket). One per page,
@@ -211,6 +211,8 @@ export interface CleanupMask {
 export interface Page {
   filePath: string;
   fileName: string;
+  /** Source folder name for keeping folder imports grouped on export. */
+  sourceFolderName?: string;
   /** Decoded page bitmap — null while unloaded (see pageImages.ts LRU).
    *  Only the active page (and a small cache) holds a decoded image. */
   image: HTMLImageElement | null;

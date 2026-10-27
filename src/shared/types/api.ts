@@ -40,7 +40,10 @@ export interface StreamProgress {
 export interface LuminaAPI {
   importImage(): Promise<string | null>;
   importImages(): Promise<string[] | null>;
-  importImageFolder(): Promise<string[] | null>;
+  importImageFolder(): Promise<{
+    filePaths: string[];
+    folderName: string;
+  } | null>;
   apiPost<T = unknown>(endpoint: string, body: unknown): Promise<T>;
   apiPostStream<T = unknown>(
     endpoint: string,
@@ -51,6 +54,7 @@ export interface LuminaAPI {
   setUseGpu(useGpu: boolean): Promise<DeviceInfo>;
   checkModel(): Promise<ModelCheck>;
   downloadModel(models?: string[]): Promise<void>;
+  deleteModel(modelId: string): Promise<void>;
   cancelDownload(): Promise<void>;
   deleteModel(modelId: string): Promise<void>;
   onDownloadProgress(cb: (msg: DownloadProgress) => void): void;
@@ -99,6 +103,7 @@ export interface LuminaAPI {
   onUpdateProgress(cb: (msg: UpdateProgress) => void): void;
   openUpdateUrl(url: string): Promise<void>;
   getRuntimeStatus(): Promise<RuntimeInfo>;
+  cancelRuntime(): Promise<void>;
   onRuntimeProgress(cb: (msg: RuntimeProgress) => void): void;
   onRuntimeBusy(cb: (busy: boolean) => void): void;
   onCheckModel(cb: () => void): void;

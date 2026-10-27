@@ -21,13 +21,17 @@ function _toFileUrl(p: string): string {
   return "file://" + encodeURI(norm).replace(/#/g, "%23").replace(/\?/g, "%3F");
 }
 
-function _loadImageAsPage(filePath: string): Promise<Page | null> {
+function _loadImageAsPage(
+  filePath: string,
+  sourceFolderName?: string,
+): Promise<Page | null> {
   return new Promise(function (resolve) {
     const img = new Image();
     img.onload = function () {
       const page: Page = {
         filePath: filePath,
         fileName: filePath.split(/[/\\]/).pop() as string,
+        sourceFolderName,
         image: img,
         naturalWidth: img.naturalWidth,
         naturalHeight: img.naturalHeight,
@@ -70,13 +74,13 @@ export async function importImages(): Promise<void> {
 /** Import every supported image under a selected folder. */
 export async function importImageFolder(): Promise<void> {
   try {
-    const filePaths = await window.lumina.importImageFolder();
-    if (!filePaths) return;
-    if (filePaths.length === 0) {
+    const imported = await window.lumina.importImageFolder();
+    if (!imported) return;
+    if (imported.filePaths.length === 0) {
       ui.toast(i18n.t("toast.importFolderEmpty"), "warn", 4000);
       return;
     }
-    await openImagePaths(filePaths);
+    await openImagePaths(imported.filePaths, imported.folderName);
   } catch (err) {
     log.error("fe", `Folder import failed: ${err}`);
     ui.toast(
@@ -87,12 +91,15 @@ export async function importImageFolder(): Promise<void> {
 }
 
 /** Import path: eager-decodes only the FIRST image, rest are lazy. */
-export async function openImagePaths(filePaths: string[]): Promise<void> {
+export async function openImagePaths(
+  filePaths: string[],
+  sourceFolderName?: string,
+): Promise<void> {
   const firstImportedIdx = L.state.pages.length;
   for (let i = 0; i < filePaths.length; i++) {
     const fp = filePaths[i];
     if (i === 0) {
-      const page = await _loadImageAsPage(fp);
+      const page = await _loadImageAsPage(fp, sourceFolderName);
       if (page) L.state.addPage(page);
     } else {
       // Non-active pages: register immediately, decode lazily on first
@@ -103,6 +110,7 @@ export async function openImagePaths(filePaths: string[]): Promise<void> {
       L.state.addPage({
         filePath: fp,
         fileName: fp.split(/[/\\]/).pop() as string,
+        sourceFolderName,
         image: null,
         naturalWidth: 0,
         naturalHeight: 0,

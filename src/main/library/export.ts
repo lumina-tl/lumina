@@ -41,14 +41,35 @@ async function handleExport(
   });
   if (res.canceled || !res.filePaths[0])
     return { canceled: true, dir: null, count: 0 };
-  const dir = res.filePaths[0];
+  const folderName = payload.folderName
+    .replace(/[<>:"/\\|?*\x00-\x1f]/g, " ")
+    .replace(/[. ]+$/g, "")
+    .trim();
+  if (!folderName || folderName === "." || folderName === "..")
+    throw new Error("A valid export folder name is required");
+
+  const parentDir = res.filePaths[0];
+  let dir = path.join(parentDir, folderName);
+  for (let suffix = 2; fs.existsSync(dir); suffix++) {
+    dir = path.join(parentDir, `${folderName} (${suffix})`);
+  }
+  fs.mkdirSync(dir);
   const ext = payload.format === "jpg" ? ".jpg" : ".png";
   let written = 0;
+  const usedNames = new Set<string>();
   for (const f of payload.files) {
     const rawBase = path.basename(f.fileName, path.extname(f.fileName));
     const base =
-      rawBase.replace(/[<>:"/\\|?*\x00-\x1f]/g, " ").trim() || "page";
-    fs.writeFileSync(path.join(dir, base + ext), Buffer.from(f.data));
+      rawBase
+        .replace(/[<>:"/\\|?*\x00-\x1f]/g, " ")
+        .replace(/[. ]+$/g, "")
+        .trim() || "page";
+    let outputName = base + ext;
+    for (let suffix = 2; usedNames.has(outputName.toLowerCase()); suffix++) {
+      outputName = `${base} (${suffix})${ext}`;
+    }
+    usedNames.add(outputName.toLowerCase());
+    fs.writeFileSync(path.join(dir, outputName), Buffer.from(f.data));
     written++;
   }
   log.info(`Export done: ${dir} (${written} file(s), ${payload.format})`);

@@ -63,9 +63,10 @@ export function registerImportHandlers(win: BrowserWindow): void {
       title: "Import Manga Folder",
       properties: ["openDirectory"],
     });
-    if (result.canceled || result.filePaths.length === 0) return [];
-    const filePaths = await listImages(result.filePaths[0]);
+    if (result.canceled || result.filePaths.length === 0) return null;
+    const folderPath = result.filePaths[0];
+    const filePaths = await listImages(folderPath);
     filePaths.forEach((p) => recordRecent("image", p));
-    return filePaths;
+    return { filePaths, folderName: path.basename(folderPath) };
   });
 }
