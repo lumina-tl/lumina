@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Canvas transformer hit-test isolation.** Interacting with transformer anchor handles or rotation controls no longer accidentally starts brush strokes, text layer creation, or marquee selection (thanks @ididi404).
+- **OCR live bounding box flush.** Modified or resized detection boxes on the canvas are now synchronized immediately before cropping, ensuring OCR runs on the exact edited coordinates (thanks @ididi404).
+- **Automatic typeset text display.** Typeset text layers now reveal immediately after OCR recognition without requiring inpainting to run first (thanks @ididi404).
 - **Page strip drag-and-drop reordering.** Dragging thumbnails in the bottom page strip now correctly reorders pages, with a visible drop indicator showing where the page will land.
 - **Black canvas after deleting all pages.** Importing images from the landing screen no longer shows a blank black canvas.
 

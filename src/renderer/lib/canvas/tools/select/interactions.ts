@@ -18,6 +18,7 @@ import {
 } from "./shared";
 import { updatePreview, clearPreview, refreshOverlay } from "./render";
 import { syncContextBar, hideContextBar } from "./context-bar";
+import { hitTransformer } from "../../hit-transformer";
 
 type Modifier = "add" | "subtract" | null;
 
@@ -34,6 +35,46 @@ let _bound = false;
 
 function isSelectTool(): boolean {
   return state.activeTool === "lasso" || state.activeTool === "rect";
+}
+
+/**
+ * True when a rect/lasso marquee may start on this hit.
+ * Deny-list: only block detection chrome + Transformer handles. Allow empty
+ * names / Layer / bg — the Image is listening:false so hits often land on
+ * unnamed layer chrome; an allow-list without "" made marquee impossible.
+ */
+function isDrawableTarget(
+  target: {
+    name?: () => string;
+    getParent?: () => unknown;
+    getClassName?: () => string;
+  },
+  stage: unknown,
+): boolean {
+  if (hitTransformer(target)) return false;
+  if (target === stage) return true;
+  let node: {
+    name?: () => string;
+    getParent?: () => unknown;
+    getClassName?: () => string;
+  } | null = target;
+  while (node && node !== stage) {
+    const cls =
+      (typeof node.getClassName === "function" && node.getClassName()) || "";
+    if (cls === "Transformer") return false;
+    const name = node.name ? node.name() : "";
+    if (
+      name === "det-group" ||
+      name === "det-box" ||
+      name === "det-badge"
+    ) {
+      return false;
+    }
+    node = node.getParent
+      ? (node.getParent() as typeof node)
+      : null;
+  }
+  return true;
 }
 
 /** Topmost selection under a stage point (later = on top), or null. */
@@ -139,6 +180,11 @@ function removeSelection(id: string): void {
   history.snapshot({ dirty: false });
 }
 
+/** Allow re-bind after destroyStage() creates a fresh Konva stage. */
+export function resetStageBinding(): void {
+  _bound = false;
+}
+
 export function bindStageInteractions(): void {
   if (_bound) return;
   const bindWhenReady = function (): void {
@@ -161,10 +207,7 @@ export function bindStageInteractions(): void {
     stage.on("mousedown touchstart", function (e) {
       if (!isSelectTool()) return;
       if (e.evt.button !== 0) return;
-      const targetName = e.target.name ? e.target.name() : "";
-      const onBackground =
-        e.target === stage || targetName === "bg" || targetName === "";
-      if (!onBackground) return;
+      if (!isDrawableTarget(e.target, stage)) return;
       if (!state.getActivePage()) return;
       const pos = stage.getPointerPosition();
       if (!pos) return;

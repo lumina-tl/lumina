@@ -24,15 +24,14 @@ function ensureTransformer(): void {
   if (!konvaLayer) return;
   if (!transformer) {
     // Same visual language as the detection transformer (white square
-    // anchors, colored border) — but all 8 anchors so the text box can be
-    // resized in width, height, or both. padding keeps the handles outside
-    // the editor textarea while typing.
-    //
-    // Konva's rotater rotates the box around its center WITHOUT writing
-    // scale (rotateAroundCenter only changes rotation/x/y), so a pure
-    // rotation keeps the local box size — auto-fit font stays stable.
+    // anchors, colored border). All 8 anchors; keepRatio false so corner
+    // drags free-resize instead of locking aspect. padding MUST stay 0:
+    // Konva draws the rotate stem without padding but places the rotater
+    // WITH padding — any padding > 0 leaves a stub line past the handle.
     transformer = new Konva.Transformer({
       rotateEnabled: true,
+      rotateAnchorOffset: 24,
+      keepRatio: false,
       enabledAnchors: [
         "top-left",
         "top-center",
@@ -44,27 +43,73 @@ function ensureTransformer(): void {
         "bottom-right",
       ],
       anchorStroke: "#e94560",
-      anchorFill: "#fff",
-      anchorSize: 8,
+      anchorFill: "#ffffff",
+      anchorSize: 7,
+      anchorStrokeWidth: 1.5,
       borderStroke: "#e94560",
       borderStrokeWidth: 1,
-      padding: 6,
+      padding: 0,
+      ignoreStroke: true,
     });
     konvaLayer.add(transformer);
   }
 }
 
-/** Attach the transformer to the selected layer's node (if any) */
+/** Attach the transformer to the selected layer's node (if any).
+ *  Red chrome = text-layer selection. Det-box mode uses green chrome, with
+ *  one exception: a still-selected free-text box (just created) keeps red
+ *  handles until blank-click deselects it. */
 export function syncTransformerSelection(): void {
   const page = state.getActivePage();
   ensureTransformer();
   if (!transformer) return;
   const selId = page ? page._selectedLayerId : null;
+  const selLayer = selId
+    ? page!.layers.find(function (l) {
+        return l.id === selId;
+      })
+    : null;
   const node = selId
     ? layerTextNodes.find(function (n) {
         return n.getAttr("layerId") === selId;
       })
     : null;
+
+  // Always paint text-box chrome so typeset layers stay visible even when
+  // green detection overlays are also on.
+  layerTextNodes.forEach(function (n) {
+    const box = n.findOne<Konva.Rect>(".layer-text-box");
+    if (!box) return;
+    if (n === node) {
+      box.stroke("#e94560");
+      box.strokeWidth(2);
+      box.dash([]);
+      return;
+    }
+    const glyphs = n.findOne<Konva.Text>(".layer-text-glyphs");
+    const hasText = !!(glyphs && glyphs.text() && glyphs.text().trim());
+    if (hasText) {
+      // Filled: light solid outline so the box reads as a text frame.
+      box.stroke("rgba(233, 69, 96, 0.45)");
+      box.strokeWidth(1);
+      box.dash([]);
+    } else {
+      box.stroke("rgba(233, 69, 96, 0.55)");
+      box.strokeWidth(1);
+      box.dash([6, 4]);
+    }
+  });
+
+  // Det-box mode: green chrome owns dialogue picks — only a still-selected
+  // free-text keeps red handles. Still leave box strokes painted above.
+  if (state.showDetBoxes && !(selLayer && selLayer.type === "text-free" && node)) {
+    transformer.nodes([]);
+    layerTextNodes.forEach(function (n) {
+      n.draggable(false);
+    });
+    return;
+  }
+
   if (node) {
     // Paint tools own the pointer — never let a text node drag over a
     // brush stroke (the brush needs the mousedown).
@@ -79,6 +124,7 @@ export function syncTransformerSelection(): void {
     } else {
       transformer.nodes([node]);
       node.draggable(true);
+      node.listening(true);
     }
   } else {
     transformer.nodes([]);

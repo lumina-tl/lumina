@@ -1,8 +1,9 @@
 /** Text Tool — stage interactions: marquee (paragraph) + click (point) */
 import { state } from "../../../state";
 import { canvas } from "../../index";
-import { stageToImg, cleanedViewReady, getEditor } from "./shared";
+import { stageToImg, cleanedViewReady } from "./shared";
 import { createAndEdit } from "./create";
+import { hitTransformer } from "../../hit-transformer";
 
 interface DragState {
   startX: number;
@@ -11,6 +12,8 @@ interface DragState {
 }
 
 let marquee: HTMLDivElement | null = null;
+/** Hard gate — one create per gesture, even with duplicate listeners. */
+let _createLock = false;
 
 function removeMarquee(): void {
   if (marquee) {
@@ -27,6 +30,80 @@ function updateMarquee(x1: number, y1: number, x2: number, y2: number): void {
   marquee.style.height = Math.abs(y2 - y1) + "px";
 }
 
+/** True when the event target is an existing free/dialogue text layer. */
+function hitExistingTextLayer(target: unknown, stage: unknown): boolean {
+  let node = target as {
+    name?: () => string;
+    getParent?: () => unknown;
+    getAttr?: (k: string) => unknown;
+  } | null;
+  while (node && node !== stage) {
+    const name = node.name ? node.name() : "";
+    if (
+      name === "layer-text" ||
+      name === "layer-text-box" ||
+      name === "layer-text-glyphs" ||
+      name === "layer-text-glyphs-col"
+    ) {
+      return true;
+    }
+    if (node.getAttr && node.getAttr("layerId")) return true;
+    node = node.getParent
+      ? (node.getParent() as typeof node)
+      : null;
+  }
+  return false;
+}
+
+/** Detection overlays — never spawn a free-text box on top of them. */
+function hitDetection(target: unknown, stage: unknown): boolean {
+  let node = target as {
+    name?: () => string;
+    getParent?: () => unknown;
+  } | null;
+  while (node && node !== stage) {
+    const name = node.name ? node.name() : "";
+    if (name === "det-group" || name === "det-box" || name === "det-badge") {
+      return true;
+    }
+    node = node.getParent
+      ? (node.getParent() as typeof node)
+      : null;
+  }
+  return false;
+}
+
+/** Empty page / image background only — not text, dets, or handles. */
+function isEmptyBackground(target: unknown, stage: unknown): boolean {
+  if (hitTransformer(target)) return false;
+  if (hitExistingTextLayer(target, stage)) return false;
+  if (hitDetection(target, stage)) return false;
+  if (target === stage) return true;
+  let node = target as {
+    name?: () => string;
+    getParent?: () => unknown;
+  } | null;
+  while (node && node !== stage) {
+    const name = node.name ? node.name() : "";
+    // Named interactive chrome is never "empty".
+    if (name && name !== "bg") return false;
+    if (name === "bg") return true;
+    node = node.getParent
+      ? (node.getParent() as typeof node)
+      : null;
+  }
+  // Unnamed nodes under the layer (legacy) — only treat as empty if the
+  // walk reached stage/layer without hitting known chrome.
+  return target === stage;
+}
+
+let _boundStage: ReturnType<typeof canvas.getStage> = null;
+
+/** Allow re-bind after destroyStage() creates a fresh Konva stage. */
+export function resetStageBinding(): void {
+  _boundStage = null;
+}
+
 export function bindStageInteractions(): void {
   const bindWhenReady = function (): void {
     const stage = canvas.getStage();
@@ -34,16 +111,21 @@ export function bindStageInteractions(): void {
       setTimeout(bindWhenReady, 500);
       return;
     }
+    // Same stage already wired — do NOT stack duplicate listeners.
+    if (_boundStage === stage) return;
+    _boundStage = stage;
     const container = stage.container();
     const drag: DragState = { startX: 0, startY: 0, active: false };
 
     stage.on("mousedown touchstart", function (e) {
       if (state.activeTool !== "text") return;
-      if (e.evt.button !== 0) return;
-      const targetName = e.target.name ? e.target.name() : "";
-      const onBackground =
-        e.target === stage || targetName === "bg" || targetName === "";
-      if (!onBackground) return;
+      if (e.evt.button !== 0 && e.type === "mousedown") return;
+      if (_createLock) return;
+      // Handles / selected box / dets — never begin a create gesture.
+      if (hitTransformer(e.target)) return;
+      if (hitExistingTextLayer(e.target, stage)) return;
+      if (hitDetection(e.target, stage)) return;
+      if (!isEmptyBackground(e.target, stage)) return;
       if (!cleanedViewReady()) return;
 
       const pos = stage.getPointerPosition();
@@ -73,7 +155,7 @@ export function bindStageInteractions(): void {
       if (pos) updateMarquee(drag.startX, drag.startY, pos.x, pos.y);
     });
 
-    stage.on("mouseup touchend", function () {
+    const finishGesture = function (): void {
       if (!drag.active) return;
       drag.active = false;
       const pos = stage.getPointerPosition();
@@ -83,6 +165,24 @@ export function bindStageInteractions(): void {
       const dy = py - drag.startY;
       removeMarquee();
       if (!cleanedViewReady()) return;
+      if (state.activeTool !== "text") return;
+      if (_createLock) return;
+      // Abort if the pointer ended on chrome (transform can steal the gesture).
+      if (pos) {
+        const endTarget = stage.getIntersection(pos);
+        if (
+          endTarget &&
+          (hitTransformer(endTarget) ||
+            hitExistingTextLayer(endTarget, stage) ||
+            hitDetection(endTarget, stage))
+        ) {
+          return;
+        }
+      }
+      _createLock = true;
+      window.setTimeout(function () {
+        _createLock = false;
+      }, 400);
 
       if (Math.abs(dx) > 12 && Math.abs(dy) > 6) {
         // Paragraph text: marquee defines the box
@@ -99,7 +199,9 @@ export function bindStageInteractions(): void {
         const img = stageToImg(drag.startX, drag.startY);
         createAndEdit({ x: img.x, y: img.y, w: 200, h: 44 });
       }
-    });
+    };
+
+    stage.on("mouseup touchend", finishGesture);
   };
   bindWhenReady();
 }

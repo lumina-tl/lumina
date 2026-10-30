@@ -4,6 +4,21 @@ import { state } from "../state";
 import { canvas, resetDeselectBinding } from "./index";
 import { bindPanWhenStageReady, resetPanBinding } from "./viewport";
 import { renderLayerTextNodes } from "./tools/text";
+import { addDetGroupToLayer } from "./detection/groups";
+import { groupRegistry } from "./detection/group-registry";
+import {
+  bindStageInteractions as bindSelectStage,
+  resetStageBinding as resetSelectStage,
+} from "./tools/select/interactions";
+import {
+  bindStageInteractions as bindTextStage,
+  resetStageBinding as resetTextStage,
+} from "./tools/text/interactions";
+import {
+  resetStageBinding as resetPaintStage,
+  bindPaintTool,
+} from "./tools/paint/index";
+import { applyTextSelection } from "./detection/selection";
 let _stage: Konva.Stage | null = null;
 let _layer: Konva.Layer | null = null;
 let _bgImage: Konva.Image | null = null; // Konva.Image for background
@@ -29,6 +44,10 @@ export function destroyStage(): void {
   state._compositeCache = null;
   resetPanBinding();
   resetDeselectBinding();
+  // Tool listeners were on the destroyed stage — allow re-bind on next create.
+  resetSelectStage();
+  resetTextStage();
+  resetPaintStage();
 }
 
 export function scheduleRender(): void {
@@ -251,6 +270,9 @@ function _render(): void {
   // Wire deselect click + pan handlers once after stage exists
   if (canvas._initDeselectClick) canvas._initDeselectClick();
   bindPanWhenStageReady();
+  bindSelectStage();
+  bindTextStage();
+  bindPaintTool();
 
   _stage.setSize({ width: w, height: h });
   _destroyLayerChildren();
@@ -316,20 +338,33 @@ function _render(): void {
     );
   }
 
-  // Detection overlays — shown only while boxes are toggled on, BEFORE the
-  // first inpaint run; once mask layers exist the patches themselves are the
-  // visual representation of the boxes. After OCR the boxes auto-hide (the
-  // OCR text lives in the sidebar layers) but the user can re-show them to
-  // verify/adjust a box and re-run OCR.
-  if (state.showDetBoxes && page.inpaintMasks.length === 0) {
+  // Detection overlays — toggled via the header eye button. After inpaint
+  // they default off (masks stand in visually) but stay available so the
+  // user can re-show boxes and manually add more with lasso/rect.
+  // No detections on this page → overlay must be off BEFORE text nodes
+  // build, otherwise layerTextListening stays false and clicks die.
+  if (
+    state.showDetBoxes &&
+    !(page.textDetections && page.textDetections.length > 0)
+  ) {
+    state.showDetBoxes = false;
+  }
+  if (state.showDetBoxes) {
     // Keep ONE persistent transformer for detection groups — re-creating it
     // every render (and dropping the old one without destroy) leaked nodes
     // during zoom/pan. The group registry clears it via _clearGroups().
     let tTransformer = canvas._getTextTransformer();
     if (!tTransformer) {
+      // Same handle chrome as text boxes (group target; badge is a sibling).
       tTransformer = new Konva.Transformer({
         nodes: [],
         rotateEnabled: false,
+        keepRatio: false,
+        borderEnabled: true,
+        borderStroke: TEXT_COLOR,
+        borderStrokeWidth: 1,
+        padding: 0,
+        ignoreStroke: true,
         enabledAnchors: [
           "top-left",
           "top-center",
@@ -341,11 +376,10 @@ function _render(): void {
           "bottom-right",
         ],
         anchorStroke: TEXT_COLOR,
-        anchorFill: "#fff",
-        anchorSize: 8,
-        borderStroke: TEXT_COLOR,
-        borderStrokeWidth: 1,
-        padding: 2,
+        anchorFill: "#ffffff",
+        anchorSize: 7,
+        anchorCornerRadius: 1,
+        anchorStrokeWidth: 1.5,
       });
       _layer.add(tTransformer);
       canvas._setTextTransformer(tTransformer);
@@ -353,7 +387,7 @@ function _render(): void {
 
     page.textDetections.forEach((det, i) => {
       const g = canvas._createTextGroup(det, i, sr, off);
-      _layer!.add(g);
+      addDetGroupToLayer(_layer!, g);
     });
   }
 
@@ -361,6 +395,21 @@ function _render(): void {
   // one Konva.Text per layer that is both visual and interactive (select,
   // move, resize via transformer, double-click to edit).
   renderLayerTextNodes();
+
+  // Re-apply green detection selection after a full rebuild (zoom/toggle).
+  if (state.showDetBoxes) {
+    applyTextSelection(page._selectedTextIdx ?? null);
+    // Badges are layer siblings added before text nodes — raise them so
+    // T1/T2 labels stay clickable above dialogue text layers.
+    groupRegistry.textGroups().forEach(function (g) {
+      const b = g.getAttr("badgeNode");
+      if (b && typeof b.moveToTop === "function") b.moveToTop();
+    });
+  }
+
+  // Handles must sit above detection groups AND text layers.
+  const tr = canvas._getTextTransformer();
+  if (tr) tr.moveToTop();
 
   canvas._updateStatus();
   canvas.updateBoxToggle();

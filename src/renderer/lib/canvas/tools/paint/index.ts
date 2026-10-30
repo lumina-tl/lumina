@@ -17,19 +17,30 @@ import { handleBucket } from "./bucket";
 import { handleStroke } from "./stroke";
 import { clearCleanupCanvas } from "./shared";
 import { clearSprite } from "./strokes";
+import { hitTransformer } from "../../hit-transformer";
 let _bound = false;
+let _stageBound = false;
 /** Previous tool — momentary eyedropper returns here after sampling */
 let _prevTool = "brush";
+/** Ignore paint strokes briefly after an eyedropper sample (ghost mouse/touch). */
+let _ignorePaintUntil = 0;
 
 // ── Stage interactions ──
 
+/** Allow re-bind after destroyStage() creates a fresh Konva stage. */
+export function resetStageBinding(): void {
+  _stageBound = false;
+}
+
 function bindStage(): void {
+  if (_stageBound) return;
   const bindWhenReady = function (): void {
     const stage = canvas.getStage();
     if (!stage) {
       setTimeout(bindWhenReady, 500);
       return;
     }
+    _stageBound = true;
 
     stage.on("mousemove", function (e) {
       if (!isPaintTool()) return;
@@ -49,6 +60,8 @@ function bindStage(): void {
     stage.on("mousedown touchstart", function (e) {
       if (!isPaintTool()) return;
       if (e.evt.button !== 0) return;
+      // Never paint when grabbing box handles.
+      if (hitTransformer(e.target)) return;
       const page = state.getActivePage();
       if (!page) return;
       const pos = stage.getPointerPosition();
@@ -66,27 +79,27 @@ function bindStage(): void {
           syncOptions();
           showSampleChip(pos.x, pos.y, hex, canvas.getScaleRatio());
         }
+        _ignorePaintUntil = Date.now() + 400;
         flashAlt();
         return;
       }
 
       if (tool === "eyedropper") {
         const hex = sampleComposite(page, img.x, img.y);
+        _ignorePaintUntil = Date.now() + 400;
+        _prevTool = "brush";
+        tools.setActive("brush");
         if (hex) {
           setPaintColor(hex);
           syncOptions();
           showSampleChip(pos.x, pos.y, hex, canvas.getScaleRatio());
         }
-        // Momentary: return to the previous tool. Resolve the target BEFORE
-        // calling setActive — the wrapped setActive would otherwise record
-        // "eyedropper" as the new _prevTool and the fallback would break.
-        const prev =
-          _prevTool && _prevTool !== "eyedropper" ? _prevTool : "brush";
-        _prevTool = prev;
-        tools.setActive(prev);
-        flashAlt(); // re-pulse — setActive cleared the held highlight
+        flashAlt();
         return;
       }
+
+      // Ghost mouse/touch after eyedropper must not paint / demand a mask.
+      if (Date.now() < _ignorePaintUntil) return;
 
       if (tool === "bucket") {
         handleBucket(page, img);
@@ -152,9 +165,9 @@ function flashAlt(): void {
 }
 
 export function bindPaintTool(): void {
+  bindStage();
   if (_bound) return;
   _bound = true;
-  bindStage();
 
   // Keep the previous tool for the momentary eyedropper. Entering eyedropper
   // records whatever tool we came from (any tool); the momentary return out

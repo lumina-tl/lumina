@@ -72,5 +72,6 @@
 - [ ] detection tiling for long strip / high-resolution pages
 - [ ] manual inpaint & erase area from selection context bar
 - [ ] delete downloaded models in settings (unload VRAM & remove files)
-- [ ] fix canvas transformer hit-test & OCR UX (flush bbox before crop, reveal typeset text)
+- [x] fix canvas transformer hit-test & OCR UX (flush bbox before crop, reveal typeset text)
+- [ ] custom confirmation dialog when closing app with unsaved changes
 - [ ] testing and hunt another bugs

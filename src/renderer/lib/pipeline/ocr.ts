@@ -7,6 +7,12 @@ import { canvas } from "../canvas/index";
 import { sidebar } from "../sidebar";
 import { models } from "../models";
 import { normalizeAutoText } from "./text-norm";
+import { revealTypesetLayers } from "./reveal-text";
+import { flushDetBboxes } from "../canvas/detection/groups";
+import {
+  alignDialogueLayerToDet,
+  dialogueLayerForTextIdx,
+} from "../canvas/detection/selection";
 import type { OcrResult } from "../../types";
 import { log } from "../logger";
 
@@ -19,6 +25,9 @@ export const ocr = {
       ui.toast(i18n.t("toast.ocrNoText"), "warn");
       return;
     }
+    // Pull latest box geometry off the stage (move/resize) before cropping.
+    flushDetBboxes();
+
     state.isRunning = true;
 
     const btn = document.getElementById("btn-ocr") as HTMLButtonElement | null;
@@ -48,17 +57,21 @@ export const ocr = {
         throw new Error(result?.detail || "OCR failed");
 
       log.debug("fe", `ocr: done ${(result.results || []).length} result(s)`);
+      let wrote = false;
       (result.results || []).forEach(function (r) {
         const text = normalizeAutoText(r.text || "");
         const det = page.textDetections[r.index];
         if (det) det.text = text;
-        // Mirror into the unified layer model
-        const layer = page.layers[r.index];
-        if (layer && layer.type === "text-dialogue") layer.source = text;
+        const layer = dialogueLayerForTextIdx(page, r.index);
+        if (layer) {
+          layer.source = text;
+          alignDialogueLayerToDet(page, r.index);
+          if (text.trim()) wrote = true;
+        }
       });
 
-      // Boxes stay visible after OCR (toggle in the header) — they only
-      // disappear once inpainting produces masks.
+      // Switch green det chrome off → typeset boxes on.
+      if (wrote) revealTypesetLayers();
       canvas.render();
       sidebar.render();
       history.snapshot();
@@ -90,6 +103,7 @@ export const ocr = {
   ): Promise<void> {
     const page = state.getActivePage();
     if (!page || !indices.length || state.isRunning) return;
+    flushDetBboxes();
     const boxes = indices
       .map(function (i) {
         return page.textDetections[i];
@@ -132,20 +146,27 @@ export const ocr = {
       // Backend indexes results by request position — map back through the
       // original detection indices. Skip if the boxes changed under us.
       let intact = true;
+      let wrote = false;
       (result.results || []).forEach(function (r, k) {
         if (!intact) return;
         const k2 = typeof r.index === "number" ? r.index : k;
-        const det = page.textDetections[indices[k2]];
+        const detIdx = indices[k2];
+        const det = page.textDetections[detIdx];
         if (!det || det.id !== expectedIds[k2]) {
           intact = false;
           return;
         }
-        det.text = normalizeAutoText(r.text || "");
-        const layer = page.layers[indices[k2]];
-        if (layer && layer.type === "text-dialogue")
-          layer.source = normalizeAutoText(r.text || "");
+        const text = normalizeAutoText(r.text || "");
+        det.text = text;
+        const layer = dialogueLayerForTextIdx(page, detIdx);
+        if (layer) {
+          layer.source = text;
+          alignDialogueLayerToDet(page, detIdx);
+          if (text.trim()) wrote = true;
+        }
       });
 
+      if (wrote) revealTypesetLayers();
       canvas.render();
       sidebar.render();
       // Standalone edit — its own undo step restores the previous text.

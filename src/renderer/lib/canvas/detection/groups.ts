@@ -24,6 +24,10 @@ canvas._getTextTransformer = function () {
 
 // ── Re-OCR submenu children: one row per installed OCR model ──
 
+const BADGE_H = 16;
+const BADGE_GAP = 2;
+const BADGE_W = 28;
+
 /** "Re-OCR" context-menu items — run OCR on a detection with chosen model. */
 function _ocrReRunItems(idx: number): MenuItem[] {
   const current = models.selectedModel("ocr");
@@ -47,52 +51,159 @@ function _ocrReRunItems(idx: number): MenuItem[] {
 
 // ── Helpers ──
 
+/** Stroke rect inside a detection group — Konva name selector needs the dot. */
+export function detBoxRect(group: Konva.Group): Konva.Rect | null {
+  return group.findOne<Konva.Rect>(".det-box") ?? null;
+}
+
+/** Badge is a LAYER sibling (not a child) so Transformer bounds match the box. */
+function _badgeOf(group: Konva.Group): Konva.Group | null {
+  const b = group.getAttr("badgeNode");
+  return b instanceof Konva.Group ? b : null;
+}
+
+function _syncBadgePos(group: Konva.Group): void {
+  const badge = _badgeOf(group);
+  if (!badge) return;
+  badge.position({
+    x: group.x(),
+    y: group.y() - (BADGE_H + BADGE_GAP),
+  });
+  badge.scaleX(1);
+  badge.scaleY(1);
+  badge.rotation(0);
+}
+
 function _syncBboxFromGroup(
   groups: Konva.Group[],
   dets: Array<{ bbox: BBox }>,
   idx: number,
-  sr: number,
-  off: { x: number; y: number },
 ): void {
   const group = groups[idx];
   const det = dets[idx];
   if (!group || !det) return;
-  // Use the axis-aligned client rect — after a rotation the group's own
-  // x/y/width/height are the LOCAL (rotated) frame, not the page footprint.
-  const cr = group.getClientRect();
-  det.bbox.x = Math.round((cr.x - off.x) / sr);
-  det.bbox.y = Math.round((cr.y - off.y) / sr);
-  det.bbox.w = Math.round(cr.width / sr);
-  det.bbox.h = Math.round(cr.height / sr);
+  // Always read live scale/offset — create-time closures go stale after
+  // zoom/pan and OCR would crop the original box forever.
+  const sr = canvas.getScaleRatio() || 1;
+  const off = canvas.getOffset();
+  const rect = detBoxRect(group);
+  const w = rect ? rect.width() : group.width();
+  const h = rect ? rect.height() : group.height();
+  det.bbox.x = Math.round((group.x() - off.x) / sr);
+  det.bbox.y = Math.round((group.y() - off.y) / sr);
+  // Floor at 8 image-px — a 1px box is an unusable hit target (usually from
+  // fighting the Transformer mid-resize).
+  det.bbox.w = Math.max(8, Math.round(w / sr));
+  det.bbox.h = Math.max(8, Math.round(h / sr));
 }
 
-function _syncTextBboxFromGroup(
-  idx: number,
-  sr: number,
-  off: { x: number; y: number },
-): void {
+/**
+ * Commit detection group geometry → textDetections[idx] only.
+ * Dialogue text-layer bbox is independent — once the user typesets /
+ * moves a text box, resizing a green det must not yank it back.
+ * OCR / inpaint read detections; canvas text nodes read layers.
+ */
+function _syncTextBboxFromGroup(idx: number): void {
   const page = state.getActivePage();
   if (!page) return;
-  _syncBboxFromGroup(
-    groupRegistry.textGroups(),
-    page.textDetections,
-    idx,
-    sr,
-    off,
-  );
+  _syncBboxFromGroup(groupRegistry.textGroups(), page.textDetections, idx);
 }
 
-/** Apply bbox dims to a group's visuals: group size, rect, badge position */
-function _applySizeToGroup(group: Konva.Group, w: number, h: number): void {
-  group.width(Math.max(1, w));
-  group.height(Math.max(1, h));
-  const rect = group.findOne<Konva.Rect>("rect");
-  if (rect) {
-    rect.width(Math.max(1, w));
-    rect.height(Math.max(1, h));
+/** Bake any on-stage detection transforms into the model before OCR/inpaint. */
+export function flushDetBboxes(): void {
+  const page = state.getActivePage();
+  if (!page) return;
+  // Finish any in-flight Transformer scale bake first.
+  groupRegistry.textGroups().forEach(function (g) {
+    _bakeGroupTransform(g);
+  });
+  for (let i = 0; i < page.textDetections.length; i++) {
+    _syncTextBboxFromGroup(i);
   }
-  const badge = group.findOne<Konva.Group>("badge-right");
-  if (badge) badge.x(Math.max(1, w) - 30);
+}
+
+/** Resize the green rect + reflow OCR label (same bake path as text boxes). */
+export function layoutDetGroup(group: Konva.Group, w: number, h: number): void {
+  const nw = Math.max(4, w);
+  const nh = Math.max(4, h);
+  group.width(nw);
+  group.height(nh);
+  const rect = detBoxRect(group);
+  if (rect) {
+    rect.width(nw);
+    rect.height(nh);
+    rect.scaleX(1);
+    rect.scaleY(1);
+    rect.x(0);
+    rect.y(0);
+    rect.cornerRadius(2);
+  }
+  group.getChildren().forEach(function (child) {
+    if (child instanceof Konva.Text) {
+      child.scaleX(1);
+      child.scaleY(1);
+      child.x(4);
+      child.width(Math.max(1, nw - 8));
+      child.height(Math.max(1, nh - 4));
+    }
+  });
+  _syncBadgePos(group);
+}
+
+/**
+ * Bake Transformer scale on the GROUP into box width/height — identical to
+ * the text-layer transform path. Badge is a sibling so it never stretches.
+ */
+function _bakeGroupTransform(group: Konva.Group): void {
+  const sx = group.scaleX();
+  const sy = group.scaleY();
+  if (Math.abs(sx - 1) < 1e-4 && Math.abs(sy - 1) < 1e-4) {
+    _syncBadgePos(group);
+    return;
+  }
+  const rect = detBoxRect(group);
+  const baseW = rect ? rect.width() : group.width();
+  const baseH = rect ? rect.height() : group.height();
+  const newW = Math.max(4, Math.abs(baseW * sx));
+  const newH = Math.max(4, Math.abs(baseH * sy));
+  group.scaleX(1);
+  group.scaleY(1);
+  layoutDetGroup(group, newW, newH);
+  groupRegistry.textTransformer()?.forceUpdate();
+}
+
+function _makeBadge(idx: number, x: number, y: number): Konva.Group {
+  // Badge is a layer sibling (not inside the det group) so Transformer
+  // bounds stay box-only — but it must still receive hits to select.
+  const bg = new Konva.Group({
+    x: x,
+    y: y - (BADGE_H + BADGE_GAP),
+    name: "det-badge",
+    listening: true,
+  });
+  bg.add(
+    new Konva.Rect({
+      width: BADGE_W,
+      height: BADGE_H,
+      cornerRadius: 8,
+      fill: canvas.TEXT_COLOR,
+      listening: true,
+    }),
+  );
+  bg.add(
+    new Konva.Text({
+      text: "T" + (idx + 1),
+      fontSize: 10,
+      fontFamily: CONST.FONT_FAMILY,
+      fontStyle: "bold",
+      fill: "#000",
+      width: BADGE_W,
+      align: "center",
+      y: 2,
+      listening: false,
+    }),
+  );
+  return bg;
 }
 
 // ── Group factories ──
@@ -103,60 +214,45 @@ canvas._createTextGroup = function (
   sr: number,
   off: { x: number; y: number },
 ): Konva.Group {
-  // Clamp dims — model can emit degenerate boxes with negative w/h after scaling
   const x = off.x + det.bbox.x * sr;
   const y = off.y + det.bbox.y * sr;
   const w = Math.max(1, det.bbox.w * sr);
   const h = Math.max(1, det.bbox.h * sr);
 
+  // Same structure as text layers: transformable group = box + content only.
+  // Badge is a layer sibling so Transformer client-rect matches the box.
   const group = new Konva.Group({
+    name: "det-group",
     x: x,
     y: y,
     width: w,
     height: h,
-    draggable: state.activeTool === "select",
+    listening:
+      state.showDetBoxes &&
+      (state.activeTool === "select" ||
+        state.activeTool === "text" ||
+        state.activeTool === "lasso" ||
+        state.activeTool === "rect"),
+    draggable:
+      state.showDetBoxes &&
+      (state.activeTool === "select" ||
+        state.activeTool === "text" ||
+        state.activeTool === "lasso" ||
+        state.activeTool === "rect"),
   });
 
-  group.add(
-    new Konva.Rect({
-      width: w,
-      height: h,
-      stroke: canvas.TEXT_COLOR,
-      strokeWidth: 2,
-      cornerRadius: 3,
-      fill: "rgba(0,255,136,0.08)",
-      name: "rect",
-    }),
-  );
+  const boxRect = new Konva.Rect({
+    name: "det-box",
+    width: w,
+    height: h,
+    stroke: canvas.TEXT_COLOR,
+    strokeWidth: 1,
+    strokeScaleEnabled: false,
+    cornerRadius: 2,
+    fill: "rgba(0,255,136,0.08)",
+  });
+  group.add(boxRect);
 
-  // Badge "T{n}"
-  const bg = new Konva.Group({ x: 2, y: -10, name: "badge-left" });
-  bg.add(
-    new Konva.Rect({
-      width: 28,
-      height: 16,
-      cornerRadius: 8,
-      fill: canvas.TEXT_COLOR,
-      shadowColor: "rgba(0,0,0,0.4)",
-      shadowBlur: 3,
-      shadowOffsetY: 1,
-    }),
-  );
-  bg.add(
-    new Konva.Text({
-      text: "T" + (idx + 1),
-      fontSize: 10,
-      fontFamily: CONST.FONT_FAMILY,
-      fontStyle: "bold",
-      fill: "#000",
-      width: 28,
-      align: "center",
-      y: 2,
-    }),
-  );
-  group.add(bg);
-
-  // OCR result (if present) or type label
   const ocrText = det.text ? det.text : "";
   group.add(
     new Konva.Text({
@@ -164,108 +260,140 @@ canvas._createTextGroup = function (
       fontSize: 9 * sr,
       fontFamily: CONST.FONT_FAMILY,
       fill: ocrText ? canvas.TEXT_COLOR : "#888",
-      x: 32,
+      x: 4,
       y: 2,
-      width: w - 34,
-      height: h - 4,
+      width: Math.max(1, w - 8),
+      height: Math.max(1, h - 4),
       wrap: "none",
+      listening: false,
     }),
   );
 
-  group.on("click", function (e) {
-    e.cancelBubble = true;
-    // Paint tools own the pointer — never select detections while painting.
-    const t = state.activeTool;
-    if (t === "brush" || t === "eraser" || t === "bucket" || t === "eyedropper")
-      return;
+  const badge = _makeBadge(idx, x, y);
+  group.setAttr("badgeNode", badge);
+
+  // Select on press / dragstart so drag already shows handles (not after click).
+  // Always re-apply — skipping when already selected left stroke stuck at 1px.
+  const selectDet = function (): void {
     canvas.selectTextDetection(idx);
-  });
-  group.on("contextmenu", function (e) {
-    e.cancelBubble = true;
-    e.evt.preventDefault();
+  };
+  const paintBlocked = function (): boolean {
     const t = state.activeTool;
-    if (t === "brush" || t === "eraser" || t === "bucket" || t === "eyedropper")
-      return;
+    return (
+      t === "brush" ||
+      t === "eraser" ||
+      t === "bucket" ||
+      t === "eyedropper"
+    );
+  };
+  const wireSelect = function (node: Konva.Node): void {
+    node.on("mousedown touchstart", function (e) {
+      e.cancelBubble = true;
+      if (paintBlocked()) return;
+      selectDet();
+    });
+    node.on("click tap", function (e) {
+      e.cancelBubble = true;
+      if (paintBlocked()) return;
+      selectDet();
+    });
+    node.on("contextmenu", function (e) {
+      e.cancelBubble = true;
+      e.evt.preventDefault();
+      if (paintBlocked()) return;
+      canvas.selectTextDetection(idx);
+      const page = state.getActivePage();
+      if (!page) return;
+      const reOcrItems = _ocrReRunItems(idx);
+      contextMenu.show(e.evt.clientX, e.evt.clientY, [
+        {
+          labelKey: "ctx.delete",
+          danger: true,
+          action: function () {
+            canvas.deleteTextDetection(idx);
+          },
+        },
+        {
+          labelKey: "ctx.cycleStatus",
+          action: function () {
+            const d = page.textDetections[idx];
+            if (!d) return;
+            d.status =
+              d.status === "auto"
+                ? "rejected"
+                : d.status === "rejected"
+                  ? "adjusted"
+                  : "auto";
+            canvas._refreshTextGroup(idx);
+            history.snapshot();
+          },
+        },
+        ...(reOcrItems.length
+          ? [
+              {
+                labelKey: "ctx.reOcr",
+                separatorBefore: true,
+                children: reOcrItems,
+              },
+            ]
+          : []),
+        {
+          labelKey: "ctx.deselect",
+          separatorBefore: true,
+          action: function () {
+            canvas.selectTextDetection(null);
+          },
+        },
+      ]);
+    });
+    node.on("dblclick dbltap", function (e) {
+      e.cancelBubble = true;
+      if (paintBlocked()) return;
+      const page = state.getActivePage();
+      if (!page) return;
+      const d = page.textDetections[idx];
+      d.status =
+        d.status === "auto"
+          ? "rejected"
+          : d.status === "rejected"
+            ? "adjusted"
+            : "auto";
+      canvas._refreshTextGroup(idx);
+      history.snapshot();
+    });
+  };
+  wireSelect(group);
+  wireSelect(badge);
+  group.on("dragstart", function () {
+    // Always re-apply chrome — selectDet no-ops when already selected, which
+    // left the box stuck at 1px stroke after a prior overlay fight.
     canvas.selectTextDetection(idx);
-    const page = state.getActivePage();
-    if (!page) return;
-    const reOcrItems = _ocrReRunItems(idx);
-    contextMenu.show(e.evt.clientX, e.evt.clientY, [
-      {
-        labelKey: "ctx.delete",
-        danger: true,
-        action: function () {
-          canvas.deleteTextDetection(idx);
-        },
-      },
-      {
-        labelKey: "ctx.cycleStatus",
-        action: function () {
-          const d = page.textDetections[idx];
-          if (!d) return;
-          d.status =
-            d.status === "auto"
-              ? "rejected"
-              : d.status === "rejected"
-                ? "adjusted"
-                : "auto";
-          canvas._refreshTextGroup(idx);
-          history.snapshot();
-        },
-      },
-      ...(reOcrItems.length
-        ? [
-            {
-              labelKey: "ctx.reOcr",
-              separatorBefore: true,
-              children: reOcrItems,
-            },
-          ]
-        : []),
-      {
-        labelKey: "ctx.deselect",
-        separatorBefore: true,
-        action: function () {
-          canvas.selectTextDetection(null);
-        },
-      },
-    ]);
-  });
-  group.on("dblclick dbltap", function (e) {
-    e.cancelBubble = true;
-    const t = state.activeTool;
-    if (t === "brush" || t === "eraser" || t === "bucket" || t === "eyedropper")
-      return;
-    const page = state.getActivePage();
-    if (!page) return;
-    const d = page.textDetections[idx];
-    d.status =
-      d.status === "auto"
-        ? "rejected"
-        : d.status === "rejected"
-          ? "adjusted"
-          : "auto";
-    canvas._refreshTextGroup(idx);
-    history.snapshot();
   });
   group.on("dragmove", function () {
-    _syncTextBboxFromGroup(idx, sr, off);
+    _syncBadgePos(group);
+    _syncTextBboxFromGroup(idx);
   });
   group.on("dragend", function () {
+    _syncBadgePos(group);
+    _syncTextBboxFromGroup(idx);
+    applyTextSelection(idx);
     history.snapshot();
   });
+
+  // Bake scale into width each frame (Transformer expects scale reset to 1).
+  // Do NOT sync the model here — mid-resize commits fought the Transformer
+  // and collapsed boxes to 1 image-px.
+  group.on("transform", function () {
+    _bakeGroupTransform(group);
+  });
   group.on("transformend", function () {
-    _syncTextBboxFromGroup(idx, sr, off);
-    group.scaleX(1);
-    group.scaleY(1);
+    _bakeGroupTransform(group);
+    _syncTextBboxFromGroup(idx);
     const page = state.getActivePage();
     if (!page || !page.textDetections[idx]) return;
     if (page.textDetections[idx].status === "auto") {
       page.textDetections[idx].status = "adjusted";
     }
-    // Full re-render (mirrors textool's onNodeTransformEnd) — the old
-    // in-place re-apply left rect/anchors/OCR-text stale until the next
-    // zoom-triggered render.
     canvas.render();
     applyTextSelection(page._selectedTextIdx ?? null);
     sidebar.render();
@@ -275,3 +403,13 @@ canvas._createTextGroup = function (
   groupRegistry.pushTextGroup(group);
   return group;
 };
+
+/** Add the detection group + its badge sibling to the Konva layer. */
+export function addDetGroupToLayer(
+  layer: Konva.Layer,
+  group: Konva.Group,
+): void {
+  layer.add(group);
+  const badge = _badgeOf(group);
+  if (badge) layer.add(badge);
+}
