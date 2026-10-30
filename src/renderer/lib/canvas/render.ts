@@ -338,18 +338,11 @@ function _render(): void {
     );
   }
 
-  // Detection overlays — toggled via the header eye button. After inpaint
-  // they default off (masks stand in visually) but stay available so the
-  // user can re-show boxes and manually add more with lasso/rect.
-  // No detections on this page → overlay must be off BEFORE text nodes
-  // build, otherwise layerTextListening stays false and clicks die.
-  if (
-    state.showDetBoxes &&
-    !(page.textDetections && page.textDetections.length > 0)
-  ) {
-    state.showDetBoxes = false;
-  }
-  if (state.showDetBoxes) {
+  // Detection overlays — shown only while boxes are toggled on, BEFORE the
+  // first inpaint run; once mask layers exist the patches themselves are the
+  // visual representation of the boxes. After OCR the boxes stay visible so
+  // the user can verify/adjust a box and re-run OCR.
+  if (state.showDetBoxes && page.inpaintMasks.length === 0) {
     // Keep ONE persistent transformer for detection groups — re-creating it
     // every render (and dropping the old one without destroy) leaked nodes
     // during zoom/pan. The group registry clears it via _clearGroups().
@@ -397,7 +390,7 @@ function _render(): void {
   renderLayerTextNodes();
 
   // Re-apply green detection selection after a full rebuild (zoom/toggle).
-  if (state.showDetBoxes) {
+  if (state.showDetBoxes && page.inpaintMasks.length === 0) {
     applyTextSelection(page._selectedTextIdx ?? null);
     // Badges are layer siblings added before text nodes — raise them so
     // T1/T2 labels stay clickable above dialogue text layers.

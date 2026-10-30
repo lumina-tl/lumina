@@ -72,6 +72,6 @@
 - [ ] ~~detection tiling for long strip / high-resolution pages~~ (causes excessive RAM spike; will be re-implemented in a more efficient way)
 - [ ] manual inpaint & erase area from selection context bar
 - [ ] delete downloaded models in settings (unload VRAM & remove files)
-- [x] fix canvas transformer hit-test & OCR UX (flush bbox before crop, reveal typeset text)
+- [x] fix canvas transformer hit-test & OCR live bbox flush
 - [ ] custom confirmation dialog when closing app with unsaved changes
 - [ ] testing and hunt another bugs

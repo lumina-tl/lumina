@@ -7,7 +7,6 @@ import { canvas } from "../canvas/index";
 import { sidebar } from "../sidebar";
 import { models } from "../models";
 import { normalizeAutoText } from "./text-norm";
-import { revealTypesetLayers } from "./reveal-text";
 import { flushDetBboxes } from "../canvas/detection/groups";
 import {
   alignDialogueLayerToDet,
@@ -66,12 +65,11 @@ export const ocr = {
         if (layer) {
           layer.source = text;
           alignDialogueLayerToDet(page, r.index);
-          if (text.trim()) wrote = true;
         }
       });
 
-      // Switch green det chrome off → typeset boxes on.
-      if (wrote) revealTypesetLayers();
+      // Boxes stay visible after OCR (toggle in the header) — they only
+      // disappear once inpainting produces masks.
       canvas.render();
       sidebar.render();
       history.snapshot();
@@ -162,11 +160,9 @@ export const ocr = {
         if (layer) {
           layer.source = text;
           alignDialogueLayerToDet(page, detIdx);
-          if (text.trim()) wrote = true;
         }
       });
 
-      if (wrote) revealTypesetLayers();
       canvas.render();
       sidebar.render();
       // Standalone edit — its own undo step restores the previous text.

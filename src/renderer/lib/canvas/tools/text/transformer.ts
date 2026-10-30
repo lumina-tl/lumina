@@ -55,60 +55,17 @@ function ensureTransformer(): void {
   }
 }
 
-/** Attach the transformer to the selected layer's node (if any).
- *  Red chrome = text-layer selection. Det-box mode uses green chrome, with
- *  one exception: a still-selected free-text box (just created) keeps red
- *  handles until blank-click deselects it. */
+/** Attach the transformer to the selected layer's node (if any) */
 export function syncTransformerSelection(): void {
   const page = state.getActivePage();
   ensureTransformer();
   if (!transformer) return;
   const selId = page ? page._selectedLayerId : null;
-  const selLayer = selId
-    ? page!.layers.find(function (l) {
-        return l.id === selId;
-      })
-    : null;
   const node = selId
     ? layerTextNodes.find(function (n) {
         return n.getAttr("layerId") === selId;
       })
     : null;
-
-  // Always paint text-box chrome so typeset layers stay visible even when
-  // green detection overlays are also on.
-  layerTextNodes.forEach(function (n) {
-    const box = n.findOne<Konva.Rect>(".layer-text-box");
-    if (!box) return;
-    if (n === node) {
-      box.stroke("#e94560");
-      box.strokeWidth(2);
-      box.dash([]);
-      return;
-    }
-    const glyphs = n.findOne<Konva.Text>(".layer-text-glyphs");
-    const hasText = !!(glyphs && glyphs.text() && glyphs.text().trim());
-    if (hasText) {
-      // Filled: light solid outline so the box reads as a text frame.
-      box.stroke("rgba(233, 69, 96, 0.45)");
-      box.strokeWidth(1);
-      box.dash([]);
-    } else {
-      box.stroke("rgba(233, 69, 96, 0.55)");
-      box.strokeWidth(1);
-      box.dash([6, 4]);
-    }
-  });
-
-  // Det-box mode: green chrome owns dialogue picks — only a still-selected
-  // free-text keeps red handles. Still leave box strokes painted above.
-  if (state.showDetBoxes && !(selLayer && selLayer.type === "text-free" && node)) {
-    transformer.nodes([]);
-    layerTextNodes.forEach(function (n) {
-      n.draggable(false);
-    });
-    return;
-  }
 
   if (node) {
     // Paint tools own the pointer — never let a text node drag over a
