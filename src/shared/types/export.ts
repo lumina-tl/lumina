@@ -5,7 +5,7 @@ export interface ExportImageFile {
 }
 
 export interface ExportPayload {
-  format: "png" | "jpg";
+  format: "png" | "jpg" | "pdf";
   quality: number;
   files: ExportImageFile[];
 }

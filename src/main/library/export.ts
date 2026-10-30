@@ -10,12 +10,31 @@ import {
 } from "../../shared/bridge";
 import { handle, windowFromEvent } from "../core/ipc";
 import { log } from "../core/logger";
+import { pdfWrite } from "./pdf";
 
 async function handleExport(
   event: IpcMainInvokeEvent,
   payload: ExportPayload,
 ): Promise<ExportResult> {
   if (!payload.files.length) return { canceled: false, dir: null, count: 0 };
+  if (payload.format === "pdf") {
+    const res = await dialog.showSaveDialog(windowFromEvent(event)!, {
+      title: "Export PDF",
+      defaultPath: "export.pdf",
+      filters: [{ name: "PDF", extensions: ["pdf"] }],
+    });
+    if (res.canceled || !res.filePath)
+      return { canceled: true, dir: null, count: 0 };
+    let filePath = res.filePath;
+    if (!filePath.toLowerCase().endsWith(".pdf")) filePath += ".pdf";
+    fs.writeFileSync(filePath, Buffer.from(await pdfWrite(payload.files)));
+    log.info(`PDF exported: ${filePath} (${payload.files.length} page(s))`);
+    return {
+      canceled: false,
+      dir: path.dirname(filePath),
+      count: payload.files.length,
+    };
+  }
   const res = await dialog.showOpenDialog(windowFromEvent(event)!, {
     title: "Export Images",
     properties: ["openDirectory", "createDirectory"],

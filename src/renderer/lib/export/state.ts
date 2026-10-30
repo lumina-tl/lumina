@@ -1,6 +1,7 @@
 /** Shared mutable state + constants for the export window. */
 
 import type { Page } from "../../types";
+import type { ExportPayload } from "../../../shared/bridge";
 
 export const ZOOM_MIN = 0.05;
 export const ZOOM_MAX = 8;
@@ -9,7 +10,7 @@ export const WINDOW_KEY = "lumina:exportWindow";
 
 export interface ExportState {
   order: Page[];
-  format: "png" | "jpg";
+  format: ExportPayload["format"];
   quality: number;
   overlay: HTMLElement | null;
   list: HTMLElement | null;

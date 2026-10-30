@@ -78,7 +78,7 @@ function fmtBytes(b: number): string {
 export function estSize(page: Page): string {
   const px = page.naturalWidth * page.naturalHeight;
   const bytes =
-    st.format === "png" ? px * 2 : px * 3 * (0.08 + (st.quality / 100) * 0.25);
+    st.format === "jpg" ? px * 3 * (0.08 + (st.quality / 100) * 0.25) : px * 2;
   return fmtBytes(bytes);
 }
 

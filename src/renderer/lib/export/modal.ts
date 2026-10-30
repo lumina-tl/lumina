@@ -108,6 +108,7 @@ export function buildModal(): void {
           <div class="export-format" id="export-format">
             <button class="btn export-opt active" data-fmt="png" data-i18n="export.png">PNG</button>
             <button class="btn export-opt" data-fmt="jpg" data-i18n="export.jpg">JPG</button>
+            <button class="btn export-opt" data-fmt="pdf" data-i18n="export.pdf">PDF</button>
           </div>
           <div class="export-quality hidden" id="export-quality">
             <span data-i18n="export.quality">Quality</span>
@@ -212,7 +213,7 @@ export function buildModal(): void {
   const fmtBtns = overlay.querySelectorAll<HTMLButtonElement>(".export-opt");
   fmtBtns.forEach(function (b) {
     b.addEventListener("click", function () {
-      st.format = (b.dataset.fmt as "png" | "jpg") || "png";
+      st.format = (b.dataset.fmt as ExportPayload["format"]) || "png";
       fmtBtns.forEach(function (x) {
         x.classList.toggle("active", x === b);
       });
@@ -291,19 +292,26 @@ function close(): void {
 }
 
 async function doExport(goBtn: HTMLButtonElement): Promise<void> {
+  const pages = st.order.slice();
+  const format = st.format;
+  const quality = st.quality;
   goBtn.disabled = true;
   const toast = ui.toast(i18n.t("export.running"), "running", 0);
   try {
     await document.fonts.ready;
     const files: ExportPayload["files"] = [];
-    for (const page of st.order) {
+    for (const page of pages) {
       await ensureMaskImages(page);
-      const data = await renderPage(page, st.format, st.quality);
+      const data = await renderPage(
+        page,
+        format === "pdf" ? "png" : format,
+        quality,
+      );
       files.push({ fileName: page.fileName, data });
     }
     const res: ExportResult = await window.lumina.exportImages({
-      format: st.format,
-      quality: st.quality,
+      format,
+      quality,
       files,
     });
     ui.dismissToast(toast);

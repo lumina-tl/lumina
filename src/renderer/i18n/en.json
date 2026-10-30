@@ -26,6 +26,7 @@
   "export.titleAll": "Export all",
   "export.png": "PNG",
   "export.jpg": "JPG",
+  "export.pdf": "PDF",
   "export.quality": "Quality",
   "export.cancel": "Cancel",
   "export.export": "Export",
