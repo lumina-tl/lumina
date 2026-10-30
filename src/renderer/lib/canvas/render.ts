@@ -55,7 +55,7 @@ export function scheduleRender(): void {
   _renderQueued = true;
   requestAnimationFrame(() => {
     _renderQueued = false;
-    _render();
+    canvas.render();
   });
 }
 
@@ -407,6 +407,9 @@ function _render(): void {
   canvas._updateStatus();
   canvas.updateBoxToggle();
   _layer.draw();
+
+  // Selection overlay (marching ants + context bar) follows stage scale/pan
+  if (canvas._syncSelectOverlay) canvas._syncSelectOverlay();
 }
 
 /** Drop baked composite for a page (on page removal). */

@@ -39,7 +39,7 @@ function _rectStagePoints(b: {
 function _getLayer(): Konva.Layer | null {
   const stage = canvas.getStage();
   if (!stage) return null;
-  if (!_layer) {
+  if (!_layer || _layer.getStage() !== stage) {
     _layer = new Konva.Layer({ listening: false });
     stage.add(_layer);
     _layer.moveToTop();

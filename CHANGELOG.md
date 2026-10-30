@@ -9,12 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Manual inpaint & erase area from selection.** Selection context bar now provides "Clean area" to inpaint arbitrary user-selected regions and "Erase area from masks" to clip out overlapping inpaint masks (thanks @AlanSanchez06).
+- **Compact selection context bar.** Redesigned the floating selection bar into a compact pill using Lucide icons and concise labels with uniform flat buttons.
 - **PDF document export.** Combine and export rendered pages in project sequence into a single PDF document using pdf-lib (thanks @B0bul0).
 - **Pipeline preset dropdown.** "Run All" split button lets you pick "Full Pipeline" or "Clean Only" preset. Choice persists across sessions.
 - **Save as PSD document** add support to save as photshop document. this features is `preview` only, not stable yet.
 
 ### Fixed
 
+- **Selection marquee and context bar sync on zoom/pan.** Marching ants overlay and floating action bar now correctly re-anchor and scale during wheel zoom and pan operations instead of desynchronizing.
 - **Canvas transformer hit-test isolation.** Interacting with transformer anchor handles or rotation controls no longer accidentally starts brush strokes, text layer creation, or marquee selection (thanks @ididi404).
 - **OCR live bounding box flush.** Modified or resized detection boxes on the canvas are now synchronized immediately before cropping, ensuring OCR runs on the exact edited coordinates (thanks @ididi404).
 - **Page strip drag-and-drop reordering.** Dragging thumbnails in the bottom page strip now correctly reorders pages, with a visible drop indicator showing where the page will land.

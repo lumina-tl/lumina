@@ -48,6 +48,7 @@ export interface CanvasAPI {
   updateBoxToggle(): void;
   _refreshTextGroup(idx: number): void;
   _updateStatus(): void;
+  _syncSelectOverlay?(): void;
   onToolChange(tool: string): void;
 
   renderPageStrip(): void;
@@ -123,6 +124,7 @@ export const canvas: CanvasAPI = {
   updateBoxToggle() {},
   _refreshTextGroup() {},
   _updateStatus() {},
+  _syncSelectOverlay() {},
   onToolChange() {},
 
   renderPageStrip() {},

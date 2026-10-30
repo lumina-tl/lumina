@@ -2,15 +2,19 @@
 import { canvas } from "../../index";
 import { state } from "../../../state";
 import * as i18n from "../../../i18n";
+import { createIcons } from "../../../ui/icons";
 import {
   selections,
   activeSelection,
   selectionAABB,
   imgToStage,
   clearSelections,
+  shapeAABB,
+  isHoleShape,
 } from "./shared";
 import { refreshOverlay } from "./render";
 import { toDetection } from "./actions/to-detection";
+import { inpaint } from "../../../pipeline/inpaint";
 
 let _bar: HTMLDivElement | null = null;
 
@@ -26,15 +30,42 @@ function _getBar(): HTMLDivElement {
 }
 
 function _mkBtn(
-  label: string,
+  iconName: string,
+  label: string | null,
   cls: string,
   onClick: () => void,
+  title?: string,
 ): HTMLButtonElement {
   const b = document.createElement("button");
   b.className = cls;
-  b.textContent = label;
+  if (title) b.title = title;
+
+  const icon = document.createElement("i");
+  icon.dataset.lucide = iconName;
+  icon.className = "w-3.5 h-3.5 shrink-0";
+  b.appendChild(icon);
+
+  if (label) {
+    const span = document.createElement("span");
+    span.textContent = label;
+    b.appendChild(span);
+  }
   b.addEventListener("click", onClick);
   return b;
+}
+
+function _mkDivider(): HTMLDivElement {
+  const d = document.createElement("div");
+  d.className = "selectool-bar-divider";
+  return d;
+}
+
+function _selectedBoxes() {
+  return selections.flatMap((selection) =>
+    selection.shapes
+      .filter((shape) => !isHoleShape(selection.shapes, shape))
+      .map(shapeAABB),
+  );
 }
 
 export function showContextBar(): void {
@@ -47,36 +78,77 @@ export function showContextBar(): void {
   const count = selections.length;
   bar.innerHTML = "";
 
-  const title = document.createElement("span");
-  title.className = "selectool-bar-title";
-  title.textContent = i18n.t("selectool.title");
-  bar.appendChild(title);
-
+  // Primary: Detect
+  const detectBtn = _mkBtn(
+    "type",
+    count > 1 ? i18n.t("selectool.convertAll") : i18n.t("selectool.convert"),
+    "selectool-bar-btn",
+    function () {
+      toDetection();
+    },
+  );
   if (count > 1) {
     const badge = document.createElement("span");
     badge.className = "selectool-bar-count";
     badge.textContent = String(count);
-    bar.appendChild(badge);
+    detectBtn.appendChild(badge);
   }
+  bar.appendChild(detectBtn);
 
+  // Inpaint: Clean
   bar.appendChild(
     _mkBtn(
-      count > 1 ? i18n.t("selectool.convertAll") : i18n.t("selectool.convert"),
-      "selectool-bar-action",
+      "sparkles",
+      i18n.t("selectool.cleanArea"),
+      "selectool-bar-btn",
       function () {
-        toDetection();
+        const boxes = _selectedBoxes();
+        void inpaint.runBoxes(boxes).then((success) => {
+          if (!success) return;
+          clearSelections();
+          refreshOverlay();
+          hideContextBar();
+        });
       },
     ),
   );
 
+  // Erase: Erase mask
   bar.appendChild(
-    _mkBtn(i18n.t("selectool.clear"), "selectool-bar-clear", function () {
-      clearSelections();
-      refreshOverlay();
-      hideContextBar();
-    }),
+    _mkBtn(
+      "eraser",
+      i18n.t("selectool.eraseArea"),
+      "selectool-bar-btn",
+      function () {
+        const boxes = _selectedBoxes();
+        void inpaint.eraseBoxes(boxes).then((success) => {
+          if (!success) return;
+          clearSelections();
+          refreshOverlay();
+          hideContextBar();
+        });
+      },
+    ),
   );
 
+  bar.appendChild(_mkDivider());
+
+  // Clear / Cancel selection (icon only)
+  bar.appendChild(
+    _mkBtn(
+      "x",
+      null,
+      "selectool-bar-btn selectool-bar-btn-icon",
+      function () {
+        clearSelections();
+        refreshOverlay();
+        hideContextBar();
+      },
+      i18n.t("selectool.clear"),
+    ),
+  );
+
+  createIcons({ root: bar });
   bar.style.display = "flex";
   positionBar();
 }
@@ -109,15 +181,20 @@ function positionBar(): void {
     top = y + h + 8;
     bar.style.transform = "translate(-50%, 0)";
   }
-  const left = Math.max(70, Math.min(container.clientWidth - 70, x + w / 2));
+  const halfWidth = bar.offsetWidth / 2;
+  const left =
+    halfWidth * 2 + 16 > container.clientWidth
+      ? container.clientWidth / 2
+      : Math.max(
+          halfWidth + 8,
+          Math.min(container.clientWidth - halfWidth - 8, x + w / 2),
+        );
   bar.style.left = left + "px";
   bar.style.top = top + "px";
 }
 
 // ── Track the main render loop: ants + bar follow zoom/pan/page switch ──
-const _origRender = canvas.render;
-canvas.render = function (): void {
-  _origRender();
+canvas._syncSelectOverlay = function (): void {
   if (!state.getActivePage()) {
     clearSelections();
     refreshOverlay();
