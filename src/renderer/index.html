@@ -582,19 +582,33 @@
         >No detections</span
       >
 
-      <!-- Resource monitor chip -->
-      <div
-        id="status-resources"
-        class="status-res-chip ml-auto"
-        title="System Resources"
-      >
-        <i data-lucide="activity" class="status-res-icon"></i>
-        <span id="status-res-cpu">CPU --%</span>
-        <span class="w-px h-2 bg-surface-3"></span>
-        <span id="status-res-ram">RAM --G</span>
-        <span class="w-px h-2 bg-surface-3" id="status-res-vram-sep"></span>
-        <span id="status-res-vram">VRAM --G</span>
-        <span id="status-res-models" class="status-res-badge hidden">0</span>
+      <!-- Status bar right cluster: download chip + resource monitor -->
+      <div class="flex items-center gap-2 ml-auto">
+        <div
+          id="status-download"
+          class="status-dl-chip hidden"
+          title="Click to expand download"
+        >
+          <i data-lucide="loader-2" class="status-dl-icon"></i>
+          <span id="status-dl-label" class="status-dl-label">Downloading...</span>
+          <span class="status-dl-pct" id="status-dl-pct">0%</span>
+          <span class="status-dl-speed" id="status-dl-speed"></span>
+        </div>
+
+        <!-- Resource monitor chip -->
+        <div
+          id="status-resources"
+          class="status-res-chip"
+          title="System Resources"
+        >
+          <i data-lucide="activity" class="status-res-icon"></i>
+          <span id="status-res-cpu">CPU --%</span>
+          <span class="w-px h-2 bg-surface-3"></span>
+          <span id="status-res-ram">RAM --G</span>
+          <span class="w-px h-2 bg-surface-3" id="status-res-vram-sep"></span>
+          <span id="status-res-vram">VRAM --G</span>
+          <span id="status-res-models" class="status-res-badge hidden">0</span>
+        </div>
       </div>
 
       <span class="w-px h-3 bg-surface-3"></span>

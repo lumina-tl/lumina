@@ -253,6 +253,8 @@
   "toast.cancelDownload": "Batalkan unduhan",
   "toast.cancellingDownload": "Membatalkan…",
   "toast.downloadCancelled": "Unduhan dibatalkan",
+  "toast.minimizeDownload": "Perkecil",
+  "toast.expandDownload": "Perbesar",
   "toast.runtimeDownloading": "Mengunduh runtime CUDA (hanya sekali, ~1,2 GB)...",
   "toast.runtimeInstalled": "Runtime CUDA terpasang — model siap dipakai",
   "toast.runtimeError": "Gagal mengunduh runtime CUDA",

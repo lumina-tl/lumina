@@ -329,56 +329,95 @@ export const ui = {
     if (!container) {
       container = document.createElement("div");
       container.id = "toast-container-br";
-      container.style.cssText =
-        "position:fixed;bottom:16px;right:16px;z-index:200;display:flex;flex-direction:column;gap:6px;pointer-events:none;";
       document.body.appendChild(container);
     }
 
     const el = document.createElement("div");
     el.id = "dl-toast";
-    el.style.cssText =
-      "pointer-events:auto;background:#1a2332;border:1px solid #264f78;color:#d4d4d4;" +
-      "padding:10px 14px;border-radius:8px;font-size:0.78rem;width:340px;max-width:calc(100vw - 32px);" +
-      "box-shadow:0 4px 12px rgba(0,0,0,0.4);opacity:0;transform:translateY(8px);" +
-      "transition:opacity 0.2s,transform 0.2s;";
+    el.className = "dl-toast";
     el.innerHTML =
-      '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;">' +
-      '<i data-lucide="loader-2" style="width:15px;height:15px;color:#569cd6;flex-shrink:0;margin-top:1px;animation:spin 1s linear infinite;"></i>' +
-      '<span id="dl-msg" style="flex:1;min-width:0;word-break:break-all;line-height:1.35;">' +
-      msg +
+      '<div class="dl-toast-content">' +
+      '<div class="dl-header">' +
+      '<div class="dl-header-left">' +
+      '<i data-lucide="loader-2" class="dl-icon-spinner"></i>' +
+      '<span class="dl-title" id="dl-msg">' +
+      _esc(msg) +
       "</span>" +
-      '<span id="dl-pct" style="color:#569cd6;font-variant-numeric:tabular-nums;flex-shrink:0;">0%</span>' +
+      "</div>" +
+      '<div class="dl-header-right">' +
+      '<span class="dl-pct" id="dl-pct">0%</span>' +
+      '<button class="dl-action-btn" id="dl-minimize" title="' +
+      _esc(i18n.t("toast.minimizeDownload")) +
+      '"><i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></button>' +
       (onCancel
-        ? '<button id="dl-cancel" title="' +
-          i18n.t("toast.cancelDownload") +
-          '" style="flex-shrink:0;display:flex;align-items:center;background:transparent;border:none;color:#888;cursor:pointer;padding:2px;border-radius:4px;">' +
-          '<i data-lucide="x" style="width:14px;height:14px;"></i></button>'
+        ? '<button class="dl-action-btn btn-cancel" id="dl-cancel" title="' +
+          _esc(i18n.t("toast.cancelDownload")) +
+          '"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>'
         : "") +
       "</div>" +
-      '<div style="height:5px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;">' +
-      '<div id="dl-bar" style="height:100%;width:0%;background:#569cd6;border-radius:3px;transition:width 0.3s ease;"></div>' +
       "</div>" +
-      '<div id="dl-size" style="margin-top:5px;font-size:0.68rem;color:#888;display:flex;justify-content:space-between;">' +
-      '<span id="dl-progress-size"></span><span id="dl-speed"></span></div>';
-    if (onCancel) {
-      const btn = el.querySelector<HTMLButtonElement>("#dl-cancel");
-      if (btn) {
-        btn.addEventListener("mouseenter", () => (btn.style.color = "#fff"));
-        btn.addEventListener("mouseleave", () => (btn.style.color = "#888"));
-        btn.addEventListener("click", () => {
-          btn.disabled = true;
-          btn.textContent = i18n.t("toast.cancellingDownload");
-          onCancel();
-        });
-      }
+      '<div class="dl-track">' +
+      '<div class="dl-bar" id="dl-bar"></div>' +
+      "</div>" +
+      '<div class="dl-meta">' +
+      '<span id="dl-progress-size">0 KB / 0 KB</span>' +
+      '<span id="dl-speed"></span>' +
+      "</div>" +
+      "</div>";
+
+    const statusDl = document.getElementById("status-download");
+    const statusLabel = document.getElementById("status-dl-label");
+    const statusPct = document.getElementById("status-dl-pct");
+    const statusSpeed = document.getElementById("status-dl-speed");
+
+    if (statusLabel) statusLabel.textContent = msg;
+    if (statusPct) statusPct.textContent = "0%";
+    if (statusSpeed) statusSpeed.textContent = "";
+    if (statusDl) {
+      statusDl.classList.add("hidden");
+      statusDl.onclick = () => {
+        statusDl.classList.add("hidden");
+        el.classList.remove("hidden");
+        requestAnimationFrame(() => el.classList.add("show"));
+      };
     }
+
+    const minBtn = el.querySelector<HTMLButtonElement>("#dl-minimize");
+    minBtn?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      el.classList.remove("show");
+      el.classList.add("hidden");
+      if (statusDl) statusDl.classList.remove("hidden");
+    });
+
+    if (onCancel) {
+      const cancelBtn = el.querySelector<HTMLButtonElement>("#dl-cancel");
+      cancelBtn?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        cancelBtn.disabled = true;
+        onCancel();
+      });
+    }
+
     container.appendChild(el);
     createIcons({ nameAttr: "data-lucide", attrs: {}, root: el });
     requestAnimationFrame(() => {
-      el.style.opacity = "1";
-      el.style.transform = "translateY(0)";
+      el.classList.add("show");
     });
     return el;
+  },
+
+  /** Dismiss active download toast with transition */
+  dismissDownloadToast(): void {
+    const statusDl = document.getElementById("status-download");
+    if (statusDl) statusDl.classList.add("hidden");
+
+    const el = document.getElementById("dl-toast");
+    if (!el) return;
+    el.classList.remove("show");
+    setTimeout(() => {
+      el.remove();
+    }, 220);
   },
 
   /** Update the active download toast progress */
@@ -387,18 +426,23 @@ export const ui = {
     downloaded: number,
     total: number,
   ): void {
+    const pctText = Math.round(progress || 0) + "%";
+    const statusPct = document.getElementById("status-dl-pct");
+    if (statusPct) statusPct.textContent = pctText;
+
     const el = document.getElementById("dl-toast");
-    if (!el) return;
     const pctEl = document.getElementById("dl-pct");
     const barEl = document.getElementById("dl-bar");
     const sizeEl = document.getElementById("dl-progress-size");
     const speedEl = document.getElementById("dl-speed");
-    if (pctEl) pctEl.textContent = Math.round(progress || 0) + "%";
+    const statusSpeed = document.getElementById("status-dl-speed");
+
+    if (pctEl) pctEl.textContent = pctText;
     if (barEl) barEl.style.width = Math.min(100, progress || 0) + "%";
     if (sizeEl && total > 0) {
       sizeEl.textContent = _fmtSize(downloaded) + " / " + _fmtSize(total);
     }
-    if (speedEl) {
+    if (speedEl || statusSpeed) {
       const now = Date.now();
       _dlSamples.push({ t: now, b: downloaded });
       // keep ~5s window
@@ -408,7 +452,9 @@ export const ui = {
       const first = _dlSamples[0];
       const dt = (now - first.t) / 1000;
       if (dt >= 1 && downloaded >= first.b) {
-        speedEl.textContent = _fmtSize((downloaded - first.b) / dt) + "/s";
+        const speedStr = _fmtSize((downloaded - first.b) / dt) + "/s";
+        if (speedEl) speedEl.textContent = speedStr;
+        if (statusSpeed) statusSpeed.textContent = "(" + speedStr + ")";
       }
     }
   },

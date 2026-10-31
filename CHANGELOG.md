@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Pipeline preset dropdown.** "Run All" split button lets you pick "Full Pipeline" or "Clean Only" preset. Choice persists across sessions.
 - **Save as PSD document** add support to save as photshop document. this features is `preview` only, not stable yet.
 - **"What's New" & Developer Notes dialog.** Interactive modal window that parses `CHANGELOG.md` and displays localized release announcements upon version updates, complete with actionable shortcuts to Settings and manual access from the Help menu.
+- **Minimizable download progress to status bar.** Floating download progress card can now be minimized directly to a compact status bar chip, keeping the workspace and page strip clear while displaying live percentage and speed. Clicking the status bar chip restores the full floating card.
 
 ### Changed
 

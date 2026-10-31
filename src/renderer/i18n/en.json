@@ -253,6 +253,8 @@
   "toast.cancelDownload": "Cancel download",
   "toast.cancellingDownload": "Cancelling…",
   "toast.downloadCancelled": "Download cancelled",
+  "toast.minimizeDownload": "Minimize",
+  "toast.expandDownload": "Expand",
   "toast.runtimeDownloading": "Downloading CUDA runtime (first run only, ~1.2 GB)...",
   "toast.runtimeInstalled": "CUDA runtime installed — models are ready",
   "toast.runtimeError": "CUDA runtime download failed",

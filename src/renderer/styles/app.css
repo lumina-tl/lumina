@@ -4250,7 +4250,194 @@ body.resizing-row {
 .changelog-list li strong {
   color: var(--color-text-primary);
 }
+
+/* ── Modern Floating Download Toast (Expanded & Minimized) ── */
+#toast-container-br {
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.dl-toast {
+  pointer-events: auto;
+  background: rgba(22, 22, 26, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--color-text-primary);
+  border-radius: 12px;
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(255, 255, 255, 0.04);
+  width: 360px;
+  max-width: calc(100vw - 40px);
+  padding: 12px 14px;
+  opacity: 0;
+  transform: translateY(12px) scale(0.96);
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dl-toast.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.dl-toast.hidden {
+  display: none !important;
+}
+
+.dl-toast-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dl-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dl-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.dl-icon-spinner {
+  width: 15px;
+  height: 15px;
+  color: #38bdf8;
+  flex-shrink: 0;
+  animation: spin 1s linear infinite;
+}
+
+.dl-title {
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dl-header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.dl-pct {
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  color: #38bdf8;
+  font-variant-numeric: tabular-nums;
+}
+
+.dl-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dl-action-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-primary);
+}
+
+.dl-action-btn.btn-cancel:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.dl-track {
+  height: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.dl-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+  border-radius: 3px;
+  transition: width 0.25s ease;
+}
+
+.dl-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+  font-family: ui-monospace, SFMono-Regular, monospace;
+}
+
+/* ── Status Bar Download Chip (Minimized State) ── */
+.status-dl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 8px;
+  border-radius: 4px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  color: #38bdf8;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.62rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.status-dl-chip:hover {
+  background: rgba(56, 189, 248, 0.22);
+  border-color: rgba(56, 189, 248, 0.45);
+  color: #fff;
+}
+.status-dl-chip.hidden {
+  display: none !important;
+}
+.status-dl-icon {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+  animation: spin 1s linear infinite;
+}
+.status-dl-label {
+  color: var(--color-text-primary);
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.status-dl-pct {
+  font-weight: 700;
+  color: #38bdf8;
+}
+.status-dl-speed {
+  color: var(--color-text-muted);
 }
 
 

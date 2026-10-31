@@ -26,8 +26,7 @@ export function initProgressHandlers(): void {
       }
       ui.updateDownloadToast(p.progress || 0, p.downloaded || 0, p.total || 0);
     } else if (p.done || p.error || p.cancelled) {
-      const el = document.getElementById("dl-toast");
-      if (el) el.remove();
+      ui.dismissDownloadToast();
       if (p.done) ui.toast(i18n.t("toast.modelDownloaded"), "success", 3000);
       else if (p.cancelled)
         ui.toast(i18n.t("toast.downloadCancelled"), "info", 3000);
@@ -44,12 +43,10 @@ export function initProgressHandlers(): void {
       }
       ui.updateDownloadToast(p.percent || 0, p.transferred || 0, p.total || 0);
     } else if (p.state === "ready") {
-      const el = document.getElementById("dl-toast");
-      if (el) el.remove();
+      ui.dismissDownloadToast();
       ui.toast(i18n.t("toast.runtimeInstalled"), "success", 4000);
     } else if (p.state === "error") {
-      const el = document.getElementById("dl-toast");
-      if (el) el.remove();
+      ui.dismissDownloadToast();
       ui.toast(i18n.t("toast.runtimeError"), "error", 8000);
     }
   });

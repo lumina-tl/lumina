@@ -61,10 +61,8 @@ export function initAutoUpdate(): void {
         updateToast = ui.downloadToast(i18n.t("update.downloading"));
       ui.updateDownloadToast(p.percent || 0, p.transferred || 0, p.total || 0);
     } else if (p.state === "downloaded") {
-      if (updateToast) {
-        ui.dismissToast(updateToast as never);
-        updateToast = null;
-      }
+      ui.dismissDownloadToast();
+      updateToast = null;
       const msg = i18n.t("update.downloaded", {
         version: p.version || "",
       });
@@ -74,10 +72,8 @@ export function initAutoUpdate(): void {
         i18n.t("update.install", { version: p.version || "" }),
       );
     } else if (p.state === "error") {
-      if (updateToast) {
-        ui.dismissToast(updateToast as never);
-        updateToast = null;
-      }
+      ui.dismissDownloadToast();
+      updateToast = null;
       ui.toast(i18n.t("update.downloadError"), "error", 8000);
       setUpdateButton("error", i18n.t("update.retry"));
     }
