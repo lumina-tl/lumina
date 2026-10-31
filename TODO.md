@@ -38,7 +38,7 @@
 - [x] register file extension
 - [x] cancel download
 - [x] minimal update checker
-- [ ] ~~fix trimmed or unfinished baberu-ocr result when text too long~~ (model limitation)
+- [x] fix trimmed or unfinished baberu-ocr result when text too long (resolved in v1.2 weights + 256 tokens)
 - [x] setup electron updater
 - [x] add option in context menu to re ocr a box with different model
 - [x] improve font fit in inpainting

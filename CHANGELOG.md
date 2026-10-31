@@ -17,9 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **PDF document export.** Combine and export rendered pages in project sequence into a single PDF document using pdf-lib (thanks @B0bul0).
 - **Pipeline preset dropdown.** "Run All" split button lets you pick "Full Pipeline" or "Clean Only" preset. Choice persists across sessions.
 - **Save as PSD document** add support to save as photshop document. this features is `preview` only, not stable yet.
+- **"What's New" & Developer Notes dialog.** Interactive modal window that parses `CHANGELOG.md` and displays localized release announcements upon version updates, complete with actionable shortcuts to Settings and manual access from the Help menu.
+
+### Changed
+
+- **Baberu OCR token ceiling and description.** Raised `MAX_NEW_TOKENS` from 128 to 256 in the backend config to match Baberu OCR v1.2, allowing dense bubbles to decode completely, and updated model documentation.
 
 ### Fixed
 
+- **Baberu OCR text truncation.** Long narration and dialogue bubbles are no longer cut off mid-sentence, backed by Baberu OCR v1.2 weights and 256-token decoding.
 - **Rotated text in-place editor alignment.** In-place textarea now rotates around its top-left origin to match the Konva group and transformer coordinates when editing rotated/slanted text layers, instead of rendering as an unrotated detached rectangle.
 - **Selection marquee and context bar sync on zoom/pan.** Marching ants overlay and floating action bar now correctly re-anchor and scale during wheel zoom and pan operations instead of desynchronizing.
 - **Canvas transformer hit-test isolation.** Interacting with transformer anchor handles or rotation controls no longer accidentally starts brush strokes, text layer creation, or marquee selection (thanks @ididi404).

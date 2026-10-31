@@ -34,16 +34,16 @@ export const OCR_DESCS: ModelDescMap = {
     en: `Baberu OCR (by genshiai-daichi) — a 115M-parameter multilingual model (Japanese / Chinese / English) purpose-built for manga speech bubbles.
 
 • Trained on real manga typesetting: vertical text, horizontal text, and sound effects (SFX).
-• Understands stylized bubble layouts better than general-purpose OCR.
-• Runs fast on CPU — the recommended default for manga.
-• ⚠ Model limitation: long text can be cut off mid-word (e.g. "workhorse" → "wo"). Bubble-level accuracy is strong, but very long bubbles lose the tail end. The translation step can usually reconstruct the missing text from context. For very long bubbles, try PP-OCRv6 instead.
+• Reads up to 256 characters per bubble — long narration and dense dialogue no longer cut off mid-sentence.
+• High recognition accuracy on stylized fonts, sound effects, and handwriting via Manga109-s supervision.
+• Fast CPU inference — the recommended default OCR model for manga.
 • Source: huggingface.co/genshiai-daichi/baberu-ocr`,
     id: `Baberu OCR (oleh genshiai-daichi) — model multibahasa 115M parameter (Jepang / Cina / Inggris) yang dirancang khusus untuk gelembung ucapan manga.
 
 • Dilatih pada tata letak manga asli: teks vertikal, teks horizontal, dan efek suara (SFX).
-• Lebih memahami layout gelembung yang bergaya daripada OCR tujuan umum.
-• Cepat di CPU — default yang direkomendasikan untuk manga.
-• ⚠ Keterbatasan model: teks yang terlalu panjang bisa terpotong di tengah kata (contoh: "workhorse" jadi "wo"). Akurasi per-gelembung kuat, tapi gelembung yang sangat panjang kehilangan bagian akhirnya. Langkah penerjemahan biasanya bisa merekonstruksi teks yang hilang dari konteks. Untuk gelembung yang sangat panjang, coba PP-OCRv6 sebagai alternatif.
+• Membaca hingga 256 karakter per gelembung — teks narasi panjang dan dialog padat tidak lagi terpotong di tengah kalimat.
+• Akurasi tinggi pada teks bergaya, efek suara, dan tulisan tangan melalui pelatihan Manga109-s.
+• Cepat di CPU — model OCR default yang direkomendasikan untuk manga.
 • Sumber: huggingface.co/genshiai-daichi/baberu-ocr`,
   },
   paddleocr_vl: {

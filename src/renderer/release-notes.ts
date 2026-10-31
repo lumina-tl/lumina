@@ -33,12 +33,12 @@ export const developerNotices: DeveloperNotice[] = [
       id: "Perlu Tindakan",
     },
     title: {
-      en: "Baberu OCR Model Weights Updated",
-      id: "Pembaruan Bobot Model Baberu OCR",
+      en: "Baberu OCR Updated (Long Text No Longer Cut Off)",
+      id: "Pembaruan Baberu OCR (Teks Panjang Tidak Terpotong Lagi)",
     },
     message: {
-      en: "Baberu OCR weights have been updated for higher recognition accuracy and fewer hallucinations. If you previously installed this model, please delete the old model and re-download it via Settings → Models.",
-      id: "Bobot model Baberu OCR telah diperbarui untuk akurasi pengenalan teks yang lebih tinggi. Jika kamu sudah mengunduh model ini sebelumnya, disarankan menghapus model lama dan mengunduh ulang melalui Settings → Models.",
+      en: "Baberu OCR has been upgraded to the latest version. The issue in v1.0 where long narration or dialogue bubbles were cut off mid-sentence has been resolved with support for up to 256 characters per bubble, alongside major recognition improvements for sound effects (SFX) and handwritten text.\n\nIf you already downloaded Baberu OCR previously, please open Settings → Models, click Delete on Baberu OCR, then click Download to get the updated model weights.",
+      id: "Baberu OCR telah diperbarui ke versi terbaru. Masalah pada v1.0 di mana teks narasi atau dialog panjang terpotong di tengah kalimat kini sudah teratasi dengan dukungan pembacaan hingga 256 karakter per gelembung, serta peningkatan akurasi efek suara (SFX) dan tulisan tangan.\n\nBagi pengguna yang sudah mengunduh Baberu OCR sebelumnya, silakan buka Settings → Models, klik Hapus (Delete) pada Baberu OCR, lalu klik Unduh (Download) untuk mendapatkan bobot model terbaru.",
     },
     action: {
       label: {
