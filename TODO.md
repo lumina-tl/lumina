@@ -75,5 +75,5 @@
 - [x] fix canvas transformer hit-test & OCR live bbox flush
 - [x] custom confirmation dialog when closing app with unsaved changes & model deletion
 - [x] resource monitoring (CPU/GPU/RAM usage) icon
-- [ ] what's changed after update (changelog) dialog
+- [x] what's changed after update (changelog) dialog
 - [ ] testing and hunt another bugs

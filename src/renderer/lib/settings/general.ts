@@ -8,6 +8,7 @@ import {
   getOcrNormalizeMode,
   setOcrNormalizeMode,
 } from "../pipeline/text-norm";
+import { openChangelogModal } from "../ui/changelog-modal";
 
 export const generalTab = {
   build(pane: HTMLElement): void {
@@ -181,6 +182,32 @@ export const generalTab = {
       shortcutsTab.refreshTitles();
       shortcutsTab.refresh();
     });
+
+    // ── What's New & Developer Notes ──
+    const changelogSection = document.createElement("div");
+    changelogSection.className = "settings-section";
+
+    const changelogRow = document.createElement("div");
+    changelogRow.className = "field-row items-center justify-between";
+
+    const changelogLabel = document.createElement("span");
+    changelogLabel.className = "text-[0.78rem] text-text-primary";
+    changelogLabel.dataset.i18n = "settings.whatsNew";
+    changelogLabel.textContent = i18n.t("settings.whatsNew");
+
+    const changelogBtn = document.createElement("button");
+    changelogBtn.type = "button";
+    changelogBtn.className = "btn";
+    changelogBtn.dataset.i18n = "settings.viewChangelog";
+    changelogBtn.textContent = i18n.t("settings.viewChangelog");
+    changelogBtn.addEventListener("click", () => {
+      openChangelogModal();
+    });
+
+    changelogRow.appendChild(changelogLabel);
+    changelogRow.appendChild(changelogBtn);
+    changelogSection.appendChild(changelogRow);
+    pane.appendChild(changelogSection);
   },
 
   refresh(): void {},

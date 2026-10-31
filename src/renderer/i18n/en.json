@@ -94,6 +94,8 @@
   "settings.ocrNormLower": "Lowercase",
   "settings.ocrNormUpper": "Uppercase",
   "settings.ocrNormHint": "Normalize the case of text recognized by OCR. Applies to new OCR results only.",
+  "settings.whatsNew": "Release Notes & Changelog",
+  "settings.viewChangelog": "View What's New",
 
   "landing.title": "Manga Translation Editor",
   "landing.subtitle": "Import a page to begin",

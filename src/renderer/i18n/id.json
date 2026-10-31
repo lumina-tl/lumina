@@ -94,6 +94,8 @@
   "settings.ocrNormLower": "Lowercase",
   "settings.ocrNormUpper": "Uppercase",
   "settings.ocrNormHint": "Normalisasi kapitalisasi teks hasil OCR. Hanya berlaku untuk hasil OCR baru.",
+  "settings.whatsNew": "Catatan Rilis & Changelog",
+  "settings.viewChangelog": "Lihat Yang Baru",
 
   "landing.title": "Editor Terjemahan Manga",
   "landing.subtitle": "Impor halaman untuk mulai",

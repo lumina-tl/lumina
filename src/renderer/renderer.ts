@@ -37,6 +37,10 @@ import { importImages, openImagePaths } from "./lib/project/page-loader";
 import { initAutoUpdate } from "./lib/ui/auto-update";
 import { updateDirtyUI, setDirtyListener } from "./lib/project/dirty";
 import { resourceMonitor } from "./lib/ui/resource-monitor";
+import {
+  openChangelogModal,
+  checkAutoOpenChangelog,
+} from "./lib/ui/changelog-modal";
 
 // Expose for page strip "+" button
 setRendererImport(importImages);
@@ -108,6 +112,13 @@ function initMenuBar(): void {
     });
 
   document
+    .getElementById("menu-help-trigger")
+    ?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleMenu("menu-help-trigger", "menu-help-dropdown");
+    });
+
+  document
     .getElementById("menu-file-trigger")
     ?.addEventListener("mouseenter", () => {
       if (isAnyMenuOpen) openMenu("menu-file-trigger", "menu-file-dropdown");
@@ -119,6 +130,12 @@ function initMenuBar(): void {
       if (isAnyMenuOpen) openMenu("menu-edit-trigger", "menu-edit-dropdown");
     });
 
+  document
+    .getElementById("menu-help-trigger")
+    ?.addEventListener("mouseenter", () => {
+      if (isAnyMenuOpen) openMenu("menu-help-trigger", "menu-help-dropdown");
+    });
+
   document.querySelectorAll(".menu-item").forEach((item) => {
     item.addEventListener("click", () => {
       closeMenus();
@@ -127,6 +144,10 @@ function initMenuBar(): void {
 
   document.getElementById("menu-settings")?.addEventListener("click", () => {
     settings.open();
+  });
+
+  document.getElementById("menu-changelog")?.addEventListener("click", () => {
+    openChangelogModal();
   });
 
   document.addEventListener("click", (e) => {
@@ -280,6 +301,9 @@ i18n.init().then(function () {
       if (p) void project.open(p);
     })
     .catch(function () {});
+
+  // ── Auto-popup Changelog & Developer Notes if newer app version ──
+  checkAutoOpenChangelog();
 });
 
 // ── Language picker removed — interface language is set in Settings → General ──
