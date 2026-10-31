@@ -419,13 +419,16 @@ export const modelsTab = {
     modelId: string,
     modelName: string,
   ): Promise<void> {
-    if (
-      !modelId ||
-      models.isBusy() ||
-      !window.confirm(i18n.t("models.deleteConfirm", { model: modelName }))
-    ) {
-      return;
-    }
+    if (!modelId || models.isBusy()) return;
+    const ok = await ui.confirm({
+      title: i18n.t("models.deleteTitle"),
+      message: i18n.t("models.deleteConfirm", { model: modelName }),
+      confirmText: i18n.t("ctx.delete"),
+      cancelText: i18n.t("dialog.cancel"),
+      type: "danger",
+      icon: "trash-2",
+    });
+    if (!ok) return;
     btn.disabled = true;
     try {
       await models.deleteModel(modelId);

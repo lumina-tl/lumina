@@ -110,9 +110,9 @@ function buildPayload(savePath: string | null): ProjectSavePayload {
  * then shows the Save As dialog). */
 export async function guardUnsavedChanges(detail?: string): Promise<boolean> {
   if (!isDirty()) return true;
-  const choice = await window.lumina.confirmDiscard(
-    detail ?? i18n.t("project.discardDetail"),
-  );
+  const choice = await ui.confirmDiscard({
+    detail: detail ?? i18n.t("project.discardDetail"),
+  });
   if (choice === "cancel") return false;
   if (choice === "save") return await project.save();
   return true;

@@ -3,6 +3,16 @@ import { state } from "../state";
 import * as i18n from "../i18n";
 import { canvas } from "../canvas/index";
 import { createIcons } from "./icons";
+import {
+  showConfirm,
+  showConfirmDiscard,
+  showDialog,
+  type ConfirmOptions,
+  type ConfirmDiscardOptions,
+  type DiscardChoice,
+  type ShowDialogOptions,
+  type DialogButton,
+} from "./dialog";
 
 type ToastType = "info" | "warn" | "error" | "success" | "running";
 
@@ -457,4 +467,24 @@ export const ui = {
         ")";
     }
   },
+
+  /** Modal confirmation dialog */
+  confirm: showConfirm,
+
+  /** Unsaved changes confirmation dialog */
+  confirmDiscard: showConfirmDiscard,
+
+  /** Generic modal dialog */
+  dialog: showDialog,
+};
+
+export {
+  showConfirm,
+  showConfirmDiscard,
+  showDialog,
+  type ConfirmOptions,
+  type ConfirmDiscardOptions,
+  type DiscardChoice,
+  type ShowDialogOptions,
+  type DialogButton,
 };
