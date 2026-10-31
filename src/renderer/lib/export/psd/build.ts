@@ -34,13 +34,30 @@ export async function buildPsdDocument(
   if (pages.length === 0) throw new Error("No pages to export");
 
   const gap = 100; // Spacing in pixels between artboards
-  const cellW = pages[0].naturalWidth;
-  const cellH = pages[0].naturalHeight;
   const cols = Math.min(4, pages.length);
   const rows = Math.ceil(pages.length / cols);
 
-  const totalW = cols * cellW + (cols - 1) * gap;
-  const totalH = rows * cellH + (rows - 1) * gap;
+  // Measure per-column max width and per-row max height to accommodate varying page sizes
+  const colWidths = new Array<number>(cols).fill(0);
+  const rowHeights = new Array<number>(rows).fill(0);
+  for (let i = 0; i < pages.length; i++) {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    colWidths[col] = Math.max(colWidths[col], pages[i].naturalWidth);
+    rowHeights[row] = Math.max(rowHeights[row], pages[i].naturalHeight);
+  }
+
+  const colOffsets = new Array<number>(cols).fill(0);
+  for (let c = 1; c < cols; c++) {
+    colOffsets[c] = colOffsets[c - 1] + colWidths[c - 1] + gap;
+  }
+  const rowOffsets = new Array<number>(rows).fill(0);
+  for (let r = 1; r < rows; r++) {
+    rowOffsets[r] = rowOffsets[r - 1] + rowHeights[r - 1] + gap;
+  }
+
+  const totalW = colOffsets[cols - 1] + colWidths[cols - 1];
+  const totalH = rowOffsets[rows - 1] + rowHeights[rows - 1];
 
   const children: Layer[] = [];
 
@@ -55,8 +72,8 @@ export async function buildPsdDocument(
 
     const col = i % cols;
     const row = Math.floor(i / cols);
-    const left = col * (cellW + gap);
-    const top = row * (cellH + gap);
+    const left = colOffsets[col];
+    const top = rowOffsets[row];
     const right = left + p.naturalWidth;
     const bottom = top + p.naturalHeight;
 

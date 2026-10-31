@@ -161,7 +161,10 @@ export const project = {
           0,
         );
         const psd = await buildPsdDocument(state.pages, (cur) => {
-          toast.textContent = `${i18n.t("export.running")} (${cur}/${total})`;
+          ui.updateToast(
+            toast,
+            `${i18n.t("export.running")} (${cur}/${total})`,
+          );
         });
         ui.dismissToast(toast);
         const saving = ui.toast("Saving PSD...", "running", 0);
@@ -231,7 +234,10 @@ export const project = {
           0,
         );
         const psd = await buildPsdDocument(state.pages, (cur) => {
-          toast.textContent = `${i18n.t("export.running")} (${cur}/${total})`;
+          ui.updateToast(
+            toast,
+            `${i18n.t("export.running")} (${cur}/${total})`,
+          );
         });
         ui.dismissToast(toast);
         const saving = ui.toast("Saving PSD...", "running", 0);

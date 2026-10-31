@@ -52,10 +52,13 @@ canvas.setLayerText = function (id, field, text): void {
   else layer.translation = text;
   // Mirror to parallel detection model
   if (layer.type === "text-dialogue") {
-    const det = page.textDetections[i];
-    if (det) {
-      if (field === "source") det.text = text;
-      else det.translated = text;
+    const detIdx = textIdxForLayerId(page, id);
+    if (detIdx !== null && detIdx < page.textDetections.length) {
+      const det = page.textDetections[detIdx];
+      if (det) {
+        if (field === "source") det.text = text;
+        else det.translated = text;
+      }
     }
   }
   canvas.render();
@@ -102,10 +105,18 @@ canvas.deleteLayer = function (id): void {
   const i = _findLayer(page, id);
   if (!page || i < 0) return;
   const layer = page.layers[i];
+  const detIdx = textIdxForLayerId(page, id);
   page.layers.splice(i, 1);
   // Mirror deletion into the parallel detection model
-  if (layer.type === "text-dialogue" && i < page.textDetections.length) {
-    page.textDetections.splice(i, 1);
+  if (
+    layer.type === "text-dialogue" &&
+    detIdx !== null &&
+    detIdx < page.textDetections.length
+  ) {
+    page.textDetections.splice(detIdx, 1);
+    if (page._selectedTextIdx === detIdx) page._selectedTextIdx = null;
+    else if (page._selectedTextIdx !== null && page._selectedTextIdx > detIdx)
+      page._selectedTextIdx--;
   }
   if (page._selectedLayerId === id) {
     page._selectedLayerId = null;

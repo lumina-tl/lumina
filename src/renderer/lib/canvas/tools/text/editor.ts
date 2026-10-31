@@ -151,7 +151,10 @@ export function startEdit(layerId: string): void {
   });
   ta.addEventListener("keydown", function (e) {
     e.stopPropagation();
-    if (e.key === "Escape" || (e.key === "Enter" && !e.shiftKey)) {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      removeEditor(false);
+    } else if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       removeEditor(true);
     }

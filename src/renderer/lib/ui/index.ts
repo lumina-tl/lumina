@@ -285,6 +285,18 @@ export const ui = {
     return toastHandle;
   },
 
+  /** Update message of currently active toast */
+  updateToast(toast: ToastEl | null, msg: string): void {
+    if (toast) toast.textContent = msg;
+    if (_currentToast) {
+      _currentToast.msg = msg;
+      const islandText = document.getElementById("dynamic-island-text");
+      if (islandText) islandText.textContent = msg;
+      const subText = document.getElementById("pipeline-sub-text");
+      if (subText) subText.textContent = msg;
+    }
+  },
+
   /** Dismiss active toast */
   dismissToast(toast: ToastEl | null): void {
     if (_toastTimer) {

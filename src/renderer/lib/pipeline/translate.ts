@@ -9,6 +9,10 @@ import { history } from "../history";
 import { canvas } from "../canvas/index";
 import { sidebar } from "../sidebar";
 import { normalizeAutoText } from "./text-norm";
+import {
+  dialogueLayerForTextIdx,
+  textIdxForLayerId,
+} from "../canvas/detection/selection";
 import type { TextDetection } from "../../types";
 import { log } from "../logger";
 
@@ -216,8 +220,8 @@ export const translate = {
         det.translated = normalizeAutoText(r.text || "") || det.text || "";
         // Mirror into the unified layer model
         const detIdx = page.textDetections.indexOf(det);
-        const layer = page.layers[detIdx];
-        if (layer && layer.type === "text-dialogue")
+        const layer = dialogueLayerForTextIdx(page, detIdx);
+        if (layer)
           layer.translation = det.translated;
       });
 
@@ -288,8 +292,9 @@ export const translate = {
       const translated = normalizeAutoText(result.results[0].text || "");
       layer.translation = translated;
       // Mirror into the parallel detection model
-      if (layer.type === "text-dialogue" && i < page.textDetections.length) {
-        page.textDetections[i].translated = translated;
+      const detIdx = textIdxForLayerId(page, id);
+      if (detIdx !== null && detIdx < page.textDetections.length) {
+        page.textDetections[detIdx].translated = translated;
       }
 
       canvas.render();

@@ -254,8 +254,10 @@ export const history = {
     invalidateComposite(page.fileName);
     // Selections are transient but undoable — bring them back with the
     // page so Ctrl+Z removes the rectangle/lasso that was just drawn.
-    if (snap.selections && _restoreSelections)
-      _restoreSelections(snap.selections);
+    if (_restoreSelections)
+      _restoreSelections(
+        snap.selections ?? { selections: [], activeId: null },
+      );
     canvas._clearGroups();
     canvas.render();
     if (sidebar && sidebar.render) sidebar.render();

@@ -26,6 +26,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **OCR live bounding box flush.** Modified or resized detection boxes on the canvas are now synchronized immediately before cropping, ensuring OCR runs on the exact edited coordinates (thanks @ididi404).
 - **Page strip drag-and-drop reordering.** Dragging thumbnails in the bottom page strip now correctly reorders pages, with a visible drop indicator showing where the page will land.
 - **Black canvas after deleting all pages.** Importing images from the landing screen no longer shows a blank black canvas.
+- **Undo selection marching ants clearing.** Reverting to an initial state without selections now properly resets transient marquee selections, removing lingering marching ants and hiding the floating context bar.
+- **Translation target layer alignment after reordering.** Pipeline translation and per-line re-translation now use bidirectional layer-detection ID lookups (`dialogueLayerForTextIdx` and `textIdxForLayerId`) instead of raw array indices, preventing translated text from landing on the wrong layer after drag-and-drop reordering.
+- **Layer deletion detection index synchronization.** Deleting a layer from the sidebar or canvas now cleanly removes its mirrored detection box and shifts or clears `_selectedTextIdx`, preventing out-of-bounds indices and stale box selection.
+- **PSD export progress toast updates.** Dynamic Island and pipeline sub-capsule now correctly reflect real-time page export progress (`(cur/total)`) via `ui.updateToast`.
+- **In-place text editor cancellation.** Pressing `Escape` while editing text in place now cancels editing without committing changes, preventing accidental layer deletion when text was cleared.
+- **Multi-page PSD artboard layout for varied page sizes.** Grid layout calculation now measures max column widths and max row heights independently, preventing artboard overlaps and canvas clipping when pages have differing aspect ratios or resolutions.
 
 ### Removed
 
