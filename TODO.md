@@ -71,7 +71,7 @@
 - [x] export PDF support (combine rendered pages with pdf-lib)
 - [ ] detection tiling for long strip / high-resolution pages
 - [x] manual inpaint & erase area from selection context bar
-- [ ] delete downloaded models in settings (unload VRAM & remove files)
+- [x] delete downloaded models in settings (unload VRAM & remove files)
 - [x] fix canvas transformer hit-test & OCR live bbox flush
 - [ ] custom confirmation dialog when closing app with unsaved changes
 - [ ] resource monitoring (CPU/GPU/RAM usage) icon

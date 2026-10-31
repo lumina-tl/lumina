@@ -23,6 +23,7 @@ const api: LuminaAPI = {
   checkModel: () => invoke(IPC.checkModel),
   downloadModel: (models) => invoke(IPC.downloadModel, models ?? []),
   cancelDownload: () => invoke(IPC.cancelDownload),
+  deleteModel: (modelId) => invoke(IPC.deleteModel, modelId),
   onDownloadProgress: (cb) => {
     on(IPC.modelDownloadProgress, cb);
   },

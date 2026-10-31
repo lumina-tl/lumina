@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Delete downloaded models in settings.** Delete button added to the Models settings tab to remove installed model files from disk and unload ONNX sessions from memory/VRAM (thanks @AlanSanchez06).
 - **Manual inpaint & erase area from selection.** Selection context bar now provides "Clean area" to inpaint arbitrary user-selected regions and "Erase area from masks" to clip out overlapping inpaint masks (thanks @AlanSanchez06).
 - **Compact selection context bar.** Redesigned the floating selection bar into a compact pill using Lucide icons and concise labels with uniform flat buttons.
 - **PDF document export.** Combine and export rendered pages in project sequence into a single PDF document using pdf-lib (thanks @B0bul0).

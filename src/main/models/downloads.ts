@@ -49,4 +49,20 @@ export function registerDownloadHandlers(target: BrowserWindow): void {
       return { error: String(err) };
     }
   });
+  handle(IPC.deleteModel, (_e, modelId: string) =>
+    withDownloadMutex(async () => {
+      const result = (await apiPost("/model/delete", { modelId })) as {
+        error?: string;
+        detail?: string;
+      };
+      if (result && typeof result === "object") {
+        if ("error" in result && result.error) {
+          throw new Error(String(result.error));
+        }
+        if ("detail" in result && result.detail) {
+          throw new Error(String(result.detail));
+        }
+      }
+    }),
+  );
 }

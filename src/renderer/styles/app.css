@@ -2878,8 +2878,33 @@ body.resizing-row {
   font-size: 0.68rem;
   color: #6a6a6a;
 }
+.model-desc-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .model-desc .model-dl {
   padding: 5px 16px;
+}
+.model-desc .model-delete {
+  padding: 5px 14px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #ff5c75;
+  background: rgba(233, 69, 96, 0.12);
+  border: 1px solid rgba(233, 69, 96, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.model-desc .model-delete:hover:not(:disabled) {
+  background: rgba(233, 69, 96, 0.22);
+  border-color: rgba(233, 69, 96, 0.5);
+  color: #fff;
+}
+.model-desc .model-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ── Landing (minimal centered welcome) ── */

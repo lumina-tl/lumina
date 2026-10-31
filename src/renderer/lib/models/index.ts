@@ -107,6 +107,12 @@ export const models = {
     await this.check();
   },
 
+  /** Remove one installed model and refresh the model registry. */
+  async deleteModel(id: string): Promise<void> {
+    await window.lumina.deleteModel(id);
+    await this.check();
+  },
+
   /** Active model id for a kind (e.g. "inpaint" → "lama_manga"). */
   selectedModel(kind: string): string {
     return resolveSelected(kind);

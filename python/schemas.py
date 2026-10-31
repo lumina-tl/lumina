@@ -131,6 +131,10 @@ class ModelDownloadRequest(BaseModel):
     models: list[str] = []
 
 
+class ModelDeleteRequest(BaseModel):
+    modelId: str = ""
+
+
 class DeviceConfigureRequest(BaseModel):
     # False → force CPU (LUMINA_EP=cpu); True → clear override (auto).
     useGpu: bool

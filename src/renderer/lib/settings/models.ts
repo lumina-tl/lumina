@@ -244,6 +244,8 @@ export const modelsTab = {
     foot.className = "model-desc-foot";
     const meta = document.createElement("span");
     meta.className = "model-desc-meta";
+    const actions = document.createElement("div");
+    actions.className = "model-desc-actions";
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "btn model-dl";
@@ -251,7 +253,16 @@ export const modelsTab = {
     btn.addEventListener("click", () =>
       this._download(btn, btn.dataset.model || ""),
     );
-    foot.append(meta, btn);
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "btn model-delete";
+    removeBtn.addEventListener("click", () => {
+      const id = card.dataset.model || "";
+      const model = items.find((item) => item.id === id);
+      if (model) void this._deleteModel(removeBtn, model.id, model.name);
+    });
+    actions.append(btn, removeBtn);
+    foot.append(meta, actions);
 
     card.append(head, text, gpu, foot);
     return card;
@@ -403,6 +414,35 @@ export const modelsTab = {
     });
   },
 
+  async _deleteModel(
+    btn: HTMLButtonElement,
+    modelId: string,
+    modelName: string,
+  ): Promise<void> {
+    if (
+      !modelId ||
+      models.isBusy() ||
+      !window.confirm(i18n.t("models.deleteConfirm", { model: modelName }))
+    ) {
+      return;
+    }
+    btn.disabled = true;
+    try {
+      await models.deleteModel(modelId);
+      this.refresh();
+      ui.toast(i18n.t("models.deleted"), "success");
+    } catch (err) {
+      btn.disabled = false;
+      ui.toast(
+        i18n.t("models.deleteFailed", {
+          error: String((err as Error)?.message || err),
+        }),
+        "error",
+        6000,
+      );
+    }
+  },
+
   /** Disable every model download button while the CUDA runtime installs. */
   _setDownloadButtonsDisabled(disabled: boolean): void {
     const pane = document.getElementById("tab-models");
@@ -417,6 +457,9 @@ export const modelsTab = {
         b.textContent = b.dataset.prevText;
         delete b.dataset.prevText;
       }
+    });
+    pane.querySelectorAll<HTMLButtonElement>(".model-delete").forEach((b) => {
+      b.disabled = disabled;
     });
   },
 
@@ -511,13 +554,19 @@ export const modelsTab = {
       m.size,
     );
     const btn = card.querySelector<HTMLButtonElement>(".model-dl")!;
+    const removeBtn =
+      card.querySelector<HTMLButtonElement>(".model-delete")!;
     btn.dataset.model = m.id;
     if (m.ready) {
       btn.disabled = true;
       btn.textContent = i18n.t("models.ready");
+      removeBtn.hidden = false;
+      removeBtn.disabled = models.isBusy();
+      removeBtn.textContent = i18n.t("models.delete");
     } else {
       btn.disabled = false;
       btn.textContent = i18n.t("models.download");
+      removeBtn.hidden = true;
     }
   },
 
@@ -562,12 +611,16 @@ export const modelsTab = {
     if (!panel) return;
     // Any download button for this category (row + description panel)
     const btns = panel.querySelectorAll<HTMLButtonElement>(".model-dl");
+    const delBtns = panel.querySelectorAll<HTMLButtonElement>(".model-delete");
 
     if (p.running) {
       // Real progress bar lives in the global download toast (lib/ui.ts).
       btns.forEach((b) => {
         b.disabled = true;
         b.textContent = i18n.t("models.downloading");
+      });
+      delBtns.forEach((b) => {
+        b.disabled = true;
       });
     } else if (p.done || p.error || p.cancelled) {
       // Re-check + re-render once the batch finishes

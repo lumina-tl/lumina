@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import argparse
 import os
 import sys
 import threading
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable
 
 from fastapi import FastAPI, HTTPException
 import uvicorn
@@ -16,6 +18,7 @@ from schemas import (
     ModelStatus,
     ModelInfo,
     ModelDownloadRequest,
+    ModelDeleteRequest,
     DeviceConfigureRequest,
     OcrRequest,
     OcrResponse,
@@ -39,7 +42,7 @@ from utils.download import (
 app = FastAPI(title="Lumina Backend", version="0.1.0")
 
 # Shared download progress state (written by download thread, read by /model/progress)
-_download_state: dict = {
+_download_state: dict[str, Any] = {
     "running": False,
     "progress": 0,
     "downloaded": 0,
@@ -282,7 +285,7 @@ def inpaint(req: InpaintRequest):
             mask_path=req.maskPath,
         )
         return InpaintResponse(
-            patches=[InpaintPatch(**p) for p in patches]
+            patches=[InpaintPatch.model_validate(p) for p in patches]
         )
     except Exception as e:
         log.error(f"Inpaint failed: {e}")
@@ -318,7 +321,7 @@ def models_list():
     infos = _all_model_infos()
     return ModelStatus(
         cached=all(i["ready"] for i in infos),
-        models=[ModelInfo(**i) for i in infos],
+        models=[ModelInfo.model_validate(i) for i in infos],
     )
 
 
@@ -431,6 +434,66 @@ def model_cancel():
     """Cancel the in-flight model download; temp .part files are removed."""
     _dl_cancel()
     return {"status": "ok"}
+
+
+@app.post("/model/delete")
+def model_delete(req: ModelDeleteRequest):
+    """Unload and remove one registered model from the configured models directory."""
+    if _download_state["running"]:
+        raise HTTPException(status_code=409, detail="A model download is active")
+
+    import shutil
+    from services import anglenet
+    from services import detect as detect_service
+    from services import inpaint as inpaint_service
+    from services import ocr as ocr_service
+    from services.detect.base import _models_dir
+
+    target: Path | None = None
+    unload: Callable[[], None] | None = None
+
+    if req.modelId in ocr_service.MODELS:
+        ocr_m = ocr_service.MODELS[req.modelId]
+        target = ocr_m.model_dir
+        unload = ocr_m.unload
+    elif req.modelId in detect_service.MODELS:
+        det_m = detect_service.MODELS[req.modelId]
+        target = det_m.model_path
+        unload = det_m.unload
+    elif req.modelId in inpaint_service.MODELS:
+        inp_m = inpaint_service.MODELS[req.modelId]
+        target = inp_m.model_path
+        unload = inp_m.unload
+    elif req.modelId == "anglenet":
+        target = anglenet.model_dir(_models_dir())
+        unload = anglenet.unload
+
+    if target is None or unload is None:
+        raise HTTPException(status_code=404, detail="Unknown model")
+
+    models_root = _models_dir().resolve()
+    resolved_target = target.resolve()
+    try:
+        resolved_target.relative_to(models_root)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Invalid model path") from exc
+
+    unload()
+    if target.is_symlink():
+        target.unlink()
+    elif resolved_target.is_dir():
+        shutil.rmtree(resolved_target)
+    else:
+        resolved_target.unlink(missing_ok=True)
+        # Also clean up potential ONNX Runtime optimized graph caches (*.opt)
+        for opt in models_root.glob(f"{target.name}.*.opt"):
+            try:
+                opt.unlink(missing_ok=True)
+            except OSError:
+                pass
+
+    log.info(f"Removed downloaded model: {req.modelId}")
+    return {"status": "deleted", "modelId": req.modelId}
 
 
 def main():

@@ -34,6 +34,7 @@ export interface LuminaAPI {
   checkModel(): Promise<ModelCheck>;
   downloadModel(models?: string[]): Promise<void>;
   cancelDownload(): Promise<void>;
+  deleteModel(modelId: string): Promise<void>;
   onDownloadProgress(cb: (msg: DownloadProgress) => void): void;
   getFonts(): Promise<FontInfo[]>;
   loadTranslations(): Promise<Record<string, Record<string, string>>>;
