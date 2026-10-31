@@ -74,5 +74,5 @@
 - [x] delete downloaded models in settings (unload VRAM & remove files)
 - [x] fix canvas transformer hit-test & OCR live bbox flush
 - [x] custom confirmation dialog when closing app with unsaved changes & model deletion
-- [ ] resource monitoring (CPU/GPU/RAM usage) icon
+- [x] resource monitoring (CPU/GPU/RAM usage) icon
 - [ ] testing and hunt another bugs

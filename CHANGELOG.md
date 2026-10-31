@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Real-time resource monitoring.** Status bar chip displaying live CPU load, system RAM, dedicated GPU VRAM (via NVIDIA NVML), and active AI models count. Clicking opens a detailed breakdown popover with usage progress bars and an "Unload Models" quick action to purge idle model weights from VRAM/RAM.
 - **Custom confirmation dialogs.** Replaced native Win32 message boxes and browser alert prompts with dark glassmorphic dialogs matching Lumina's design system. Used for unsaved changes guard (Save / Don't Save / Cancel) on window close and project switches, as well as model file deletion.
 - **Delete downloaded models in settings.** Delete button added to the Models settings tab to remove installed model files from disk and unload ONNX sessions from memory/VRAM (thanks @AlanSanchez06).
 - **Manual inpaint & erase area from selection.** Selection context bar now provides "Clean area" to inpaint arbitrary user-selected regions and "Erase area from masks" to clip out overlapping inpaint masks (thanks @AlanSanchez06).

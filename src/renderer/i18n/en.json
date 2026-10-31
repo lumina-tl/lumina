@@ -121,6 +121,15 @@
   "dialog.cancel": "Cancel",
   "models.deleteTitle": "Delete Model",
 
+  "resources.title": "System Resources",
+  "resources.cpu": "CPU Load",
+  "resources.ram": "System RAM",
+  "resources.vram": "GPU VRAM",
+  "resources.activeModels": "Active Models",
+  "resources.noModels": "No models loaded (idle)",
+  "resources.unloadAll": "Unload Models",
+  "resources.modelsUnloaded": "All models unloaded from memory",
+
   "zoom.zoomIn": "Zoom In",
   "zoom.zoomOut": "Zoom Out",
   "zoom.fit": "Fit to Screen",

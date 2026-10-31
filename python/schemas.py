@@ -138,3 +138,27 @@ class ModelDeleteRequest(BaseModel):
 class DeviceConfigureRequest(BaseModel):
     # False → force CPU (LUMINA_EP=cpu); True → clear override (auto).
     useGpu: bool
+
+
+class CpuMetrics(BaseModel):
+    percent: float = 0.0
+
+
+class MemoryMetrics(BaseModel):
+    used: float = 0.0
+    total: float = 0.0
+    percent: float = 0.0
+    device: str | None = None
+
+
+class LoadedModelsMetrics(BaseModel):
+    count: int = 0
+    loaded: list[str] = []
+
+
+class SystemResourcesResponse(BaseModel):
+    cpu: CpuMetrics
+    ram: MemoryMetrics
+    vram: MemoryMetrics | None = None
+    models: LoadedModelsMetrics
+

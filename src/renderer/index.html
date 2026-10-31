@@ -568,9 +568,29 @@
       <span id="status-detections" data-i18n="status.noDetections"
         >No detections</span
       >
-      <span id="status-project" class="ml-auto"></span>
+
+      <!-- Resource monitor chip -->
+      <div
+        id="status-resources"
+        class="status-res-chip ml-auto"
+        title="System Resources"
+      >
+        <i data-lucide="activity" class="status-res-icon"></i>
+        <span id="status-res-cpu">CPU --%</span>
+        <span class="w-px h-2 bg-surface-3"></span>
+        <span id="status-res-ram">RAM --G</span>
+        <span class="w-px h-2 bg-surface-3" id="status-res-vram-sep"></span>
+        <span id="status-res-vram">VRAM --G</span>
+        <span id="status-res-models" class="status-res-badge hidden">0</span>
+      </div>
+
+      <span class="w-px h-3 bg-surface-3"></span>
+      <span id="status-project"></span>
       <span id="status-page"></span>
     </div>
+
+    <!-- Resource monitor popover -->
+    <div id="status-res-popover" class="status-res-popover hidden"></div>
 
     <!-- Settings Modal (tab content built by lib/settings/) -->
     <div id="settings-overlay" class="overlay">

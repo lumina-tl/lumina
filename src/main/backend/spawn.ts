@@ -17,6 +17,13 @@ let pythonProcess: ChildProcess | null = null;
 
 /** Forward a Python subprocess line, stripping library prefixes like "INFO:". */
 function forwardPyLine(line: string): void {
+  // Suppress high-frequency polling noise
+  if (
+    line.includes("/system/resources") ||
+    line.includes("/model/progress")
+  ) {
+    return;
+  }
   const m = line.match(/^(DEBUG|INFO|WARNING|ERROR|CRITICAL):\s*(.*)/);
   if (m) {
     const lvl = m[1].toLowerCase();

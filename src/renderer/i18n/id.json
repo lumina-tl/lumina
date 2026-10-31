@@ -121,6 +121,15 @@
   "dialog.cancel": "Batal",
   "models.deleteTitle": "Hapus Model",
 
+  "resources.title": "Sumber Daya Sistem",
+  "resources.cpu": "Beban CPU",
+  "resources.ram": "RAM Sistem",
+  "resources.vram": "VRAM GPU",
+  "resources.activeModels": "Model Aktif",
+  "resources.noModels": "Tidak ada model di memori (idle)",
+  "resources.unloadAll": "Lepas Model",
+  "resources.modelsUnloaded": "Semua model berhasil dilepas dari memori",
+
   "zoom.zoomIn": "Perbesar (Ctrl+=)",
   "zoom.zoomOut": "Perkecil (Ctrl+-)",
   "zoom.fit": "Sesuaikan Layar (Ctrl+0)",

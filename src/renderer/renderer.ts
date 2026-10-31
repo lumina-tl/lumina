@@ -36,6 +36,7 @@ import { pipelineBar } from "./lib/ui/pipeline-bar";
 import { importImages, openImagePaths } from "./lib/project/page-loader";
 import { initAutoUpdate } from "./lib/ui/auto-update";
 import { updateDirtyUI, setDirtyListener } from "./lib/project/dirty";
+import { resourceMonitor } from "./lib/ui/resource-monitor";
 
 // Expose for page strip "+" button
 setRendererImport(importImages);
@@ -251,6 +252,7 @@ i18n.init().then(function () {
   updateDirtyUI();
 
   createIcons();
+  resourceMonitor.init();
 
   // ── Load system fonts via IPC + register as FontFaces ──
   // Rebuild the sidebar afterwards so the font dropdown gets populated

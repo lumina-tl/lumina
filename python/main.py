@@ -29,9 +29,11 @@ from schemas import (
     InpaintPatch,
     InpaintRequest,
     InpaintResponse,
+    SystemResourcesResponse,
 )
 
 from utils.logger import log
+from utils.memory import get_system_metrics, ModelTracker
 from utils.download import (
     DownloadCancelled,
     cancel as _dl_cancel,
@@ -496,12 +498,88 @@ def model_delete(req: ModelDeleteRequest):
     return {"status": "deleted", "modelId": req.modelId}
 
 
+def _get_loaded_model_names() -> list[str]:
+    loaded: list[str] = []
+    try:
+        from services import detect as detect_service
+        for m in detect_service.MODELS.values():
+            if getattr(m, "_session", None) is not None:
+                loaded.append(m.name or getattr(m, "model_id", "detect"))
+    except Exception:
+        pass
+    try:
+        from services import ocr as ocr_service
+        for m in ocr_service.MODELS.values():
+            if getattr(m, "_session", None) is not None or getattr(m, "_enc", None) is not None:
+                loaded.append(m.name or getattr(m, "model_id", "ocr"))
+    except Exception:
+        pass
+    try:
+        from services import inpaint as inpaint_service
+        for m in inpaint_service.MODELS.values():
+            if getattr(m, "_session", None) is not None:
+                loaded.append(m.name or getattr(m, "model_id", "inpaint"))
+    except Exception:
+        pass
+    return loaded
+
+
+@app.get("/system/resources", response_model=SystemResourcesResponse)
+@app.post("/system/resources", response_model=SystemResourcesResponse)
+def system_resources():
+    """Snapshot of system CPU, RAM, VRAM, and currently loaded models."""
+    metrics = get_system_metrics()
+    loaded = _get_loaded_model_names()
+    metrics["models"] = {
+        "count": len(loaded),
+        "loaded": loaded,
+    }
+    return SystemResourcesResponse.model_validate(metrics)
+
+
+@app.post("/system/unload-models")
+def system_unload_models():
+    """Unload all model sessions from VRAM and RAM."""
+    count = 0
+    try:
+        from services import detect as detect_service
+        detect_service.unload_models()
+        count += 1
+    except Exception:
+        pass
+    try:
+        from services import ocr as ocr_service
+        ocr_service.unload_models()
+        count += 1
+    except Exception:
+        pass
+    try:
+        from services import inpaint as inpaint_service
+        inpaint_service.unload_models()
+        count += 1
+    except Exception:
+        pass
+    try:
+        from services import anglenet
+        anglenet.unload()
+    except Exception:
+        pass
+    _tracker.clear()
+    return {"unloaded": count, "status": "ok"}
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
     log.info(f"Starting backend on port {args.port}")
-    uvicorn.run(app, host="127.0.0.1", port=args.port, log_level="info")
+    uvicorn.run(
+        app,
+        host="127.0.0.1",
+        port=args.port,
+        log_level="info",
+        access_log=False,
+    )
 
 
 if __name__ == "__main__":

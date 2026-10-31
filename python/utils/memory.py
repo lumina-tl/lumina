@@ -68,6 +68,10 @@ def _init_nvml() -> bool:
             ctypes.c_void_p, ctypes.POINTER(_NvmlMemoryInfo),
         ]
         _nvml_handle.nvmlDeviceGetMemoryInfo.restype = ctypes.c_uint
+        _nvml_handle.nvmlDeviceGetName.argtypes = [
+            ctypes.c_void_p, ctypes.c_char_p, ctypes.c_uint,
+        ]
+        _nvml_handle.nvmlDeviceGetName.restype = ctypes.c_uint
         _nvml_handle.nvmlShutdown.argtypes = []
         _nvml_handle.nvmlShutdown.restype = ctypes.c_uint
         ret = _nvml_handle.nvmlInit_v2()
@@ -115,6 +119,44 @@ def _query_nvml() -> Optional[float]:
         return None
 
 
+def _query_nvml_detail() -> Optional[dict]:
+    """Return detailed VRAM info, or None if unavailable."""
+    if not _init_nvml() or _nvml_handle is None or _nvml_device is None:
+        return None
+    try:
+        info = _NvmlMemoryInfo()
+        ret = _nvml_handle.nvmlDeviceGetMemoryInfo(
+            ctypes.c_void_p(_nvml_device), ctypes.byref(info)
+        )
+        if ret != 0 or info.total == 0:
+            return None
+
+        dev_name = "NVIDIA GPU"
+        try:
+            buf = ctypes.create_string_buffer(96)
+            if (
+                _nvml_handle.nvmlDeviceGetName(
+                    ctypes.c_void_p(_nvml_device), buf, 96
+                )
+                == 0
+            ):
+                dev_name = buf.value.decode("utf-8")
+        except Exception:
+            pass
+
+        used_gb = round(info.used / (1024**3), 2)
+        total_gb = round(info.total / (1024**3), 2)
+        pct = round((info.used / info.total) * 100, 1)
+        return {
+            "used": used_gb,
+            "total": total_gb,
+            "percent": pct,
+            "device": dev_name,
+        }
+    except Exception:
+        return None
+
+
 # ---------------------------------------------------------------------------
 # Win32 GlobalMemoryStatusEx (system RAM)
 # ---------------------------------------------------------------------------
@@ -154,9 +196,104 @@ def _query_ram() -> Optional[float]:
         return None
 
 
+def _query_ram_detail() -> Optional[dict]:
+    """Return detailed system RAM info, or None if unavailable."""
+    if sys.platform != "win32":
+        return None
+    try:
+        kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
+        stat = _MemoryStatusEx()
+        stat.dwLength = ctypes.sizeof(stat)
+        if not kernel32.GlobalMemoryStatusEx(ctypes.byref(stat)):
+            return None
+        if stat.ullTotalPhys == 0:
+            return None
+        used_bytes = stat.ullTotalPhys - stat.ullAvailPhys
+        used_gb = round(used_bytes / (1024**3), 2)
+        total_gb = round(stat.ullTotalPhys / (1024**3), 2)
+        pct = round(float(stat.dwMemoryLoad), 1)
+        return {
+            "used": used_gb,
+            "total": total_gb,
+            "percent": pct,
+        }
+    except Exception:
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Win32 CPU load query
+# ---------------------------------------------------------------------------
+
+class _FileTime(ctypes.Structure):
+    _fields_ = [("dwLowDateTime", ctypes.c_uint), ("dwHighDateTime", ctypes.c_uint)]
+
+
+def _filetime_to_int(ft: _FileTime) -> int:
+    return (ft.dwHighDateTime << 32) | ft.dwLowDateTime
+
+
+_prev_idle = 0
+_prev_total = 0
+_last_cpu_sample_time = 0.0
+_cached_cpu_pct = 0.0
+
+
+def _query_cpu_load() -> float:
+    """Return system CPU load percent [0..100]."""
+    global _prev_idle, _prev_total, _last_cpu_sample_time, _cached_cpu_pct
+    now = time.monotonic()
+    if now - _last_cpu_sample_time < 0.5:
+        return _cached_cpu_pct
+
+    if sys.platform != "win32":
+        return 0.0
+
+    try:
+        kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
+        idle = _FileTime()
+        kernel = _FileTime()
+        user = _FileTime()
+        if not kernel32.GetSystemTimes(
+            ctypes.byref(idle), ctypes.byref(kernel), ctypes.byref(user)
+        ):
+            return _cached_cpu_pct
+
+        curr_idle = _filetime_to_int(idle)
+        curr_kernel = _filetime_to_int(kernel)
+        curr_user = _filetime_to_int(user)
+        curr_total = curr_kernel + curr_user
+
+        if _prev_total > 0 and curr_total > _prev_total:
+            idle_delta = curr_idle - _prev_idle
+            total_delta = curr_total - _prev_total
+            if total_delta > 0:
+                pct = max(
+                    0.0,
+                    min(100.0, (1.0 - (idle_delta / total_delta)) * 100.0),
+                )
+                _cached_cpu_pct = round(pct, 1)
+
+        _prev_idle = curr_idle
+        _prev_total = curr_total
+        _last_cpu_sample_time = now
+        return _cached_cpu_pct
+    except Exception:
+        return _cached_cpu_pct
+
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
+def get_system_metrics() -> dict:
+    """Return full system resource snapshot (CPU, RAM, VRAM)."""
+    return {
+        "cpu": {"percent": _query_cpu_load()},
+        "ram": _query_ram_detail() or {"used": 0.0, "total": 0.0, "percent": 0.0},
+        "vram": _query_nvml_detail(),
+    }
+
 
 def get_memory_usage() -> tuple[Optional[float], str]:
     """Return (ratio, source) for current memory usage.
@@ -273,3 +410,14 @@ class ModelTracker:
         with self._lock:
             now = time.monotonic()
             return {k: now - v for k, v in self._access.items()}
+
+    def clear(self) -> None:
+        """Clear all tracked models."""
+        with self._lock:
+            self._access.clear()
+
+    def loaded_kinds(self) -> list[str]:
+        """Return list of currently tracked model kinds."""
+        with self._lock:
+            return list(self._access.keys())
+
