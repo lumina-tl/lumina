@@ -23,11 +23,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Koharu Layout RF-DETR Seg switched to FP16.** Switched weights to the optimized FP16 export (`koharu-layout-rfdetr-seg-2xl-1152-fp16.onnx`), cutting VRAM usage from ~5.9 GB down to ~3.2 GB (~45% reduction) and doubling inference speed. Requires re-downloading the model from Settings → Models if previously installed.
 - **General comic localization prompt template.** Overhauled `prompts/translate-default.md` into a neutral, highly capable localization instruction focused on dialogue naturalness, speech bubble spatial constraints, OCR cut-off reconstruction, and register matching without language-specific hardcoding.
 - **Baberu OCR token ceiling and description.** Raised `MAX_NEW_TOKENS` from 128 to 256 in the backend config to match Baberu OCR v1.2, allowing dense bubbles to decode completely, and updated model documentation.
 
 ### Fixed
 
+- **RF-DETR Seg memory overflow into system RAM.** Resolved GPU VRAM spiking to 100% and paging onto shared system memory by adopting FP16 weights and auto-casting input tensors in the detection pipeline.
 - **Translation provider & secrets persistence.** Fixed an issue where closing the settings modal from other tabs or opening saved project files caused the active translation provider to revert to Gemini and wiped out configured API keys due to stale DOM reads and single-key vault loads. All vault keys are now retrieved in parallel, and opening projects preserves user-level provider preferences.
 - **Translation settings link in pipeline bar.** Fixed shortcut button in pipeline dropdown linking to non-existent `"translate"` tab instead of `"translation"`.
 - **Baberu OCR text truncation.** Long narration and dialogue bubbles are no longer cut off mid-sentence, backed by Baberu OCR v1.2 weights and 256-token decoding.

@@ -76,5 +76,5 @@
 - [x] custom confirmation dialog when closing app with unsaved changes & model deletion
 - [x] resource monitoring (CPU/GPU/RAM usage) icon
 - [x] what's changed after update (changelog) dialog
-- [ ] fix koharu layout RF-DETR memory leak?
+- [x] fix koharu layout RF-DETR memory leak (switch to FP16 model, VRAM 5.9GB -> 3.2GB)
 - [ ] testing and hunt another bugs

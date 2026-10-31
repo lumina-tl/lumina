@@ -25,7 +25,14 @@ class RfDetrSegModel(BaseDetectModel):
 
         log.debug(f"Detect input: {image_path}")
         tensor, w, h = prep.preprocess(image_path)
-        outputs = [np.asarray(o) for o in session.run(None, {"input": tensor})]
+        inp_type = session.get_inputs()[0].type
+        if "float16" in inp_type:
+            tensor = tensor.astype(np.float16)
+
+        outputs = [
+            np.asarray(o, dtype=np.float32)
+            for o in session.run(None, {"input": tensor})
+        ]
         log.debug(f"ONNX outputs: {[list(o.shape) for o in outputs]}")
 
         dets, labels, masks = pp.split_outputs(session, outputs)

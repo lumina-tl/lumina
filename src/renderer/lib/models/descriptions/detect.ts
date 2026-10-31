@@ -19,19 +19,19 @@ export const DETECT_DESCS: ModelDescMap = {
 • Sumber: huggingface.co/ogkalu/comic-text-and-bubble-detector`,
   },
   rfdetr_seg: {
-    en: `Koharu Layout RF-DETR Seg 2XL (1152px, by ShiniShiho) — segmentation model that outputs precise per-text instance masks.
+    en: `Koharu Layout RF-DETR Seg 2XL (1152px, FP16) — segmentation model that outputs precise per-text instance masks.
 
 • Best-quality segmentation, but trained on the Manga109 dataset — academic/research use only (see License).
 • Produces a full-page binary text mask, so inpainting erases exactly the glyph pixels instead of a rough box — much better on colorful and detailed pages.
 • Onomatopoeia/SFX are deliberately kept as artwork, only text is erased.
 • Slower on CPU (~10-30s/page).
-• Source: huggingface.co/ShiniShiho/koharu-layout-rfdetr-seg-2xl-1152-onnx`,
-    id: `Koharu Layout RF-DETR Seg 2XL (1152px, oleh ShiniShiho) — model segmentasi yang menghasilkan mask per-teks yang presisi.
+• Source: huggingface.co/Kiznavierr/koharu-layout-rfdetr-seg-2xl-1152-onnx-fp16`,
+    id: `Koharu Layout RF-DETR Seg 2XL (1152px, FP16) — model segmentasi yang menghasilkan mask per-teks yang presisi.
 
 • Segmentasi kualitas terbaik, tetapi dilatih pada dataset Manga109 — khusus penggunaan akademik/riset (lihat License).
 • Menghasilkan mask teks biner satu halaman penuh, sehingga inpainting menghapus tepat piksel huruf, bukan kotak kasar — jauh lebih baik pada halaman berwarna dan detail.
 • Onomatope/SFX sengaja dipertahankan sebagai artwork, hanya teks yang dihapus.
 • Lebih lambat di CPU (~10-30 detik/halaman).
-• Sumber: huggingface.co/ShiniShiho/koharu-layout-rfdetr-seg-2xl-1152-onnx`,
+• Sumber: huggingface.co/Kiznavierr/koharu-layout-rfdetr-seg-2xl-1152-onnx-fp16`,
   },
 };

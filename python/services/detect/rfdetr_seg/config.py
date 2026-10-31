@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import numpy as np
 
-MODEL_ID = "ShiniShiho/koharu-layout-rfdetr-seg-2xl-1152-onnx"
-MODEL_FILENAME = "rfdetr-seg-2xlarge.onnx"
+MODEL_ID = "Kiznavierr/koharu-layout-rfdetr-seg-2xl-1152-onnx-fp16"
+MODEL_FILENAME = "koharu-layout-rfdetr-seg-2xl-1152-fp16.onnx"
 PREFER = "auto"  # full auto: CUDA -> DML -> CPU
 
 INPUT_SIZE = 1152  # fixed NCHW input, stretch-resized
