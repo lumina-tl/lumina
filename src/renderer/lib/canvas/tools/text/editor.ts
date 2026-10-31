@@ -17,8 +17,10 @@ export function removeEditor(commit: boolean): void {
   const ta = getEditor();
   if (!ta) return;
   const id = getEditingLayerId();
-  // Capture the resized box BEFORE the textarea is removed.
-  const rect = ta.getBoundingClientRect();
+  // Capture unrotated layout size BEFORE textarea is removed.
+  // Using getBoundingClientRect() would return the expanded AABB for rotated boxes.
+  const w = ta.offsetWidth;
+  const h = ta.offsetHeight;
   setEditor(null);
   setEditingLayerId(null);
   ta.remove();
@@ -34,8 +36,8 @@ export function removeEditor(commit: boolean): void {
       : null;
     if (lay) {
       const sr = canvas.getScaleRatio();
-      lay.bbox.w = Math.max(8, Math.round(rect.width / sr));
-      lay.bbox.h = Math.max(8, Math.round(rect.height / sr));
+      lay.bbox.w = Math.max(8, Math.round(w / sr));
+      lay.bbox.h = Math.max(8, Math.round(h / sr));
     }
     if (!value) {
       canvas.deleteLayer(id); // emptied text deletes the layer
@@ -109,19 +111,12 @@ export function startEdit(layerId: string): void {
   ta.id = "text-tool-editor";
   ta.value = initial;
   ta.style.position = "absolute";
-  ta.style.left = p.x + "px";
-  ta.style.top = p.y + "px";
-  ta.style.width = Math.max(80, lay.bbox.w * sr) + "px";
-  ta.style.height = Math.max(30, lay.bbox.h * sr) + "px";
-  ta.style.minWidth = "40px";
-  ta.style.minHeight = "20px";
   ta.style.background = "rgba(14,14,16,0.35)";
   ta.style.color = typo.color;
   ta.style.border = "none";
   ta.style.borderRadius = "2px";
   ta.style.padding = "0";
   ta.style.margin = "0";
-  ta.style.fontSize = dispFs + "px";
   ta.style.fontFamily = typo.fontFamily || "Arial, sans-serif";
   ta.style.fontStyle = typo.fontStyle;
   ta.style.fontWeight = String(typo.fontWeight);
@@ -151,6 +146,9 @@ export function startEdit(layerId: string): void {
   }
   konvaLayer.draw();
 
+  ta.addEventListener("mousedown", function (e) {
+    e.stopPropagation();
+  });
   ta.addEventListener("keydown", function (e) {
     e.stopPropagation();
     if (e.key === "Escape" || (e.key === "Enter" && !e.shiftKey)) {
@@ -172,9 +170,9 @@ export function startEdit(layerId: string): void {
   canvas.getStage()?.container().appendChild(ta);
   setEditor(ta);
   setEditingLayerId(layerId);
+  syncEditorBox();
   ta.focus();
   ta.select();
-  _fitLineHeight(ta);
 }
 
 /** Re-apply editing visuals after canvas.render() (zoom/pan/resize). */
@@ -210,19 +208,22 @@ export function syncEditorBox(): void {
   if (!lay) return;
   const sr = canvas.getScaleRatio();
   const p = imgToStage(lay.bbox.x, lay.bbox.y);
+  const w = Math.max(8, lay.bbox.w * sr);
+  const h = Math.max(8, lay.bbox.h * sr);
   ta.style.left = p.x + "px";
   ta.style.top = p.y + "px";
-  ta.style.width = Math.max(80, lay.bbox.w * sr) + "px";
-  ta.style.height = Math.max(30, lay.bbox.h * sr) + "px";
+  ta.style.width = w + "px";
+  ta.style.height = h + "px";
   const fs = (lay.typography.fontSize || Math.max(8, lay.bbox.h * 0.6)) * sr;
   ta.style.fontSize = fs + "px";
-  // Match the box rotation — spin the textarea around its center so it
-  // sits exactly over the rotated box (same geometry as the node glyphs).
+  // Match the box rotation — Konva.Group rotates around its top-left (p.x, p.y),
+  // so the textarea must also rotate around "0 0" (top-left) to align with the transformer.
   const rot = lay.bbox.rotation || lay.typography.rotation || 0;
   if (rot !== 0) {
-    ta.style.transformOrigin = "center center";
+    ta.style.transformOrigin = "0 0";
     ta.style.transform = "rotate(" + rot + "deg)";
   } else {
+    ta.style.transformOrigin = "";
     ta.style.transform = "";
   }
   _fitLineHeight(ta);

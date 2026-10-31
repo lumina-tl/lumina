@@ -69,7 +69,7 @@
 - [x] normalize log and add more debug log
 - [x] redesign UI
 - [x] export PDF support (combine rendered pages with pdf-lib)
-- [ ] detection tiling for long strip / high-resolution pages
+- [ ] ~~detection tiling for long strip / high-resolution pages~~
 - [x] manual inpaint & erase area from selection context bar
 - [x] delete downloaded models in settings (unload VRAM & remove files)
 - [x] fix canvas transformer hit-test & OCR live bbox flush
