@@ -87,6 +87,10 @@ export const settings = {
   },
 
   switchTab(tabId: string): void {
+    const prevTab = TABS.find((t) => t.id === _activeTab);
+    if (prevTab && prevTab.id !== tabId && prevTab.commit) {
+      prevTab.commit();
+    }
     _activeTab = tabId;
     document.querySelectorAll<HTMLElement>(".settings-tab").forEach((t) => {
       t.classList.toggle("active", t.dataset.tab === tabId);
@@ -116,10 +120,9 @@ export const settings = {
   },
 
   close(): void {
-    // Commit pending edits from all tabs before closing (e.g. pasted api keys)
-    for (const tab of TABS) {
-      if (tab.commit) tab.commit();
-    }
+    // Commit pending edits only from the active tab before closing
+    const activeTab = TABS.find((t) => t.id === _activeTab);
+    if (activeTab?.commit) activeTab.commit();
     const overlay = document.getElementById("settings-overlay");
     if (overlay) overlay.classList.remove("show");
   },

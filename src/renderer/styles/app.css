@@ -1,6 +1,10 @@
 /* ── Lumina Custom Styles ── */
 /* VS Code 2026 Dark inspired — layered depth, strategic accent */
 
+:root {
+  color-scheme: dark;
+}
+
 /* ── Animations ── */
 @keyframes spin {
   from {
@@ -644,19 +648,30 @@ body.resizing-settings * {
 }
 
 .field-select {
+  color-scheme: dark;
   padding: 5px 10px;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(20, 20, 24, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 6px;
-  color: #e2e2e8;
+  color: #f4f4f5;
   font-size: 0.75rem;
   outline: none;
   cursor: pointer;
   transition: all 0.15s ease;
 }
+.field-select:hover {
+  background: rgba(28, 28, 34, 0.95);
+  border-color: rgba(255, 255, 255, 0.24);
+}
 .field-select:focus {
   border-color: #e94560;
   box-shadow: 0 0 0 2px rgba(233, 69, 96, 0.2);
+}
+select option,
+.field-select option {
+  background-color: #18181c;
+  color: #f4f4f5;
+  padding: 6px 10px;
 }
 /* ── Toggle switch (settings) ── */
 .toggle {
@@ -4438,6 +4453,113 @@ body.resizing-row {
 }
 .status-dl-speed {
   color: var(--color-text-muted);
+}
+
+/* ── Settings: Translation Tab Redesign ── */
+.tr-provider-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+@media (min-width: 600px) {
+  .tr-provider-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.tr-provider-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  min-height: 74px;
+}
+.tr-provider-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-1px);
+}
+.tr-provider-card.active {
+  background: rgba(233, 69, 96, 0.1);
+  border-color: #e94560;
+  box-shadow: 0 0 12px rgba(233, 69, 96, 0.15);
+}
+.tr-provider-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.tr-provider-card-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-muted);
+}
+.tr-provider-card.active .tr-provider-card-icon {
+  color: #ff7b92;
+}
+.tr-provider-radio {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+.tr-provider-card.active .tr-provider-radio {
+  border-color: #e94560;
+  background: #e94560;
+}
+.tr-provider-radio-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #fff;
+  display: none;
+}
+.tr-provider-card.active .tr-provider-radio-dot {
+  display: block;
+}
+.tr-provider-name {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+}
+.tr-provider-sub {
+  font-size: 0.64rem;
+  color: var(--color-text-muted);
+  line-height: 1.2;
+  margin-top: 2px;
+}
+.tr-var-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.65rem;
+  color: #7aa2f7;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  user-select: none;
+}
+.tr-var-pill:hover {
+  background: rgba(122, 162, 247, 0.15);
+  border-color: rgba(122, 162, 247, 0.35);
+  color: #a5c3f9;
 }
 
 

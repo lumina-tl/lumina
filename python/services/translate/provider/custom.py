@@ -1,4 +1,4 @@
-"""Custom LLM provider — user-configured base URL + style."""
+"""Custom LLM provider — OpenAI-compatible chat completions."""
 from __future__ import annotations
 
 from .._base import (
@@ -8,51 +8,35 @@ from .._base import (
     build_system_instruction,
     parse_batch_response,
 )
+from ..protocol.openai import chat
 from utils.logger import log
 
 
-def _resolve(config: dict) -> tuple[str, str, str, str]:
-    """(base_url, style, api_key, model) — plain llm* fields, no presets."""
-    style = (config.get("llmStyle") or "openai").lower()
+def _resolve(config: dict) -> tuple[str, str, str]:
+    """(base_url, api_key, model) — plain llm* fields, no presets."""
     return (
         config.get("llmBaseUrl") or "",
-        style,
         config.get("llmApiKey") or "",
         config.get("llmModel") or "",
     )
 
 
-def _chat(
-    base_url: str,
-    api_key: str,
-    model: str,
-    style: str,
-    system: str,
-    user: str,
-    json_mode: bool = False,
-) -> str:
-    if style == "anthropic":
-        from ..protocol.anthropic import chat as chat_anthropic
-
-        return chat_anthropic(base_url, api_key, model, system, user)
-    from ..protocol.openai import chat as chat_openai
-
-    return chat_openai(base_url, api_key, model, system, user, json_mode=json_mode)
-
-
 def translate(text: str, target: str, config: dict) -> str:
-    base_url, style, api_key, model = _resolve(config)
+    base_url, api_key, model = _resolve(config)
     if not base_url:
         raise TranslateError("LLM base URL not configured")
     if not model:
         raise TranslateError("LLM model not configured")
-    log.debug(f"Custom translate: style={style} model={model}")
+    log.debug(f"Custom translate: model={model}")
     system = build_system_instruction(config, target)
     prev = config.get("previousLines") or ""
     if isinstance(prev, list):
         prev = " / ".join(str(p) for p in prev if p)
-    return _chat(
-        base_url, api_key, model, style, system,
+    return chat(
+        base_url,
+        api_key,
+        model,
+        system,
         build_single_prompt(text, target, previous_line=prev),
     )
 
@@ -60,17 +44,16 @@ def translate(text: str, target: str, config: dict) -> str:
 def translate_batch(
     texts: list[str], target: str, config: dict
 ) -> list[str]:
-    base_url, style, api_key, model = _resolve(config)
+    base_url, api_key, model = _resolve(config)
     if not base_url:
         raise TranslateError("LLM base URL not configured")
     if not model:
         raise TranslateError("LLM model not configured")
     system = build_system_instruction(config, target)
-    raw = _chat(
+    raw = chat(
         base_url,
         api_key,
         model,
-        style,
         system,
         build_batch_prompt(
             texts,
@@ -81,3 +64,4 @@ def translate_batch(
         json_mode=True,
     )
     return parse_batch_response(raw, len(texts))
+

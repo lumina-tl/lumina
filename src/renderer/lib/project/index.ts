@@ -62,7 +62,6 @@ function buildPayload(savePath: string | null): ProjectSavePayload {
     targetLang: cfg.targetLang,
     llmBaseUrl: cfg.llmBaseUrl,
     llmModel: cfg.llmModel,
-    llmStyle: cfg.llmStyle,
     llmInstruction: cfg.llmInstruction,
     openrouterModel: cfg.openrouterModel,
     grokModel: cfg.grokModel,
@@ -365,7 +364,13 @@ export const project = {
     });
 
     if (result.settings) {
-      translateSettings.save(result.settings as unknown as TranslateConfig);
+      const current = translateSettings.load();
+      translateSettings.save({
+        ...current,
+        targetLang: result.settings.targetLang || current.targetLang,
+        llmInstruction:
+          result.settings.llmInstruction || current.llmInstruction,
+      });
     }
 
     setSavePath(result.projectPath);

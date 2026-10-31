@@ -19,13 +19,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Save as PSD document** add support to save as photshop document. this features is `preview` only, not stable yet.
 - **"What's New" & Developer Notes dialog.** Interactive modal window that parses `CHANGELOG.md` and displays localized release announcements upon version updates, complete with actionable shortcuts to Settings and manual access from the Help menu.
 - **Minimizable download progress to status bar.** Floating download progress card can now be minimized directly to a compact status bar chip, keeping the workspace and page strip clear while displaying live percentage and speed. Clicking the status bar chip restores the full floating card.
+- **Redesigned translation settings UI.** Replaced legacy provider dropdown and raw input fields with responsive provider cards (Google Gemini, OpenRouter, xAI / Groq, Custom OpenAI), target language selector with popular comic translation presets and custom code support, interactive placeholder chips, and quick reset/clear actions.
 
 ### Changed
 
+- **General comic localization prompt template.** Overhauled `prompts/translate-default.md` into a neutral, highly capable localization instruction focused on dialogue naturalness, speech bubble spatial constraints, OCR cut-off reconstruction, and register matching without language-specific hardcoding.
 - **Baberu OCR token ceiling and description.** Raised `MAX_NEW_TOKENS` from 128 to 256 in the backend config to match Baberu OCR v1.2, allowing dense bubbles to decode completely, and updated model documentation.
 
 ### Fixed
 
+- **Translation provider & secrets persistence.** Fixed an issue where closing the settings modal from other tabs or opening saved project files caused the active translation provider to revert to Gemini and wiped out configured API keys due to stale DOM reads and single-key vault loads. All vault keys are now retrieved in parallel, and opening projects preserves user-level provider preferences.
+- **Translation settings link in pipeline bar.** Fixed shortcut button in pipeline dropdown linking to non-existent `"translate"` tab instead of `"translation"`.
 - **Baberu OCR text truncation.** Long narration and dialogue bubbles are no longer cut off mid-sentence, backed by Baberu OCR v1.2 weights and 256-token decoding.
 - **Rotated text in-place editor alignment.** In-place textarea now rotates around its top-left origin to match the Konva group and transformer coordinates when editing rotated/slanted text layers, instead of rendering as an unrotated detached rectangle.
 - **Selection marquee and context bar sync on zoom/pan.** Marching ants overlay and floating action bar now correctly re-anchor and scale during wheel zoom and pan operations instead of desynchronizing.
@@ -42,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **Anthropic compatible protocol.** Removed Anthropic Messages API client, dependencies, and settings switches in favor of the industry-standard OpenAI `/v1/chat/completions` protocol for all custom and self-hosted inference (Ollama, LM Studio, vLLM, etc.).
 - **Bubble detections.** Detection pipeline no longer returns or processes speech bubble boxes — only text boxes and the full-page text mask (RF-DETR-seg) are kept. This simplifies the pipeline and reduces unnecessary compute on unused classes.
 
 ## [0.4.0] - 13-09-2026

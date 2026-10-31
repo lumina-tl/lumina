@@ -65,7 +65,6 @@ class TranslateConfig(BaseModel):
     llmBaseUrl: str | None = None
     llmApiKey: str | None = None
     llmModel: str | None = None
-    llmStyle: str | None = None  # "openai" | "anthropic" (custom provider only)
     llmInstruction: str | None = None
     openrouterApiKey: str | None = None
     openrouterModel: str | None = None

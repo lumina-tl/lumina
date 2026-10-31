@@ -376,18 +376,22 @@ function _renderTranslateDropdown(root: HTMLElement): void {
     {
       id: "gemini",
       name: "Google Gemini",
-      sub: cfg.geminiModel || "gemini-2.0-flash",
+      sub: cfg.geminiModel || "gemini-3.5-flash-lite",
     },
     {
       id: "openrouter",
       name: "OpenRouter",
-      sub: cfg.openrouterModel || "openai/gpt-4o-mini",
+      sub: cfg.openrouterModel || "deepseek/deepseek-v4.1-flash",
     },
-    { id: "grok", name: "xAI Grok", sub: cfg.grokModel || "grok-3" },
+    {
+      id: "grok",
+      name: "xAI / Groq",
+      sub: cfg.grokModel || "qwen/qwen3.8-27b",
+    },
     {
       id: "custom",
       name: "Custom LLM",
-      sub: cfg.llmModel || "openai-compatible",
+      sub: cfg.llmModel || "gpt-4o-mini",
     },
   ];
 
@@ -439,7 +443,7 @@ function _renderTranslateDropdown(root: HTMLElement): void {
     ?.addEventListener("click", (e) => {
       e.stopPropagation();
       _closeDropdowns();
-      settings.open("translate");
+      settings.open("translation");
     });
 }
 

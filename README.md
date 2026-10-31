@@ -161,7 +161,7 @@ Translation is the only step that calls an external AI API — everything else (
 
 | Provider   | Compatible with                         | Notes                                                                                                                                            |
 | ---------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Custom     | Any OpenAI- or Anthropic-compatible API | Bring your own base URL (Ollama, LM Studio, vLLM, OpenRouter, etc.); an `anthropic` style switch is available for Anthropic-compatible endpoints |
+| Custom     | Any OpenAI-compatible API               | Bring your own base URL (Ollama, LM Studio, vLLM, local inference, etc.) and model name                                                         |
 | OpenRouter | OpenRouter                              | Uses your OpenRouter key and model                                                                                                               |
 | Groq       | Groq (GroqCloud)                        | Uses your Groq key and model                                                                                                                     |
 | Gemini     | Google Gemini                           | Uses your Gemini API key                                                                                                                         |

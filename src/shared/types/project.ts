@@ -32,7 +32,6 @@ export interface ProjectSettingsData {
   targetLang?: string;
   llmBaseUrl?: string;
   llmModel?: string;
-  llmStyle?: string;
   llmInstruction?: string;
   openrouterModel?: string;
   grokModel?: string;

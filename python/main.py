@@ -106,7 +106,6 @@ def _warmup_llm_sdks() -> None:
     """
     try:
         import openai  # noqa: F401
-        import anthropic  # noqa: F401
 
         log.debug("LLM SDK warmup complete")
     except Exception as e:

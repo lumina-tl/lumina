@@ -30,7 +30,6 @@ export interface TranslateConfig {
   llmBaseUrl: string;
   llmApiKey: string;
   llmModel: string;
-  llmStyle: "openai" | "anthropic";
   llmInstruction: string;
   openrouterApiKey: string;
   openrouterModel: string;
@@ -47,15 +46,14 @@ function defaultConfig(): TranslateConfig {
     llmBaseUrl: "",
     llmApiKey: "",
     llmModel: "gpt-4o-mini",
-    llmStyle: "openai",
     // Empty = use default from prompts/translate-default.md (backend side)
     llmInstruction: "",
     openrouterApiKey: "",
-    openrouterModel: "openai/gpt-4o-mini",
+    openrouterModel: "deepseek/deepseek-v4.1-flash",
     grokApiKey: "",
-    grokModel: "grok-3",
+    grokModel: "qwen/qwen3.8-27b",
     geminiApiKey: "",
-    geminiModel: "gemini-2.0-flash",
+    geminiModel: "gemini-3.5-flash-lite",
   };
 }
 
@@ -83,7 +81,6 @@ export const translateSettings = {
       targetLang: cfg.targetLang,
       llmBaseUrl: cfg.llmBaseUrl,
       llmModel: cfg.llmModel,
-      llmStyle: cfg.llmStyle,
       llmInstruction: cfg.llmInstruction,
       openrouterModel: cfg.openrouterModel,
       grokModel: cfg.grokModel,
@@ -120,25 +117,22 @@ export const translateSettings = {
   /** Full config incl. api keys — call before POST /translate */
   async loadWithSecrets(): Promise<TranslateConfig> {
     const cfg = this.load();
-    // Only fetch the vault key for the active provider to avoid
-    // repeated MISS logs and unnecessary IPC round-trips.
-    const vaultKey = (
-      {
-        custom: "llmApiKey",
-        openrouter: "openrouterApiKey",
-        grok: "grokApiKey",
-        gemini: "geminiApiKey",
-      } as const
-    )[cfg.provider];
-    if (vaultKey && window.lumina.getSecrets) {
+    if (window.lumina.getSecrets) {
       try {
-        const secrets = await window.lumina.getSecrets([vaultKey]);
-        const val = secrets[vaultKey] || "";
-        // vaultKey is always a valid TranslateConfig key
-        cfg[vaultKey as keyof TranslateConfig] = val as never;
+        const keys = [
+          "llmApiKey",
+          "openrouterApiKey",
+          "grokApiKey",
+          "geminiApiKey",
+        ];
+        const secrets = await window.lumina.getSecrets(keys);
+        cfg.llmApiKey = secrets["llmApiKey"] || "";
+        cfg.openrouterApiKey = secrets["openrouterApiKey"] || "";
+        cfg.grokApiKey = secrets["grokApiKey"] || "";
+        cfg.geminiApiKey = secrets["geminiApiKey"] || "";
         log.debug(
           "fe",
-          `secrets load: provider=${cfg.provider} ${vaultKey}=${val ? "set" : "empty"}`,
+          `secrets load: provider=${cfg.provider} custom=${cfg.llmApiKey ? "set" : "empty"} openrouter=${cfg.openrouterApiKey ? "set" : "empty"} grok=${cfg.grokApiKey ? "set" : "empty"} gemini=${cfg.geminiApiKey ? "set" : "empty"}`,
         );
       } catch {
         /* vault unavailable — proceed with empty keys */
