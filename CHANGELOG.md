@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 07-11-2026
+
 ### Added
 
 - **Real-time resource monitoring.** Status bar chip displaying live CPU load, system RAM, dedicated GPU VRAM (via NVIDIA NVML), and active AI models count. Clicking opens a detailed breakdown popover with usage progress bars and an "Unload Models" quick action to purge idle model weights from VRAM/RAM.
@@ -16,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Compact selection context bar.** Redesigned the floating selection bar into a compact pill using Lucide icons and concise labels with uniform flat buttons.
 - **PDF document export.** Combine and export rendered pages in project sequence into a single PDF document using pdf-lib (thanks @B0bul0).
 - **Pipeline preset dropdown.** "Run All" split button lets you pick "Full Pipeline" or "Clean Only" preset. Choice persists across sessions.
-- **Save as PSD document** add support to save as photshop document. this features is `preview` only, not stable yet.
+- **Save as PSD document.** Added support to export pages as Photoshop (PSD) documents. This feature is currently in preview.
 - **"What's New" & Developer Notes dialog.** Interactive modal window that parses `CHANGELOG.md` and displays localized release announcements upon version updates, complete with actionable shortcuts to Settings and manual access from the Help menu.
 - **Minimizable download progress to status bar.** Floating download progress card can now be minimized directly to a compact status bar chip, keeping the workspace and page strip clear while displaying live percentage and speed. Clicking the status bar chip restores the full floating card.
 - **Redesigned translation settings UI.** Replaced legacy provider dropdown and raw input fields with responsive provider cards (Google Gemini, OpenRouter, xAI / Groq, Custom OpenAI), target language selector with popular comic translation presets and custom code support, interactive placeholder chips, and quick reset/clear actions.

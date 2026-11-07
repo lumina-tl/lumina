@@ -2,10 +2,6 @@
 
 Lumina is a free, open-source desktop app for translating manga, manhwa, and manhua. It automates the full pipeline — text detection, OCR, translation, inpainting, and typesetting — while keeping every step editable. All models run locally on ONNX Runtime; translation is the only step that calls external AI APIs.
 
-> [!NOTE]
-> **Is this project abandoned? Nope!**
-> Active development is temporarily on hold while I focus on university coursework and other projects. Work will resume around the semester break, with plans including fine-tuning custom models.
-
 See the [documentation website](https://lumina.navierr.dev/) for guides and details.
 
 ![Lumina main interface](showcase/screenshot.png)
@@ -29,11 +25,13 @@ See the [documentation website](https://lumina.navierr.dev/) for guides and deta
 ## Features
 
 - **Semi-automatic pipeline** — detection, OCR, translation, inpainting, and typesetting are automated, but every step stays editable: detected boxes can be re-ordered or corrected by hand, OCR text can be edited or retranslated per line, and inpaint masks are individual layers you can toggle, move, or remove before export.
-- **Content-aware inpainting** with per-bubble masks, plus an automatic full-page mask from segmentation-based detection.
-- **Selection tools** — lasso and rectangle with multi-selection refinement: Shift to add or merge, Alt to subtract.
+- **Content-aware inpainting** with per-text instance masks, plus an automatic full-page mask from segmentation-based detection (`rfdetr_seg`).
+- **Selection tools** — lasso and rectangle with multi-selection refinement (Shift to add/merge, Alt to subtract) and quick actions (manual inpaint / mask erase).
 - **Typesetting helpers** — auto-detected text color and slant, auto-fit fonts, per-layer typography.
-- Project save/import in a single `.lmi` file, registered as a file association — double-clicking a `.lmi` project opens it directly in Lumina; PNG/JPG export with drag-and-drop reordering.
-- **GPU acceleration** with per-model execution provider control.
+- **Flexible export** — export pages to PNG/JPG or combine pages into a single PDF document with drag-and-drop page reordering.
+- **Resource monitoring & management** — live status bar monitoring for CPU, system RAM, GPU VRAM, and active models with one-click model cache purging.
+- Project save/import in a single `.lmi` file, registered as a file association — double-clicking a `.lmi` project opens it directly in Lumina.
+- **GPU acceleration** with per-model execution provider control (NVIDIA CUDA and DirectML).
 
 ## Showcase
 
@@ -163,7 +161,7 @@ Translation is the only step that calls an external AI API — everything else (
 | ---------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Custom     | Any OpenAI-compatible API               | Bring your own base URL (Ollama, LM Studio, vLLM, local inference, etc.) and model name                                                         |
 | OpenRouter | OpenRouter                              | Uses your OpenRouter key and model                                                                                                               |
-| Groq       | Groq (GroqCloud)                        | Uses your Groq key and model                                                                                                                     |
+| xAI / Groq | Groq (GroqCloud) / xAI Grok             | Uses your Groq or xAI API key and model                                                                                                          |
 | Gemini     | Google Gemini                           | Uses your Gemini API key                                                                                                                         |
 
 - **API keys stay local and encrypted.** Keys are stored in Lumina's local secrets vault — encrypted with your operating system's credential facility (DPAPI on Windows, Keychain on macOS, libsecret on Linux) and persisted to `secrets.json` in the app's user-data folder. They are never written to project files (`.lmi`) or sent anywhere except directly to the provider you configured. If the OS encryption facility is unavailable, a fallback (base64 obfuscation) is used rather than failing.

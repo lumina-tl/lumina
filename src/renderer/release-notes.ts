@@ -25,8 +25,8 @@ export function resolveLocalized(text: LocalizedText | undefined, lang: string):
 
 export const developerNotices: DeveloperNotice[] = [
   {
-    id: "notice-rfdetr-seg-fp16-v040",
-    version: "0.4.0",
+    id: "notice-rfdetr-seg-fp16-v050",
+    version: "0.5.0",
     type: "info",
     badge: {
       en: "Model Update",
@@ -49,8 +49,8 @@ export const developerNotices: DeveloperNotice[] = [
     },
   },
   {
-    id: "notice-baberu-ocr-weights-v040",
-    version: "0.4.0",
+    id: "notice-baberu-ocr-weights-v050",
+    version: "0.5.0",
     type: "info",
     badge: {
       en: "Model Update",
