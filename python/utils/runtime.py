@@ -16,6 +16,7 @@ def _register_nvidia_dlls() -> None:
         return
     try:
         import onnxruntime as _ort
+        _ort.preload_dlls()
 
         ort_root = Path(_ort.__file__).resolve().parent
         # Roots that may contain a sibling `nvidia/` tree: the folder the
@@ -44,6 +45,7 @@ _register_nvidia_dlls()
 
 try:  # pragma: no cover - import failure only on broken installs
     import onnxruntime as ort
+    ort.preload_dlls()
 except ImportError:
     ort = None
 
