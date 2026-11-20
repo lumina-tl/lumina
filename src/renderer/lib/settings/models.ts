@@ -54,7 +54,7 @@ export const modelsTab = {
     models.onDeviceChange(() => this._refreshGpuBadges(pane));
     // CUDA runtime download → gate the model download buttons + GPU card.
     models.onRuntimeProgress?.((p) => {
-      if (p.state === "downloading") {
+      if (p.state === "downloading" || p.state === "extracting") {
         this._setDownloadButtonsDisabled(true);
       } else if (p.state === "ready" || p.state === "error") {
         this._setDownloadButtonsDisabled(false);
@@ -523,6 +523,10 @@ export const modelsTab = {
     const badge = card.querySelector<HTMLElement>(".model-gpu-badge");
     if (badge && (p.state === "downloading" || p.state === "extracting")) {
       badge.classList.add("on");
+      badge.textContent =
+        p.state === "extracting"
+          ? i18n.t("settings.runtimeExtracting")
+          : i18n.t("settings.runtimeDownloading");
     }
   },
 

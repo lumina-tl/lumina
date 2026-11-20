@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Live progress bar for extraction phase.** Real-time progress bar and percentage tracking during CUDA runtime extraction, transitioning smoothly from download to unpacking without appearing frozen at 100% (fixes lumina-tl/lumina#1).
+
+### Fixed
+
+- **CUDA runtime extraction progress parsing and stall.** Fixed 7-Zip stdout progress parsing failure in `extract7z` and wired the `extracting` state into the UI download toast and settings card (fixes lumina-tl/lumina#1).
+
 ## [0.5.0] - 07-11-2026
 
 ### Added

@@ -36,12 +36,24 @@ export function initProgressHandlers(): void {
   // CUDA runtime download — same toast, highest priority. While it runs,
   // model downloads and the app update queue behind it.
   window.lumina.onRuntimeProgress((p: RuntimeProgress) => {
-    s.runtimeBusy = p.state === "downloading";
+    s.runtimeBusy = p.state === "downloading" || p.state === "extracting";
+    for (const cb of s.runtimeCbs) cb(p);
+
     if (p.state === "downloading") {
       if (!document.getElementById("dl-toast")) {
         ui.downloadToast(i18n.t("toast.runtimeDownloading"));
+      } else {
+        ui.setDownloadToastTitle(i18n.t("toast.runtimeDownloading"));
       }
       ui.updateDownloadToast(p.percent || 0, p.transferred || 0, p.total || 0);
+    } else if (p.state === "extracting") {
+      if (!document.getElementById("dl-toast")) {
+        ui.downloadToast(i18n.t("toast.runtimeExtracting"));
+      } else {
+        ui.setDownloadToastTitle(i18n.t("toast.runtimeExtracting"));
+        document.getElementById("dl-cancel")?.remove();
+      }
+      ui.updateDownloadToast(p.percent || 0, 0, 0);
     } else if (p.state === "ready") {
       ui.dismissDownloadToast();
       ui.toast(i18n.t("toast.runtimeInstalled"), "success", 4000);

@@ -420,6 +420,14 @@ export const ui = {
     }, 220);
   },
 
+  /** Update title of the active download toast and status item */
+  setDownloadToastTitle(msg: string): void {
+    const titleEl = document.getElementById("dl-msg");
+    if (titleEl) titleEl.textContent = msg;
+    const statusLabel = document.getElementById("status-dl-label");
+    if (statusLabel) statusLabel.textContent = msg;
+  },
+
   /** Update the active download toast progress */
   updateDownloadToast(
     progress: number,
@@ -439,10 +447,15 @@ export const ui = {
 
     if (pctEl) pctEl.textContent = pctText;
     if (barEl) barEl.style.width = Math.min(100, progress || 0) + "%";
-    if (sizeEl && total > 0) {
-      sizeEl.textContent = _fmtSize(downloaded) + " / " + _fmtSize(total);
+    if (sizeEl) {
+      sizeEl.textContent =
+        total > 0 ? _fmtSize(downloaded) + " / " + _fmtSize(total) : "";
     }
-    if (speedEl || statusSpeed) {
+    if (total <= 0) {
+      if (speedEl) speedEl.textContent = "";
+      if (statusSpeed) statusSpeed.textContent = "";
+      _dlSamples = [];
+    } else if (speedEl || statusSpeed) {
       const now = Date.now();
       _dlSamples.push({ t: now, b: downloaded });
       // keep ~5s window

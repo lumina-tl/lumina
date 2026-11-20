@@ -77,5 +77,7 @@
 - [x] resource monitoring (CPU/GPU/RAM usage) icon
 - [x] what's changed after update (changelog) dialog
 - [x] fix koharu layout RF-DETR memory leak (switch to FP16 model, VRAM 5.9GB -> 3.2GB)
-- [ ] add progress bar for extraction phase
+- [x] add progress bar for extraction phase
+- [ ] multi collor support on text tool
+- [ ] multi font support on text tool
 - [ ] testing and hunt another bugs

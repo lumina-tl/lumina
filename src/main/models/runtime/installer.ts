@@ -131,11 +131,11 @@ async function ensureInternal(): Promise<void> {
         }
       }
     });
+    push({ state: "extracting", percent: 0 });
     const got = await sha512File(archive);
     if (got !== info.sha512) {
       throw new Error(`sha512 mismatch: expected ${info.sha512}, got ${got}`);
     }
-    push({ state: "extracting", percent: 0 });
     await extract7z(archive, cudaDir(), (pct) => {
       push({ state: "extracting", percent: pct });
     });

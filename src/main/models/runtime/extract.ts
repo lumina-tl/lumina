@@ -3,6 +3,7 @@ import { spawn } from "child_process";
 import fs from "fs";
 import path from "path";
 import { createHash } from "crypto";
+import { app } from "electron";
 
 export async function sha512File(file: string): Promise<string> {
   const h = createHash("sha512");
@@ -17,37 +18,15 @@ export async function sha512File(file: string): Promise<string> {
 
 function sevenZrPath(): string | null {
   const res = process.resourcesPath;
+  const appPath = app?.getAppPath ? app.getAppPath() : process.cwd();
   const candidates = [
     path.join(res, "7zr.exe"),
     path.join(res, "resources", "7zr.exe"),
     path.join(res, "ort", "7zr.exe"),
+    path.join(appPath, "build", "7zr.exe"),
+    path.join(process.cwd(), "build", "7zr.exe"),
   ];
   return candidates.find((c) => fs.existsSync(c)) || null;
-}
-
-function countFiles7z(archive: string): Promise<number> {
-  const exe = sevenZrPath();
-  if (!exe)
-    return Promise.reject(new Error("7zr.exe not found in app resources"));
-  return new Promise((resolve, reject) => {
-    const p = spawn(exe, ["l", archive], {
-      windowsHide: true,
-      stdio: ["ignore", "pipe", "pipe"],
-    });
-    let out = "";
-    p.stdout?.on("data", (d: Buffer) => {
-      out += d.toString();
-    });
-    p.on("error", reject);
-    p.on("exit", (code) => {
-      if (code !== 0) {
-        reject(new Error(`7zr list failed (exit ${code})`));
-        return;
-      }
-      const m = out.match(/Files:\s+(\d+)/i);
-      resolve(m ? parseInt(m[1], 10) : 0);
-    });
-  });
 }
 
 export function extract7z(
@@ -59,36 +38,48 @@ export function extract7z(
   if (!exe)
     return Promise.reject(new Error("7zr.exe not found in app resources"));
   fs.mkdirSync(dest, { recursive: true });
-  return countFiles7z(archive).then(
-    (totalFiles) =>
-      new Promise<void>((resolve, reject) => {
-        const p = spawn(exe, ["x", archive, `-o${dest}`, "-y"], {
-          windowsHide: true,
-          stdio: ["ignore", "pipe", "pipe"],
-        });
-        let extracted = 0;
-        let lastPct = -1;
-        p.stdout?.on("data", (d: Buffer) => {
-          const matches = d.toString().match(/Extracting/g);
-          if (matches) {
-            extracted += matches.length;
-            if (totalFiles > 0) {
-              const pct = Math.min(
-                100,
-                Math.round((extracted / totalFiles) * 100),
-              );
-              if (pct !== lastPct) {
-                lastPct = pct;
-                onProgress?.(pct);
-              }
-            }
+
+  return new Promise<void>((resolve, reject) => {
+    const p = spawn(exe, ["x", archive, `-o${dest}`, "-y", "-bsp1"], {
+      windowsHide: true,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+
+    let lastPct = -1;
+    let buf = "";
+    let errOut = "";
+
+    p.stdout?.on("data", (d: Buffer) => {
+      buf += d.toString();
+      const matches = [...buf.matchAll(/(\d{1,3})%/g)];
+      if (matches.length > 0) {
+        const latest = parseInt(matches[matches.length - 1][1], 10);
+        if (!Number.isNaN(latest)) {
+          const pct = Math.min(100, Math.max(0, latest));
+          if (pct !== lastPct) {
+            lastPct = pct;
+            onProgress?.(pct);
           }
-        });
-        p.on("error", reject);
-        p.on("exit", (code) => {
-          if (code === 0) resolve();
-          else reject(new Error(`7zr extract failed (exit ${code})`));
-        });
-      }),
-  );
+        }
+        if (buf.length > 100) {
+          buf = buf.slice(-32);
+        }
+      }
+    });
+
+    p.stderr?.on("data", (d: Buffer) => {
+      errOut += d.toString();
+    });
+
+    p.on("error", reject);
+    p.on("exit", (code) => {
+      if (code === 0) {
+        if (lastPct < 100) onProgress?.(100);
+        resolve();
+      } else {
+        const detail = errOut.trim() ? `: ${errOut.trim()}` : "";
+        reject(new Error(`7zr extract failed (exit ${code})${detail}`));
+      }
+    });
+  });
 }
