@@ -81,6 +81,8 @@ class TranslateRequest(BaseModel):
     previousLines: list[str] | None = None
     # Optional per-text segment type (text_bubble/text_free/...), aligned by index
     types: list[str] | None = None
+    # Optional full page context (e.g. for single-line retranslate)
+    pageContext: str | None = None
 
 
 class TranslateResult(BaseModel):

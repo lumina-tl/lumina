@@ -33,8 +33,16 @@ def translate(text: str, target: str, config: dict) -> str:
     if isinstance(prev, list):
         prev = " / ".join(str(p) for p in prev if p)
     return chat(
-        base_url, api_key, model, system,
-        build_single_prompt(text, target, previous_line=prev),
+        base_url,
+        api_key,
+        model,
+        system,
+        build_single_prompt(
+            text,
+            target,
+            previous_line=prev,
+            page_context=config.get("pageContext"),
+        ),
     )
 
 
@@ -55,6 +63,7 @@ def translate_batch(
             target,
             previous_lines=config.get("previousLines"),
             types=config.get("types"),
+            page_context=config.get("pageContext"),
         ),
         json_mode=True,
     )

@@ -29,6 +29,7 @@ def translate_batch(
         target,
         previous_lines=config.get("previousLines"),
         types=config.get("types"),
+        page_context=config.get("pageContext"),
     )
 
     url = f"{_API_BASE}/models/{model}:generateContent?key={api_key}"

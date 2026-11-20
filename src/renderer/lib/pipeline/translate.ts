@@ -176,13 +176,46 @@ export const translate = {
         texts: withText.map(function (d) {
           return d.text;
         }),
-        // Full continuity context per segment: ALL preceding lines in reading
-        // order (already-translated where available), so the model can complete
-        // truncated OCR text and keep names/terms consistent — not just the
-        // immediately previous line.
+        // Full continuity context per segment: preceding dialogue from the
+        // previous page (if any) plus ALL preceding lines on the current page
+        // in reading order (already-translated where available), so the model
+        // can complete truncated OCR text and keep names/terms consistent.
         previousLines: (function () {
           const ctx: string[] = [];
           const acc: string[] = [];
+
+          // Multi-page continuity: include last 3-5 lines from previous page
+          if (state.activePageIdx !== null && state.activePageIdx > 0) {
+            const prevPage = state.pages[state.activePageIdx - 1];
+            if (prevPage) {
+              const prevDialogue: string[] = [];
+              const candidateLayers = (prevPage.layers || []).filter(
+                (l) =>
+                  (l.type === "text-dialogue" || l.type === "text-free") &&
+                  (l.translation || l.source || "").trim().length > 0,
+              );
+              const slice = candidateLayers.slice(-5);
+              for (const l of slice) {
+                const t = (l.translation || l.source || "").trim();
+                if (t) prevDialogue.push(t);
+              }
+              if (!prevDialogue.length && prevPage.textDetections) {
+                const sliceDet = prevPage.textDetections
+                  .filter(
+                    (d) => (d.translated || d.text || "").trim().length > 0,
+                  )
+                  .slice(-5);
+                for (const d of sliceDet) {
+                  const t = (d.translated || d.text || "").trim();
+                  if (t) prevDialogue.push(t);
+                }
+              }
+              if (prevDialogue.length > 0) {
+                acc.push(`[Previous page: ${prevDialogue.join(" / ")}]`);
+              }
+            }
+          }
+
           withText.forEach(function (d) {
             ctx.push(acc.join(" / "));
             acc.push(d.translated || d.text || "");
@@ -260,14 +293,31 @@ export const translate = {
     );
 
     try {
-      // Continuity context: ALL preceding dialogue lines in reading order
-      let prev: string[] = [];
-      for (let k = i - 1; k >= 0; k--) {
-        const p = page.layers[k];
-        if (p.type === "text-dialogue") {
-          prev.unshift(p.translation || p.source || "");
+      // Full page context: all dialogue/text layers on the page with their
+      // current translation/source, explicitly marking the target layer.
+      const pageLines: string[] = [];
+      const dialogueLayers = page.layers.filter(
+        (l) =>
+          (l.type === "text-dialogue" || l.type === "text-free") &&
+          (l.source || "").trim().length > 0,
+      );
+
+      dialogueLayers.forEach((l, idx) => {
+        const s = (l.source || "").trim();
+        const tr = (l.translation || "").trim();
+        if (l.id === id) {
+          pageLines.push(
+            `[Line ${idx + 1} - TARGET TO RETRANSLATE]\nSource: "${s}"`,
+          );
+        } else if (tr) {
+          pageLines.push(
+            `[Line ${idx + 1}]\nSource: "${s}"\nTranslation: "${tr}"`,
+          );
+        } else {
+          pageLines.push(`[Line ${idx + 1}]\nSource: "${s}"`);
         }
-      }
+      });
+      const fullPageContext = pageLines.join("\n\n");
 
       const config = await translateSettings.loadWithSecrets();
       log.debug("fe", `retranslate layer=${id} provider=${config.provider}`);
@@ -276,7 +326,8 @@ export const translate = {
         detail?: string;
       }>("/translate", {
         texts: [text],
-        previousLines: [prev.join(" / ")],
+        previousLines: [fullPageContext],
+        pageContext: fullPageContext,
         types: [layer.type === "text-dialogue" ? "text_bubble" : "text_free"],
         config: config,
       });

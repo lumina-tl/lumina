@@ -251,6 +251,8 @@ def translate(req: TranslateRequest):
             cfg["previousLines"] = prev_lines
         if req.types:
             cfg["types"] = req.types
+        if req.pageContext:
+            cfg["pageContext"] = req.pageContext
         try:
             translated = translate_texts(req.texts, cfg)
         except TranslateError as e:

@@ -100,15 +100,25 @@ def build_system_instruction(
 
 
 def build_single_prompt(
-    text: str, target: str, previous_line: str | None = None
+    text: str,
+    target: str,
+    previous_line: str | None = None,
+    page_context: str | None = None,
 ) -> str:
-    prompt = f"Target language: {target}\n\nText:\n{text}"
-    if previous_line:
+    if page_context:
+        prompt = (
+            f"Target language: {target}\n\n"
+            f"Full page context for continuity:\n{page_context}\n\n"
+            f"Translate this specific target line into {target}:\n{text}"
+        )
+    elif previous_line:
         prompt = (
             f"Target language: {target}\n\n"
             f"Preceding dialogue for continuity:\n{previous_line}\n\n"
             f"Text:\n{text}"
         )
+    else:
+        prompt = f"Target language: {target}\n\nText:\n{text}"
     return prompt
 
 
@@ -124,6 +134,7 @@ def build_batch_prompt(
     target: str,
     previous_lines: list[str] | None = None,
     types: list[str] | None = None,
+    page_context: str | None = None,
 ) -> str:
     """User prompt for one JSON chat completion over many texts."""
     ctx = previous_lines or [""] * len(texts)
@@ -137,14 +148,20 @@ def build_batch_prompt(
         if c:
             seg["context"] = c
         segments.append(seg)
+    page_ctx_prefix = (
+        f"Full page dialogue context for continuity:\n{page_context}\n\n"
+        if page_context
+        else ""
+    )
     return (
         f"Target language: {target}\n\n"
+        f"{page_ctx_prefix}"
         "This is a manga page. The input is a JSON array of text segments "
         "(OCR output) in reading order; the OCR text may be truncated or "
         "imperfect. Each segment has an \"id\", the source \"text\", and may "
         "carry a \"type\" (dialogue (speech bubble) / narration/caption / "
-        "SFX) and a \"context\" (preceding dialogue, already translated, "
-        "oldest first).\n"
+        "SFX) and a \"context\" (preceding dialogue from the current and/or "
+        "previous page, already translated, oldest first).\n"
         "Translate EVERY segment. Use the context to:\n"
         "- complete truncated lines: if a segment is cut off mid-phrase, "
         "translate the complete intended line;\n"

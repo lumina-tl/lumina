@@ -72,6 +72,8 @@ def translate_texts(texts: list[str], config: dict) -> list[str]:
         meta["previousLines"] = [prev_lines[i] for i, _ in non_empty]
     if types:
         meta["types"] = [types[i] for i, _ in non_empty]
+    if config.get("pageContext"):
+        meta["pageContext"] = config["pageContext"]
     if meta:
         config = {**config, **meta}
 
