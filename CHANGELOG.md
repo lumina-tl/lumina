@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Full page context for line re-translation.** Single-layer re-translate now supplies the LLM with full page dialogue context (all lines before and after with current translations and target marker) to maintain conversation coherence and accurate tone.
 - **Cross-page dialogue context for multi-page translation.** Page translation pipeline automatically carries over the last 3–5 dialogue lines from the preceding page as initial context, ensuring terminology and sentence continuations stay consistent across page boundaries.
 
+### Changed
+
+- **Text border width stepper increment.** Changed border width step in typography property sidebar from 0.5 to 1 for cleaner whole-number adjustments.
+
 ### Fixed
 
 - **CUDA runtime extraction progress parsing and stall.** Fixed 7-Zip stdout progress parsing failure in `extract7z` and wired the `extracting` state into the UI download toast and settings card (fixes lumina-tl/lumina#1).

@@ -792,16 +792,16 @@ export const typeSection = {
     num.className = "field-select type-width-num";
     num.min = "0";
     num.max = "20";
-    num.step = "0.5";
+    num.step = "1";
     const plus = document.createElement("button");
     plus.className = "type-step-btn";
     plus.textContent = "+";
     minus.addEventListener("click", function () {
-      num.value = String(Math.max(0, parseFloat(num.value || "0") - 0.5));
+      num.value = String(Math.max(0, parseFloat(num.value || "0") - 1));
       num.dispatchEvent(new Event("change"));
     });
     plus.addEventListener("click", function () {
-      num.value = String(parseFloat(num.value || "0") + 0.5);
+      num.value = String(parseFloat(num.value || "0") + 1);
       num.dispatchEvent(new Event("change"));
     });
     num.addEventListener("change", function () {
