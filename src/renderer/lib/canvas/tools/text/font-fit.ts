@@ -39,7 +39,7 @@ function fontString(size: number, typo: Typography): string {
   );
 }
 
-function measureLineWidth(
+export function measureLineWidth(
   text: string,
   size: number,
   typo: Typography,
@@ -137,7 +137,7 @@ export function selectPreset(
 
 // ── Word wrap (horizontal) ──
 
-const CJK_RE = /[\u3000-\u9fff\uf900-\ufaff\uff00-\uffef]/;
+export const CJK_RE = /[\u3000-\u9fff\uf900-\ufaff\uff00-\uffef]/;
 
 /** Split a word longer than maxWidth at hyphens into tokens */
 function splitLongWord(

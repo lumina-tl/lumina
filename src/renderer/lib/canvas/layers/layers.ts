@@ -5,6 +5,7 @@ import { invalidateComposite } from "../render";
 import { sidebar } from "../../sidebar";
 import { history } from "../../history";
 import { textIdxForLayerId, applyTextSelection } from "../detection/selection";
+import { reflowVerticalLayerBbox } from "../tools/text/vertical-reflow";
 
 function _findLayer(
   page: { layers: Array<{ id: string }> } | null,
@@ -122,8 +123,12 @@ canvas.setLayerText = function (id, field, text): void {
   const i = _findLayer(page, id);
   if (!page || i < 0) return;
   const layer = page.layers[i];
-  if (field === "source") layer.source = text;
-  else layer.translation = text;
+  if (field === "source") {
+    layer.source = text;
+  } else {
+    layer.translation = text;
+    reflowVerticalLayerBbox(layer, page);
+  }
   // Mirror to parallel detection model
   if (layer.type === "text-dialogue") {
     const detIdx = textIdxForLayerId(page, id);

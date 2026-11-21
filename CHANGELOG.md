@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Auto-expand vertical text boxes on horizontal translation.** Automatically reflows narrow vertical Japanese detection boxes into balanced horizontal bubble dimensions when translated to Latin script. Centers the expanded box on the original position, accommodates the longest word and text volume at readable font sizes, clamps to canvas boundaries, and protects against neighbor collisions while leaving OCR and inpainting masks on the tight original bounding boxes.
 - **Floating text formatting toolbar.** Interactive glassmorphic toolbar anchored directly above active text boxes in edit mode, offering font family selection, live color well, size stepper, bold, italic, text alignment, and commit actions without losing focus or selection.
 - **Multi-color and multi-font support for text tool.** Character-level span styling (`TextStyleSpan`) with full undo/redo support, live multi-style preview inside the in-place editor and on the Konva canvas, and Photoshop PSD `styleRuns` multi-style export.
 - **Detailed streaming progress for pipeline stages.** Real-time per-box and per-patch progress tracking for OCR (`OCR: X/Y boxes...`), Inpainting (`Inpaint: X/Y patches...`), and multi-page text detection (`Detect: page X/Y...`) via NDJSON HTTP streaming. Preset pipeline runs now display phase prefixes (e.g. `[2/4]`) in the docked sub-capsule and dynamic island.

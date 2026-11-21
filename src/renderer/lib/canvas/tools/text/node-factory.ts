@@ -1,10 +1,12 @@
 /** Konva.Text node factory — visual + interactive. */
 import Konva from "konva";
+import { state } from "../../../state";
 import { canvas } from "../../index";
 import type { PageLayer, Typography } from "../../../../types";
 import { imgToStage } from "./shared";
 import { fitTextToBox, selectPreset, wordWrap } from "./font-fit";
 import { resolveSpans } from "./spans";
+import { reflowVerticalLayerBbox } from "./vertical-reflow";
 
 function makeRichTextGlyphsNode(
   layer: PageLayer,
@@ -116,6 +118,10 @@ function makeRichTextGlyphsNode(
 }
 
 export function makeNode(layer: PageLayer, text: string): Konva.Group {
+  const page = state.getActivePage();
+  if (page && layer.typography.fontSize === null) {
+    reflowVerticalLayerBbox(layer, page);
+  }
   const sr = canvas.getScaleRatio();
   const p = imgToStage(layer.bbox.x, layer.bbox.y);
   const lw = Math.max(4, layer.bbox.w * sr);

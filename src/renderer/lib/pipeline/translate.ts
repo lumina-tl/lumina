@@ -13,6 +13,7 @@ import {
   dialogueLayerForTextIdx,
   textIdxForLayerId,
 } from "../canvas/detection/selection";
+import { reflowVerticalLayerBbox } from "../canvas/tools/text/vertical-reflow";
 import type { TextDetection } from "../../types";
 import { log } from "../logger";
 import type { PipelineStepInfo } from "./ocr";
@@ -250,8 +251,10 @@ export const translate = {
         // Mirror into the unified layer model
         const detIdx = page.textDetections.indexOf(det);
         const layer = dialogueLayerForTextIdx(page, detIdx);
-        if (layer)
+        if (layer) {
           layer.translation = det.translated;
+          reflowVerticalLayerBbox(layer, page);
+        }
       });
 
       canvas.render();
@@ -338,6 +341,7 @@ export const translate = {
 
       const translated = normalizeAutoText(result.results[0].text || "");
       layer.translation = translated;
+      reflowVerticalLayerBbox(layer, page);
       // Mirror into the parallel detection model
       const detIdx = textIdxForLayerId(page, id);
       if (detIdx !== null && detIdx < page.textDetections.length) {

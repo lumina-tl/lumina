@@ -11,6 +11,7 @@ import {
 } from "../canvas/tools/text/editor";
 import { getEditingLayerId } from "../canvas/tools/text/shared";
 import { applySpanStyle, getStyleAtSelection } from "../canvas/tools/text/spans";
+import { reflowVerticalLayerBbox } from "../canvas/tools/text/vertical-reflow";
 import { loadGlobalTypography, saveGlobalTypography } from "../../types";
 import type { Page, PageLayer, TextStyleSpan, Typography } from "../../types";
 
@@ -228,8 +229,9 @@ export const typeSection = {
     autofitBtn.addEventListener("click", function () {
       const page: Page | null = state.getActivePage();
       const layer = selectedTextLayer(page);
-      if (!layer) return;
+      if (!layer || !page) return;
       layer.typography.fontSize = null; // re-arm auto-fit
+      reflowVerticalLayerBbox(layer, page);
       canvas.render();
       history.snapshot();
       typeSection.refresh();
