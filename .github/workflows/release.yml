@@ -12,6 +12,9 @@ jobs:
     runs-on: windows-latest
     permissions:
       contents: write
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      skipped: ${{ steps.check.outputs.skipped }}
 
     steps:
       - uses: actions/checkout@v4
@@ -87,3 +90,38 @@ jobs:
             build/cuda-runtime.7z build/cuda-runtime.json \
             --repo "${{ github.repository }}" $NOTES \
             --title "Lumina v${{ steps.version.outputs.version }}"
+
+  release-linux:
+    needs: release
+    if: needs.release.outputs.skipped == 'false'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build & bundle Linux AppImage (CPU)
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: npm run dist:linux
+
+      - name: Upload Linux AppImage to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh release upload "v${{ needs.release.outputs.version }}" \
+            dist/linux-cpu/*.AppImage \
+            --repo "${{ github.repository }}" \
+            --clobber
