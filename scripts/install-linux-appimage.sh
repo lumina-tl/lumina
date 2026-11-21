@@ -32,6 +32,9 @@ fi
 
 cat > "$BIN_DIR/lumina" <<EOF
 #!/usr/bin/env bash
+if ! ldconfig -p 2>/dev/null | grep -q 'libfuse\.so\.2'; then
+  export APPIMAGE_EXTRACT_AND_RUN=1
+fi
 exec "$TARGET_APPIMAGE" "\$@"
 EOF
 chmod +x "$BIN_DIR/lumina"
