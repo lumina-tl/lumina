@@ -27,7 +27,12 @@ import {
   getTransformers,
 } from "./transformer";
 import { getEditor } from "./shared";
-import { startEdit, syncEditorBox, refreshEditingState } from "./editor";
+import {
+  startEdit,
+  syncEditorBox,
+  refreshEditingState,
+  restoreEditorSelection,
+} from "./editor";
 
 /** Rebuild all layer text nodes on stage (one Konva.Text per layer). */
 export function renderLayerTextNodes(): void {
@@ -176,8 +181,7 @@ export function renderLayerTextNodes(): void {
           const ta = getEditor();
           if (ta) {
             ta.focus();
-            const len = ta.value.length;
-            ta.setSelectionRange(len, len);
+            restoreEditorSelection();
           }
         }
       });

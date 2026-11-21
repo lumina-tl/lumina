@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Floating text formatting toolbar.** Interactive glassmorphic toolbar anchored directly above active text boxes in edit mode, offering font family selection, live color well, size stepper, bold, italic, text alignment, and commit actions without losing focus or selection.
+- **Multi-color and multi-font support for text tool.** Character-level span styling (`TextStyleSpan`) with full undo/redo support, live multi-style preview inside the in-place editor and on the Konva canvas, and Photoshop PSD `styleRuns` multi-style export.
 - **Detailed streaming progress for pipeline stages.** Real-time per-box and per-patch progress tracking for OCR (`OCR: X/Y boxes...`), Inpainting (`Inpaint: X/Y patches...`), and multi-page text detection (`Detect: page X/Y...`) via NDJSON HTTP streaming. Preset pipeline runs now display phase prefixes (e.g. `[2/4]`) in the docked sub-capsule and dynamic island.
 - **Multi-selection feature for layers and detection boxes.** Multi-selection across canvas and sidebar with rubberband marquee selection, Shift/Ctrl-click toggling, multi-node move and scale via Konva Transformer, batch typography updates, and batch deletion.
 - **Live progress bar for extraction phase.** Real-time progress bar and percentage tracking during CUDA runtime extraction, transitioning smoothly from download to unpacking without appearing frozen at 100% (fixes lumina-tl/lumina#1).

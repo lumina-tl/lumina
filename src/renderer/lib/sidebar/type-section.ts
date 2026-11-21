@@ -4,8 +4,15 @@ import * as i18n from "../i18n";
 import { canvas } from "../canvas/index";
 import { history } from "../history";
 import { internalFontName } from "../utils/font-loader";
+import {
+  restoreEditorSelection,
+  getEditorSelection,
+  syncEditorSpans,
+} from "../canvas/tools/text/editor";
+import { getEditingLayerId } from "../canvas/tools/text/shared";
+import { applySpanStyle, getStyleAtSelection } from "../canvas/tools/text/spans";
 import { loadGlobalTypography, saveGlobalTypography } from "../../types";
-import type { Page, PageLayer, Typography } from "../../types";
+import type { Page, PageLayer, TextStyleSpan, Typography } from "../../types";
 
 const FONT_SIZE_PRESETS = [
   8, 9, 10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48, 64, 72, 96,
@@ -253,7 +260,12 @@ export const typeSection = {
       const af = host.querySelector<HTMLButtonElement>("#type-autofit");
       if (af) af.disabled = true;
     }
-    const t = layer ? layer.typography : _globalType;
+    const editingId = getEditingLayerId();
+    const sel = getEditorSelection();
+    let t = layer ? layer.typography : _globalType;
+    if (layer && editingId === layer.id && sel) {
+      t = getStyleAtSelection(layer, sel.start, sel.end);
+    }
     const set = function (id: string, value: string): void {
       const el = host.querySelector<HTMLInputElement | HTMLSelectElement>(
         "#" + id,
@@ -591,7 +603,10 @@ export const typeSection = {
     input.className = "type-color-well";
     input.value = "#111111";
     input.addEventListener("input", function () {
-      typeSection._apply({ color: this.value });
+      typeSection._apply({ color: this.value }, { snapshot: false });
+    });
+    input.addEventListener("change", function () {
+      typeSection._apply({ color: this.value }, { snapshot: true });
     });
     return input;
   },
@@ -740,10 +755,22 @@ export const typeSection = {
     input.className = "type-color-well type-color-well-flex";
     input.value = "#ffffff";
     input.addEventListener("input", function () {
-      typeSection._apply({
-        strokeColor: this.value,
-        strokeWidth: Math.max(1, typeSection._currentStrokeWidth()),
-      });
+      typeSection._apply(
+        {
+          strokeColor: this.value,
+          strokeWidth: Math.max(1, typeSection._currentStrokeWidth()),
+        },
+        { snapshot: false },
+      );
+    });
+    input.addEventListener("change", function () {
+      typeSection._apply(
+        {
+          strokeColor: this.value,
+          strokeWidth: Math.max(1, typeSection._currentStrokeWidth()),
+        },
+        { snapshot: true },
+      );
     });
     return input;
   },
@@ -848,10 +875,44 @@ export const typeSection = {
     return el ? el.value : "#ffffff";
   },
 
+  /** Public interface to apply typography updates */
+  apply(patch: Partial<Typography>, opts?: { snapshot?: boolean }): void {
+    this._apply(patch, opts);
+  },
+
   /** Apply a partial typography update. With one or more text layers selected
    * it goes to all selected layers; without one it updates the global defaults. */
-  _apply(patch: Partial<Typography>): void {
+  _apply(patch: Partial<Typography>, opts?: { snapshot?: boolean }): void {
     const page: Page | null = state.getActivePage();
+    const editingId = getEditingLayerId();
+    const sel = getEditorSelection();
+
+    // If text inside the active in-place editor is selected, apply to the selected span
+    if (editingId && sel && sel.start < sel.end) {
+      const lay = page
+        ? page.layers.find((l) => l.id === editingId)
+        : null;
+      if (lay) {
+        const spanPatch: Partial<TextStyleSpan> = {};
+        if (patch.color !== undefined) spanPatch.color = patch.color;
+        if (patch.fontFamily !== undefined)
+          spanPatch.fontFamily = patch.fontFamily;
+        if (patch.fontSize !== undefined) spanPatch.fontSize = patch.fontSize;
+        if (patch.fontWeight !== undefined)
+          spanPatch.fontWeight = patch.fontWeight;
+        if (patch.fontStyle !== undefined)
+          spanPatch.fontStyle = patch.fontStyle;
+
+        applySpanStyle(lay, sel.start, sel.end, spanPatch);
+        canvas.render();
+        if (opts?.snapshot !== false) history.snapshot();
+        typeSection.refresh();
+        syncEditorSpans(lay);
+        restoreEditorSelection();
+        return;
+      }
+    }
+
     const layers = selectedTextLayers(page);
     if (!layers.length) {
       Object.assign(_globalType, patch);
@@ -866,7 +927,8 @@ export const typeSection = {
       if (patch.rotation !== undefined) layer.bbox.rotation = patch.rotation;
     });
     canvas.render();
-    history.snapshot();
+    if (opts?.snapshot !== false) history.snapshot();
     typeSection.refresh(); // keep toggles/segments/alerts in sync
+    restoreEditorSelection();
   },
 };

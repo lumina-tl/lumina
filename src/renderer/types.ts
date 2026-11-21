@@ -122,6 +122,16 @@ export function saveGlobalTypography(t: Typography): void {
   }
 }
 
+export interface TextStyleSpan {
+  start: number; // 0-based character start index
+  end: number; // 0-based character end index (exclusive)
+  color?: string;
+  fontFamily?: string | null;
+  fontSize?: number | null;
+  fontWeight?: number;
+  fontStyle?: "normal" | "italic";
+}
+
 export interface PageLayer {
   id: string;
   type: LayerType;
@@ -135,6 +145,8 @@ export interface PageLayer {
   opacity: number; // 0-1
   /** Result of the last auto-fit — drives the "needs review" badge */
   fitStatus?: "ok" | "overflow-tolerated" | "forced-minimum";
+  /** Character-level style overrides (multi-color, multi-font) */
+  spans?: TextStyleSpan[];
 }
 
 export interface InpaintMask {

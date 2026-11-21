@@ -3,6 +3,7 @@ import type { Layer } from "ag-psd";
 import type { PageLayer } from "../../../types";
 import { fitTextToBox } from "../../canvas/tools/text/font-fit";
 import { wordWrap } from "../../canvas/tools/text/font-fit";
+import { resolveSpans } from "../../canvas/tools/text/spans";
 import { resolvePsFont } from "./fonts";
 import { bboxToTransform, bboxToBoxBounds } from "./transform";
 
@@ -62,6 +63,26 @@ export function mapLayerToPsdText(
   const transform = bboxToTransform(bbox, offsetX, offsetY);
   const boxBounds = bboxToBoxBounds(bbox);
 
+  const styleRuns =
+    layer.spans && layer.spans.length > 0
+      ? resolveSpans(text, t, layer.spans).map((span) => ({
+          length: span.text.length,
+          style: {
+            font: {
+              name: resolvePsFont(
+                span.fontFamily || t.fontFamily,
+                span.fontWeight,
+                span.fontStyle === "italic",
+              ),
+            },
+            fontSize: span.fontSize || fontSize,
+            fillColor: hexToRgb(span.color),
+            fauxBold: false,
+            fauxItalic: false,
+          },
+        }))
+      : undefined;
+
   const layerText: Layer = {
     name:
       layer.type === "text-dialogue"
@@ -91,6 +112,7 @@ export function mapLayerToPsdText(
         baselineShift: 0,
         ligatures: true,
       },
+      styleRuns,
       paragraphStyle: {
         justification: mapJustification(t.align),
       },

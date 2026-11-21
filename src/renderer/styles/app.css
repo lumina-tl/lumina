@@ -2786,6 +2786,88 @@ body.resizing-row {
   margin: 0 2px;
 }
 
+/* ── Text tool floating format bar ── */
+.text-format-bar {
+  position: absolute;
+  z-index: 60;
+  display: none;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 6px;
+  background: rgba(22, 22, 26, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  pointer-events: auto;
+  user-select: none;
+}
+.text-format-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 24px;
+  height: 24px;
+  padding: 2px 5px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #c4c4cc;
+  font-size: 0.72rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.text-format-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+.text-format-btn.active {
+  background: rgba(233, 69, 96, 0.25);
+  color: #ff7b92;
+}
+.text-format-font-btn {
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.68rem;
+  padding: 2px 6px;
+}
+.text-format-color-wrap {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  flex-shrink: 0;
+  margin: 0 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.text-format-color-wrap input[type="color"] {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  width: 30px;
+  height: 30px;
+  opacity: 0;
+  cursor: pointer;
+}
+.text-format-divider {
+  width: 1px;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.14);
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+
 /* Workbench: description fills all remaining space, footer pinned bottom */
 .model-desc {
   display: flex;

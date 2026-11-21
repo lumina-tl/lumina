@@ -6,11 +6,11 @@ import { canvas } from "../../index";
 /** All layer text nodes currently on the stage (visual + interactive) */
 export const layerTextNodes: Konva.Group[] = [];
 
-let editor: HTMLTextAreaElement | null = null;
+let editor: HTMLElement | null = null;
 export let editingLayerId: string | null = null;
 
-export function setEditor(ta: HTMLTextAreaElement | null): void {
-  editor = ta;
+export function setEditor(el: HTMLElement | null): void {
+  editor = el;
 }
 
 export function setEditingLayerId(id: string | null): void {
@@ -21,7 +21,7 @@ export function getEditingLayerId(): string | null {
   return editingLayerId;
 }
 
-export function getEditor(): HTMLTextAreaElement | null {
+export function getEditor(): HTMLElement | null {
   return editor;
 }
 

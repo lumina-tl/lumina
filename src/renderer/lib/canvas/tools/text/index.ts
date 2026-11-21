@@ -1,6 +1,6 @@
 /** Text tool — public entry point. */
 import { getEditor } from "./shared";
-import { removeEditor } from "./editor";
+import { removeEditor, isFormattingTarget } from "./editor";
 import { bindStageInteractions } from "./interactions";
 
 let _bound = false;
@@ -10,14 +10,16 @@ export function bindTextTool(): void {
   _bound = true;
 
   // Commit open editor when clicking anywhere outside it,
-  // EXCEPT when clicking form controls (sidebar dropdowns/inputs).
+  // EXCEPT when clicking formatting UI or form controls.
   document.addEventListener("mousedown", function (e) {
     const ta = getEditor();
     if (!ta) return;
     const target = e.target as HTMLElement;
-    // Don't commit if clicking a form element outside the editor itself —
-    // user is just navigating the sidebar (font/size/color pickers etc.)
-    if (target !== ta && target.closest("select, input, textarea, button")) {
+    if (
+      target === ta ||
+      isFormattingTarget(target) ||
+      target.closest("select, input, textarea, button")
+    ) {
       return;
     }
     ta.blur();

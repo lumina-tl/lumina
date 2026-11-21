@@ -6,6 +6,15 @@ export function internalFontName(family: string): string {
   return "lumina-" + family.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 }
 
+/** Get human-readable font display name from internal font name */
+export function fontDisplayName(internal: string | null): string {
+  if (!internal) return "Default";
+  for (const f of state.fontList || []) {
+    if (internalFontName(f.family) === internal) return f.family;
+  }
+  return internal;
+}
+
 /** Register all system fonts as FontFaces so they render on canvas.
  * Style variants (Bold/Italic files) share the same internal family name —
  * each file is registered with its own weight/style so the browser picks
