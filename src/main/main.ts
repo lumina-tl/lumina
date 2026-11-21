@@ -1,5 +1,25 @@
 /** App entry — boot, window, backend, handlers. */
 import { app, BrowserWindow, Menu } from "electron";
+
+// Configure Wayland/X11 auto-detection on Linux before app readiness.
+if (process.platform === "linux") {
+  const ozoneHint =
+    process.env.LUMINA_OZONE_PLATFORM ||
+    process.env.ELECTRON_OZONE_PLATFORM_HINT ||
+    "auto";
+  app.commandLine.appendSwitch("ozone-platform-hint", ozoneHint);
+  app.commandLine.appendSwitch(
+    "enable-features",
+    "WaylandWindowDecorations,UseOzonePlatform",
+  );
+  app.commandLine.appendSwitch("enable-wayland-ime");
+  if (process.env.LUMINA_NO_SANDBOX === "1") {
+    app.commandLine.appendSwitch("no-sandbox");
+  }
+  if (process.env.LUMINA_DISABLE_GPU === "1") {
+    app.disableHardwareAcceleration();
+  }
+}
 import { IPC } from "../shared/bridge";
 import { send } from "./core/ipc";
 import { onDownloadBusyChange } from "./core/mutex";

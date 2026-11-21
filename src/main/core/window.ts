@@ -1,9 +1,10 @@
 /** App window — create, focus, close guard, open path. */
 import { BrowserWindow, shell } from "electron";
+import fs from "fs";
 import path from "path";
 import { IPC } from "../../shared/bridge";
 import { handle, send } from "./ipc";
-import { MAIN_DIR } from "./paths";
+import { MAIN_DIR, PROJECT_ROOT } from "./paths";
 
 let win: BrowserWindow | null = null;
 let allowClose = false;
@@ -30,15 +31,38 @@ export function findLumiPath(args: string[]): string | null {
   return null;
 }
 
+/** Resolve Linux window icon path if present. */
+function resolveLinuxIcon(): string | undefined {
+  if (process.platform !== "linux") return undefined;
+  const candidates = [
+    path.join(process.resourcesPath, "icon.png"),
+    path.join(PROJECT_ROOT, "assets", "icon.png"),
+  ];
+  return candidates.find((p) => fs.existsSync(p));
+}
+
 export function createWindow(): BrowserWindow {
+  const useNativeFrame =
+    process.platform === "linux" && process.env.LUMINA_NATIVE_FRAME === "1";
+  const icon = resolveLinuxIcon();
   win = new BrowserWindow({
     width: 1400,
     height: 900,
     minWidth: 1024,
     minHeight: 700,
+    backgroundColor: "#0e0e10",
     title: "Lumina",
-    titleBarStyle: "hidden",
-    titleBarOverlay: { color: "#1e1e1e", symbolColor: "#969696", height: 32 },
+    ...(icon ? { icon } : {}),
+    ...(useNativeFrame
+      ? {}
+      : {
+          titleBarStyle: "hidden",
+          titleBarOverlay: {
+            color: "#1e1e1e",
+            symbolColor: "#969696",
+            height: 32,
+          },
+        }),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

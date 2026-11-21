@@ -15,8 +15,13 @@
     "dev": "npm run build && electron dist/main/main.js",
     "bundle:dml": "node scripts/bundle.mjs --variant=dml",
     "bundle:cuda": "node scripts/bundle.mjs --variant=cuda",
+    "bundle:linux": "node scripts/bundle-linux.mjs --variant=cpu",
+    "bundle:linux:cuda": "node scripts/bundle-linux.mjs --variant=cuda",
     "dist:dml": "npm run build && npm run bundle:dml && electron-builder --config scripts/electron-builder.config.mjs --publish never",
     "dist:cuda": "npm run build && npm run bundle:cuda && electron-builder --config scripts/electron-builder.config.cuda.mjs --publish never",
+    "dist:linux": "npm run build && npm run bundle:linux && LUMINA_LINUX_VARIANT=cpu LUMINA_LINUX_TARGET=AppImage electron-builder --config scripts/electron-builder.config.linux.mjs --publish never",
+    "dist:linux:targz": "npm run build && npm run bundle:linux && LUMINA_LINUX_VARIANT=cpu LUMINA_LINUX_TARGET=tar.gz electron-builder --config scripts/electron-builder.config.linux.mjs --publish never",
+    "dist:linux:cuda": "npm run build && npm run bundle:linux:cuda && LUMINA_LINUX_VARIANT=cuda LUMINA_LINUX_TARGET=AppImage electron-builder --config scripts/electron-builder.config.linux.mjs --publish never",
     "dist:all": "npm run build && npm run bundle:dml && npm run bundle:cuda && electron-builder --config scripts/electron-builder.config.mjs --publish never && electron-builder --config scripts/electron-builder.config.cuda.mjs --publish never"
   },
   "dependencies": {

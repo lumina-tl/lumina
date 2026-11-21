@@ -82,6 +82,24 @@ async function resolveGoogleFontDownloadUrl(
   }
 }
 
+/** Resolve Linux user fonts directory (XDG_DATA_HOME/fonts). */
+function getLinuxUserFontsDir(): string {
+  const xdgData =
+    process.env.XDG_DATA_HOME ||
+    path.join(process.env.HOME || "", ".local", "share");
+  const dir = path.join(xdgData, "fonts", "Lumina");
+  fs.mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
+/** Refresh Linux fontconfig cache in the background if fc-cache is installed. */
+function refreshLinuxFontCache(dir: string): void {
+  if (process.platform !== "linux") return;
+  execFile("fc-cache", ["-f", dir], () => {
+    /* ignore if fc-cache is unavailable */
+  });
+}
+
 function getWindowsUserFontsDir(): string {
   const local = path.join(
     process.env.LOCALAPPDATA || "",
@@ -288,12 +306,18 @@ export function registerFontMarketHandlers(): void {
         };
       }
 
-      const isSystem = Boolean(
+      const isWinSystem = Boolean(
         payload.installToSystem && process.platform === "win32",
       );
-      const targetDir = isSystem
+      const isLinuxSystem = Boolean(
+        payload.installToSystem && process.platform === "linux",
+      );
+      const isSystem = isWinSystem || isLinuxSystem;
+      const targetDir = isWinSystem
         ? getWindowsUserFontsDir()
-        : getUserFontsDir();
+        : isLinuxSystem
+          ? getLinuxUserFontsDir()
+          : getUserFontsDir();
 
       const installedFiles: string[] = [];
       try {
@@ -313,13 +337,15 @@ export function registerFontMarketHandlers(): void {
             "font-market",
           );
 
-          if (isSystem) {
+          if (isWinSystem) {
             await registerWindowsFontRegistry(item.family, variant, destPath);
           }
         }
 
-        if (isSystem) {
+        if (isWinSystem) {
           broadcastFontChange();
+        } else if (isLinuxSystem) {
+          refreshLinuxFontCache(targetDir);
         }
 
         return {
@@ -366,7 +392,7 @@ export function registerFontMarketHandlers(): void {
           if (fs.existsSync(p)) fs.unlinkSync(p);
         }
 
-        // 2. Remove from Windows user fonts if applicable
+        // 2. Remove from OS user fonts if applicable
         if (process.platform === "win32") {
           const winDir = getWindowsUserFontsDir();
           for (const v of variants) {
@@ -375,6 +401,17 @@ export function registerFontMarketHandlers(): void {
             await unregisterWindowsFontRegistry(item.family, v);
           }
           broadcastFontChange();
+        } else if (process.platform === "linux") {
+          const linuxDir = getLinuxUserFontsDir();
+          let removed = false;
+          for (const v of variants) {
+            const p = path.join(linuxDir, `${item.id}-${v}.ttf`);
+            if (fs.existsSync(p)) {
+              fs.unlinkSync(p);
+              removed = true;
+            }
+          }
+          if (removed) refreshLinuxFontCache(linuxDir);
         }
 
         return { ok: true };

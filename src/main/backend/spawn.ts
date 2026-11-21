@@ -1,6 +1,7 @@
 /** Backend spawn — launch, health-check, stop Python. */
 import { spawn, ChildProcess } from "child_process";
 import { app } from "electron";
+import fs from "fs";
 import http from "http";
 import path from "path";
 import { PROJECT_ROOT } from "../core/paths";
@@ -44,18 +45,42 @@ interface PythonLaunch {
   pythonPath: string | null;
 }
 
+/** Resolve packaged site-packages directory across platforms. */
+function resolvePackagedSitePackages(pyRoot: string): string {
+  if (process.platform === "win32") {
+    return path.join(pyRoot, "Lib", "site-packages");
+  }
+  const direct = path.join(pyRoot, "site-packages");
+  if (fs.existsSync(direct)) return direct;
+  const libDir = path.join(pyRoot, "lib");
+  if (fs.existsSync(libDir)) {
+    const pyDir = fs
+      .readdirSync(libDir)
+      .find((entry) => entry.startsWith("python3."));
+    if (pyDir) {
+      const candidate = path.join(libDir, pyDir, "site-packages");
+      if (fs.existsSync(candidate)) return candidate;
+    }
+  }
+  return direct;
+}
+
 function resolveLaunch(): PythonLaunch {
   if (app.isPackaged) {
     const res = process.resourcesPath;
     const pyRoot = path.join(res, "python");
     const pyApp = path.join(res, "backend");
-    const sitePkgs = path.join(pyRoot, "Lib", "site-packages");
+    const sitePkgs = resolvePackagedSitePackages(pyRoot);
     const ortDir = activeOrtDir();
     const extra = ortDir ? [ortDir, sitePkgs] : [sitePkgs];
+    const executable =
+      process.platform === "win32"
+        ? path.join(pyRoot, "python.exe")
+        : path.join(pyRoot, "bin", "python3");
     return {
       dir: pyApp,
       entry: path.join(pyApp, "run_backend.py"),
-      executable: path.join(pyRoot, "python.exe"),
+      executable,
       pythonPath: extra.join(path.delimiter),
     };
   }
@@ -99,21 +124,25 @@ export function spawnBackend(): Promise<void> {
     const launch = resolveLaunch();
     const modelsDir = resolveModelsDir().path;
     log.info(`Starting Python backend at ${launch.entry}`);
+    const childEnv: NodeJS.ProcessEnv = {
+      ...process.env,
+      PYTHONIOENCODING: "utf-8",
+      LUMINA_MODEL_DIR: modelsDir,
+      HF_HOME: process.env.HF_HOME || path.join(modelsDir, "huggingface"),
+      LUMINA_CACHE_DIR: CACHE_DIR,
+      ...(launch.pythonPath ? { LUMINA_PYTHONPATH: launch.pythonPath } : {}),
+    };
+    // Prevent host Python environment variables from polluting the bundled runtime.
+    if (app.isPackaged) {
+      delete childEnv.PYTHONHOME;
+      delete childEnv.PYTHONPATH;
+    }
     pythonProcess = spawn(
       launch.executable,
       [launch.entry, "--port", String(BACKEND_PORT)],
       {
         cwd: launch.dir,
-        env: {
-          ...process.env,
-          PYTHONIOENCODING: "utf-8",
-          LUMINA_MODEL_DIR: modelsDir,
-          HF_HOME: process.env.HF_HOME || path.join(modelsDir, "huggingface"),
-          LUMINA_CACHE_DIR: CACHE_DIR,
-          ...(launch.pythonPath
-            ? { LUMINA_PYTHONPATH: launch.pythonPath }
-            : {}),
-        },
+        env: childEnv,
       },
     );
 

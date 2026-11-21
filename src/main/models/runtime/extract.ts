@@ -19,6 +19,17 @@ export async function sha512File(file: string): Promise<string> {
 function sevenZrPath(): string | null {
   const res = process.resourcesPath;
   const appPath = app?.getAppPath ? app.getAppPath() : process.cwd();
+  if (process.platform !== "win32") {
+    const linuxBins = [
+      path.join(res, "7zz"),
+      path.join(res, "7z"),
+      "/usr/bin/7zz",
+      "/usr/bin/7z",
+      "/usr/local/bin/7zz",
+      "/usr/local/bin/7z",
+    ];
+    return linuxBins.find((c) => fs.existsSync(c)) || null;
+  }
   const candidates = [
     path.join(res, "7zr.exe"),
     path.join(res, "resources", "7zr.exe"),
@@ -34,9 +45,35 @@ export function extract7z(
   dest: string,
   onProgress?: (pct: number) => void,
 ): Promise<void> {
+  if (
+    process.platform !== "win32" &&
+    (archive.endsWith(".tar.gz") ||
+      archive.endsWith(".tgz") ||
+      archive.endsWith(".tar.xz"))
+  ) {
+    fs.mkdirSync(dest, { recursive: true });
+    return new Promise<void>((resolve, reject) => {
+      const p = spawn("tar", ["-xf", archive, "-C", dest], {
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+      let errOut = "";
+      p.stderr?.on("data", (d: Buffer) => {
+        errOut += d.toString();
+      });
+      p.on("error", reject);
+      p.on("exit", (code) => {
+        if (code === 0) {
+          onProgress?.(100);
+          resolve();
+        } else {
+          reject(new Error(`tar extract failed (exit ${code}): ${errOut.trim()}`));
+        }
+      });
+    });
+  }
   const exe = sevenZrPath();
   if (!exe)
-    return Promise.reject(new Error("7zr.exe not found in app resources"));
+    return Promise.reject(new Error("7z/7zr extractor not found"));
   fs.mkdirSync(dest, { recursive: true });
 
   return new Promise<void>((resolve, reject) => {

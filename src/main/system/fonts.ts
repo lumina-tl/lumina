@@ -114,7 +114,16 @@ function fontDirs(): string[] {
     if (process.env.HOME)
       dirs.push(path.join(process.env.HOME, "Library", "Fonts"));
   } else {
-    dirs.push("/usr/share/fonts", "/usr/local/share/fonts");
+    dirs.push(
+      "/usr/share/fonts",
+      "/usr/local/share/fonts",
+      "/run/host/fonts",
+      "/run/current-system/sw/share/X11/fonts",
+    );
+    const xdgData =
+      process.env.XDG_DATA_HOME ||
+      (process.env.HOME ? path.join(process.env.HOME, ".local", "share") : "");
+    if (xdgData) dirs.push(path.join(xdgData, "fonts"));
     if (process.env.HOME) dirs.push(path.join(process.env.HOME, ".fonts"));
   }
   const appFonts = getUserFontsDir();

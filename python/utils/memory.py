@@ -44,16 +44,30 @@ def _init_nvml() -> bool:
     try:
         lib_path = ctypes.util.find_library("nvidia-ml")
         if not lib_path:
-            for candidate in (
-                "C:/Windows/System32/nvml.dll",
-                os.path.join(
-                    os.environ.get("PROGRAMFILES", ""),
-                    "NVIDIA Corporation/NVSMI/nvml.dll",
-                ),
-            ):
-                if os.path.isfile(candidate):
-                    lib_path = candidate
-                    break
+            candidates = (
+                (
+                    "libnvidia-ml.so.1",
+                    "/usr/lib/libnvidia-ml.so.1",
+                    "/usr/lib64/libnvidia-ml.so.1",
+                    "/usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1",
+                )
+                if sys.platform.startswith("linux")
+                else (
+                    "C:/Windows/System32/nvml.dll",
+                    os.path.join(
+                        os.environ.get("PROGRAMFILES", ""),
+                        "NVIDIA Corporation/NVSMI/nvml.dll",
+                    ),
+                )
+            )
+            for candidate in candidates:
+                if candidate.endswith(".so.1") or os.path.isfile(candidate):
+                    try:
+                        ctypes.CDLL(candidate)
+                        lib_path = candidate
+                        break
+                    except OSError:
+                        continue
         if not lib_path:
             return False
         _nvml_handle = ctypes.CDLL(lib_path)
@@ -179,8 +193,35 @@ class _MemoryStatusEx(ctypes.Structure):
     ]
 
 
+def _read_linux_meminfo() -> Optional[tuple[int, int]]:
+    """Return (used_bytes, total_bytes) from /proc/meminfo on Linux."""
+    try:
+        total_kb = 0
+        avail_kb = 0
+        with open("/proc/meminfo", "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("MemTotal:"):
+                    total_kb = int(line.split()[1])
+                elif line.startswith("MemAvailable:"):
+                    avail_kb = int(line.split()[1])
+                if total_kb and avail_kb:
+                    break
+        if total_kb <= 0:
+            return None
+        used_bytes = max(0, (total_kb - avail_kb) * 1024)
+        return used_bytes, total_kb * 1024
+    except Exception:
+        return None
+
+
 def _query_ram() -> Optional[float]:
     """Return system RAM usage ratio [0..1], or None if unavailable."""
+    if sys.platform.startswith("linux"):
+        info = _read_linux_meminfo()
+        if not info:
+            return None
+        used_bytes, total_bytes = info
+        return used_bytes / total_bytes
     if sys.platform != "win32":
         return None
     try:
@@ -198,6 +239,19 @@ def _query_ram() -> Optional[float]:
 
 def _query_ram_detail() -> Optional[dict]:
     """Return detailed system RAM info, or None if unavailable."""
+    if sys.platform.startswith("linux"):
+        info = _read_linux_meminfo()
+        if not info:
+            return None
+        used_bytes, total_bytes = info
+        used_gb = round(used_bytes / (1024**3), 2)
+        total_gb = round(total_bytes / (1024**3), 2)
+        pct = round((used_bytes / total_bytes) * 100.0, 1)
+        return {
+            "used": used_gb,
+            "total": total_gb,
+            "percent": pct,
+        }
     if sys.platform != "win32":
         return None
     try:
@@ -246,6 +300,32 @@ def _query_cpu_load() -> float:
     if now - _last_cpu_sample_time < 0.5:
         return _cached_cpu_pct
 
+    if sys.platform.startswith("linux"):
+        try:
+            with open("/proc/stat", "r", encoding="utf-8") as f:
+                first = f.readline().split()
+            if not first or first[0] != "cpu":
+                return _cached_cpu_pct
+            vals = [int(v) for v in first[1:]]
+            # idle + iowait
+            curr_idle = vals[3] + (vals[4] if len(vals) > 4 else 0)
+            curr_total = sum(vals)
+            if _prev_total > 0 and curr_total > _prev_total:
+                idle_delta = curr_idle - _prev_idle
+                total_delta = curr_total - _prev_total
+                if total_delta > 0:
+                    pct = max(
+                        0.0,
+                        min(100.0, (1.0 - (idle_delta / total_delta)) * 100.0),
+                    )
+                    _cached_cpu_pct = round(pct, 1)
+            _prev_idle = curr_idle
+            _prev_total = curr_total
+            _last_cpu_sample_time = now
+            return _cached_cpu_pct
+        except Exception:
+            return _cached_cpu_pct
+
     if sys.platform != "win32":
         return 0.0
 
@@ -282,6 +362,37 @@ def _query_cpu_load() -> float:
         return _cached_cpu_pct
 
 
+def _query_amd_sysfs_vram_detail() -> Optional[dict]:
+    """Return AMD VRAM info from Linux sysfs when available."""
+    if not sys.platform.startswith("linux"):
+        return None
+    drm_root = "/sys/class/drm"
+    try:
+        for entry in sorted(os.listdir(drm_root)):
+            if not entry.startswith("card") or "-" in entry:
+                continue
+            dev_dir = os.path.join(drm_root, entry, "device")
+            used_p = os.path.join(dev_dir, "mem_info_vram_used")
+            total_p = os.path.join(dev_dir, "mem_info_vram_total")
+            if not (os.path.isfile(used_p) and os.path.isfile(total_p)):
+                continue
+            with open(used_p, "r", encoding="utf-8") as f:
+                used_b = int(f.read().strip())
+            with open(total_p, "r", encoding="utf-8") as f:
+                total_b = int(f.read().strip())
+            if total_b <= 0:
+                continue
+            return {
+                "used": round(used_b / (1024**3), 2),
+                "total": round(total_b / (1024**3), 2),
+                "percent": round((used_b / total_b) * 100.0, 1),
+                "device": "AMD GPU",
+            }
+    except Exception:
+        return None
+    return None
+
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -291,7 +402,7 @@ def get_system_metrics() -> dict:
     return {
         "cpu": {"percent": _query_cpu_load()},
         "ram": _query_ram_detail() or {"used": 0.0, "total": 0.0, "percent": 0.0},
-        "vram": _query_nvml_detail(),
+        "vram": _query_nvml_detail() or _query_amd_sysfs_vram_detail(),
     }
 
 

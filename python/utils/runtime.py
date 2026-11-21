@@ -187,6 +187,51 @@ def _windows_gpu_names() -> list[str]:
     return names
 
 
+def _linux_gpu_names() -> list[str]:
+    """GPU names via nvidia-smi or lspci on Linux."""
+    global _GPU_NAMES_CACHE
+    if _GPU_NAMES_CACHE is not None:
+        return _GPU_NAMES_CACHE
+    names: list[str] = []
+    try:
+        out = subprocess.run(
+            ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if out.returncode == 0:
+            names.extend(
+                line.strip() for line in out.stdout.splitlines() if line.strip()
+            )
+    except Exception:
+        pass
+    if not names:
+        try:
+            out = subprocess.run(
+                ["lspci"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if out.returncode == 0:
+                for line in out.stdout.splitlines():
+                    low = line.lower()
+                    if any(
+                        tag in low
+                        for tag in ("vga compatible controller", "3d controller", "display controller")
+                    ):
+                        parts = line.split(":", 2)
+                        if len(parts) == 3 and parts[2].strip():
+                            names.append(parts[2].strip())
+        except Exception as e:
+            log.debug(f"Linux GPU name detection failed: {e}")
+    if names:
+        log.info(f"Detected GPU(s): {', '.join(names)}")
+    _GPU_NAMES_CACHE = names
+    return names
+
+
 def _pick_gpu(names: list[str], provider: str) -> Optional[str]:
     """Pick the GPU to display, preferring discrete adapters."""
     skip = (
@@ -237,6 +282,8 @@ def get_device_info() -> dict:
     gpus: list[str] = []
     if has_gpu_ep and os.name == "nt":
         gpus = _windows_gpu_names()
+    elif os.name == "posix":
+        gpus = _linux_gpu_names()
 
     if not forced_cpu and cuda in eps:
         provider, ep = "cuda", cuda
