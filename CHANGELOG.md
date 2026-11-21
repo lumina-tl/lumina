@@ -9,23 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Canvas scrollbars & pan navigation shortcuts.** Interactive dark glassmorphic horizontal and vertical scrollbars for the viewport canvas with two-way pan synchronization, thumb dragging, track click jumping, dynamic hover-state highlighting during resize or pan navigation, and auto-hide when fitting. Added Alt+Scroll for vertical panning, Shift+Scroll and trackpad 2-finger swipe for horizontal panning, while maintaining cursor-centered Ctrl+Scroll and plain wheel zooming.
-- **Auto-expand vertical text boxes on horizontal translation.** Automatically reflows narrow vertical Japanese detection boxes into balanced horizontal bubble dimensions when translated to Latin script. Centers the expanded box on the original position, accommodates the longest word and text volume at readable font sizes, clamps to canvas boundaries, and protects against neighbor collisions while leaving OCR and inpainting masks on the tight original bounding boxes.
-- **Floating text formatting toolbar.** Interactive glassmorphic toolbar anchored directly above active text boxes in edit mode, offering font family selection, live color well, size stepper, bold, italic, text alignment, and commit actions without losing focus or selection.
-- **Multi-color and multi-font support for text tool.** Character-level span styling (`TextStyleSpan`) with full undo/redo support, live multi-style preview inside the in-place editor and on the Konva canvas, and Photoshop PSD `styleRuns` multi-style export.
-- **Detailed streaming progress for pipeline stages.** Real-time per-box and per-patch progress tracking for OCR (`OCR: X/Y boxes...`), Inpainting (`Inpaint: X/Y patches...`), and multi-page text detection (`Detect: page X/Y...`) via NDJSON HTTP streaming. Preset pipeline runs now display phase prefixes (e.g. `[2/4]`) in the docked sub-capsule and dynamic island.
-- **Multi-selection feature for layers and detection boxes.** Multi-selection across canvas and sidebar with rubberband marquee selection, Shift/Ctrl-click toggling, multi-node move and scale via Konva Transformer, batch typography updates, and batch deletion.
-- **Live progress bar for extraction phase.** Real-time progress bar and percentage tracking during CUDA runtime extraction, transitioning smoothly from download to unpacking without appearing frozen at 100% (fixes lumina-tl/lumina#1).
-- **Full page context for line re-translation.** Single-layer re-translate now supplies the LLM with full page dialogue context (all lines before and after with current translations and target marker) to maintain conversation coherence and accurate tone.
-- **Cross-page dialogue context for multi-page translation.** Page translation pipeline automatically carries over the last 3–5 dialogue lines from the preceding page as initial context, ensuring terminology and sentence continuations stay consistent across page boundaries.
+- **Interactive canvas scrollbars.** Adaptive contrast horizontal and vertical scrollbars with pan shortcuts (Alt/Shift+Scroll).
+- **Auto-expand vertical text boxes.** Automatically reflows narrow vertical detection boxes into horizontal bubble proportions upon translation.
+- **Floating text formatting toolbar.** Quick font, color, size, and style controls anchored above active text boxes.
+- **Multi-color and multi-font rich text.** Character-level styling with full undo/redo support and Photoshop PSD export.
+- **Streaming pipeline progress.** Real-time per-box and per-patch progress indicators for OCR, inpainting, and detection.
+- **Canvas and layer multi-selection.** Marquee selection, multi-node transform, batch typography updates, and bulk deletion.
+- **Live extraction progress bar.** Real-time progress bar tracking during CUDA runtime extraction (#1).
+- **Full-page context for line re-translation.** Single-layer re-translation supplies full dialogue context to the LLM.
+- **Cross-page dialogue context.** Carries over trailing dialogue lines across page boundaries for consistent translation tone.
 
 ### Changed
 
-- **Text border width stepper increment.** Changed border width step in typography property sidebar from 0.5 to 1 for cleaner whole-number adjustments.
+- **Border width stepper increment.** Changed typography border width step from 0.5 to 1.
 
 ### Fixed
 
-- **CUDA runtime extraction progress parsing and stall.** Fixed 7-Zip stdout progress parsing failure in `extract7z` and wired the `extracting` state into the UI download toast and settings card (fixes lumina-tl/lumina#1).
+- **CUDA extraction progress parsing.** Fixed 7-Zip stdout progress parsing stall during CUDA installation (#1).
 
 ## [0.5.0] - 07-11-2026
 
