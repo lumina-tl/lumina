@@ -24,14 +24,17 @@ See the [documentation website](https://lumina.navierr.dev/) for guides and deta
 
 ## Features
 
-- **Semi-automatic pipeline** — detection, OCR, translation, inpainting, and typesetting are automated, but every step stays editable: detected boxes can be re-ordered or corrected by hand, OCR text can be edited or retranslated per line, and inpaint masks are individual layers you can toggle, move, or remove before export.
-- **Content-aware inpainting** with per-text instance masks, plus an automatic full-page mask from segmentation-based detection (`rfdetr_seg`).
-- **Selection tools** — lasso and rectangle with multi-selection refinement (Shift to add/merge, Alt to subtract) and quick actions (manual inpaint / mask erase).
-- **Typesetting helpers** — auto-detected text color and slant, auto-fit fonts, per-layer typography.
-- **Flexible export** — export pages to PNG/JPG or combine pages into a single PDF document with drag-and-drop page reordering.
-- **Resource monitoring & management** — live status bar monitoring for CPU, system RAM, GPU VRAM, and active models with one-click model cache purging.
-- Project save/import in a single `.lmi` file, registered as a file association — double-clicking a `.lmi` project opens it directly in Lumina.
-- **GPU acceleration** with per-model execution provider control (NVIDIA CUDA and DirectML).
+- **Semi-automatic pipeline** — automated detection, OCR, translation, inpainting, and typesetting with floating pipeline controls, preset switcher (*Full Pipeline* / *Clean Only*), and real-time streaming progress.
+- **Full manual control** — re-order/resize detected boxes, re-translate lines with surrounding dialogue context, edit or remove inpaint masks, and cancel in-place text edits with Escape.
+- **Rich text & typography** — character-level formatting (multi-color, multi-font, weight, italic), floating formatting toolbar, rotated in-place editor matching text slant, and auto-fit sizing.
+- **Font Market & Recommendations** — built-in catalog with 47 curated manga fonts (Dialogue, Scream, Whisper, SFX) and live search across 1,960+ Google Fonts, supporting one-click in-app or Windows user-space installation with instant glyph preview.
+- **Content-aware inpainting** — text-instance masking plus full-page binary text segmentation (`rfdetr_seg`).
+- **Selection tools** — lasso and rectangle with multi-selection (Shift add, Alt subtract), transform controls, and quick actions (clean area / erase masks).
+- **Flexible export** — export pages to PNG, JPG, multi-page PDF documents, or layered Photoshop (PSD) files with editable text artboards.
+- **Hardware resource monitor** — real-time status bar monitor for CPU, RAM, GPU VRAM (via NVML), active models, and automatic memory-pressure LRU eviction.
+- **Context-aware translation** — whole-page dialogue awareness and cross-page context continuity across chapter transitions.
+- **Single project format (.lmi)** — zip-packaged project files bundling pages, detection data, rich text layers, and mask patches.
+- **GPU acceleration** — optimized ONNX Runtime execution with NVIDIA CUDA 12 and universal DirectML providers.
 
 ## Showcase
 
@@ -119,9 +122,9 @@ Each step produces editable results: detected boxes can be re-ordered or correct
 ```
 lumina/
 ├── src/
-│   ├── main/          Electron main process (window, backend, project, export)
+│   ├── main/          Electron main process (window, backend, font-market, export)
 │   ├── preload.ts     Context-isolated IPC bridge
-│   ├── renderer/      UI, canvas, pipeline orchestration
+│   ├── renderer/      UI, canvas, pipeline orchestration, font market
 │   └── shared/        IPC contract shared with both processes
 ├── python/
 │   ├── main.py        FastAPI entry point
@@ -137,25 +140,27 @@ Models are managed in Settings → Models. They are not bundled with the app; ea
 
 The models directory is resolved in this order: the `LUMINA_MODEL_DIR` environment variable, the location saved in Settings → Models (via the “Models directory” card), or the platform default `userData/models` (`%APPDATA%\Lumina\models` on Windows). In a source checkout, set `LUMINA_MODEL_DIR` in `.env` (see [.env.example](.env.example)) to keep using the repo's `models/` folder.
 
-| Category | Model          | Status          | Execution                        |
-| -------- | -------------- | --------------- | -------------------------------- |
-| Detect   | `rtdetr`       | Ready (default) | CUDA / DirectML / CPU            |
-| Detect   | `rfdetr_seg`   | Ready           | CUDA / DirectML / CPU            |
-| OCR      | `manga_ocr`    | Ready (default) | CUDA / DirectML (decoder on CPU) |
-| OCR      | `baberu`       | Ready           | CUDA / DirectML (decoder on CPU) |
-| OCR      | `ppocrv6`      | Ready           | CUDA / DirectML / CPU            |
-| OCR      | `paddleocr_vl` | In development  | CUDA or CPU (no DirectML)        |
-| Inpaint  | `lama_manga`   | Ready (default) | CUDA or CPU (no DirectML)        |
-| Inpaint  | `lama`         | Ready           | CPU only                         |
-| Aux      | `anglenet`     | Ready (aux)     | CPU (forced)                     |
+| Category | Model          | Status          | Execution                        | Notes                                          |
+| -------- | -------------- | --------------- | -------------------------------- | ---------------------------------------------- |
+| Detect   | `rtdetr`       | Ready (default) | CUDA / DirectML / CPU            | RT-DETR v2 r50vd comic text detector           |
+| Detect   | `rfdetr_seg`   | Ready           | CUDA / DirectML / CPU            | Koharu Layout RF-DETR Seg 2XL (FP16)  |
+| OCR      | `manga_ocr`    | Ready (default) | CUDA / DirectML (decoder on CPU) | Fast, accurate Japanese recognizer             |
+| OCR      | `baberu`       | Ready           | CUDA / DirectML (decoder on CPU) | Multilingual manga OCR v1.2 (256-token bubble) |
+| OCR      | `ppocrv6`      | Ready           | CUDA / DirectML / CPU            | Fast multi-language text line reader           |
+| OCR      | `paddleocr_vl` | In development  | CUDA or CPU (no DirectML)        | Vision-language region reader                  |
+| Inpaint  | `lama_manga`   | Ready (default) | CUDA or CPU (no DirectML)        | Manga-tailored resolution-preserving inpainter |
+| Inpaint  | `lama`         | Ready           | CPU only                         | Standard LaMa fallback                         |
+| Aux      | `anglenet`     | Ready (aux)     | CPU (forced)                     | Auto-measures bubble slant angle (~2 MB)       |
 
 "Ready" models are stable; "In development" models work but may still have rough edges.
+
+Models can be installed or deleted from disk anytime in Settings → Models. Memory is managed dynamically via native NVML/Win32 queries with automatic LRU eviction above 80% usage threshold.
 
 `anglenet` is a tiny global model (~2 MB) that the app auto-downloads in the background on first launch (it also shows up in the model check endpoint, so it can be fetched again manually if needed). It measures the slant of each detected text crop so typesetting can rotate translated text to match the original (`textAngle`); if the file is missing, slant falls back to the PCA heuristic.
 
 ## Translation
 
-Translation is the only step that calls an external AI API — everything else (detection, OCR, inpainting, typesetting) runs fully offline. You pick a provider and enter its API key in the translation settings; the key never leaves your machine except as a request header sent directly to the provider you chose.
+Translation is the only step that calls an external AI API — everything else (detection, OCR, inpainting, typesetting) runs fully offline. You pick a provider and enter its API key in the translation settings; the key never leaves your machine except as a request header sent directly to the provider you chose. All OpenAI-compatible endpoints (Ollama, LM Studio, vLLM, etc.) and major commercial LLMs are supported via a neutral comic localization prompt (`prompts/translate-default.md`).
 
 | Provider   | Compatible with                         | Notes                                                                                                                                            |
 | ---------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -190,7 +195,7 @@ When running from source, pick the provider wheel yourself: `onnxruntime-directm
 
 ## Project File Format (.lmi)
 
-A `.lmi` file is a zip archive containing a `project.json` manifest plus the page images and inpaint mask patches. The manifest stores the page list, text detections, layers, typography, and a non-secret subset of the translation settings. API keys are never written to the file.
+A `.lmi` file is a zip archive containing a `project.json` manifest plus page images and inpaint mask patches. The manifest stores page order, text detections, rich text spans, layers, typography, and non-secret translation settings. API keys are never stored in the project file.
 
 ## Development
 
