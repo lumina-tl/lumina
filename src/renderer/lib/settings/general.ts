@@ -9,6 +9,8 @@ import {
   setOcrNormalizeMode,
 } from "../pipeline/text-norm";
 import { openChangelogModal } from "../ui/changelog-modal";
+import { fontMarketModal } from "../font-market/modal";
+import { createIcons } from "../ui/icons";
 
 export const generalTab = {
   build(pane: HTMLElement): void {
@@ -182,6 +184,42 @@ export const generalTab = {
       shortcutsTab.refreshTitles();
       shortcutsTab.refresh();
     });
+
+    // ── Font Market & Recommendations ──
+    const fontMarketSection = document.createElement("div");
+    fontMarketSection.className = "settings-section";
+
+    const fontMarketRow = document.createElement("div");
+    fontMarketRow.className = "field-row items-center justify-between mb-1.5";
+
+    const fontMarketLabel = document.createElement("span");
+    fontMarketLabel.className = "text-[0.78rem] text-text-primary";
+    fontMarketLabel.dataset.i18n = "fontMarket.title";
+    fontMarketLabel.textContent = i18n.t("fontMarket.title");
+
+    const fontMarketBtn = document.createElement("button");
+    fontMarketBtn.type = "button";
+    fontMarketBtn.className = "btn flex items-center gap-1.5";
+    fontMarketBtn.innerHTML =
+      '<i data-lucide="store" class="w-3.5 h-3.5 text-lumina"></i> <span data-i18n="fontMarket.openMarket">' +
+      (i18n.t("fontMarket.openMarket") || "Open Font Market") +
+      "</span>";
+    fontMarketBtn.addEventListener("click", () => {
+      fontMarketModal.open();
+    });
+
+    fontMarketRow.appendChild(fontMarketLabel);
+    fontMarketRow.appendChild(fontMarketBtn);
+    fontMarketSection.appendChild(fontMarketRow);
+
+    const fontMarketHint = document.createElement("p");
+    fontMarketHint.className = "text-[0.68rem] text-text-muted leading-relaxed";
+    fontMarketHint.dataset.i18n = "fontMarket.settingsHint";
+    fontMarketHint.textContent = i18n.t("fontMarket.settingsHint");
+    fontMarketSection.appendChild(fontMarketHint);
+
+    pane.appendChild(fontMarketSection);
+    createIcons({ root: fontMarketBtn });
 
     // ── What's New & Developer Notes ──
     const changelogSection = document.createElement("div");

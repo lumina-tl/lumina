@@ -367,5 +367,25 @@
   "shortcuts.resetAll": "Reset All",
   "shortcuts.done": "Done",
 
+  "fontMarket.title": "Font Market & Recommendations",
+  "fontMarket.openMarket": "Open Font Market",
+  "fontMarket.settingsHint": "Browse, preview, and install comic & manga typography directly within Lumina or Windows.",
+  "fontMarket.openDir": "Open Fonts Folder",
+  "fontMarket.catAll": "All",
+  "fontMarket.catDialogue": "Dialogue",
+  "fontMarket.catScream": "Scream / Shout",
+  "fontMarket.catWhisper": "Whisper / Thought",
+  "fontMarket.catSfx": "SFX",
+  "fontMarket.catInstalled": "Installed",
+  "fontMarket.loading": "Loading fonts catalog...",
+  "fontMarket.noFonts": "No fonts match your filter",
+  "fontMarket.statusSystem": "System",
+  "fontMarket.statusInApp": "In-App",
+  "fontMarket.statusNotInstalled": "Not Installed",
+  "fontMarket.installInAppTip": "Download and load font inside Lumina (no admin needed)",
+  "fontMarket.installSystemTip": "Install into Windows user-space fonts registry",
+  "fontMarket.applyToSelected": "Apply font to selected text layer",
+  "fontMarket.uninstall": "Uninstall font",
+
   "error.prefix": "Error: {{message}}"
 }

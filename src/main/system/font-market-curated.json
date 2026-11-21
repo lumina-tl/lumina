@@ -1,0 +1,438 @@
+[
+  {
+    "id": "comic-neue",
+    "family": "Comic Neue",
+    "category": "dialogue",
+    "author": "Craig Hang",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/comicneue/ComicNeue-Regular.ttf",
+      "bold": "https://raw.githubusercontent.com/google/fonts/main/ofl/comicneue/ComicNeue-Bold.ttf",
+      "italic": "https://raw.githubusercontent.com/google/fonts/main/ofl/comicneue/ComicNeue-Italic.ttf"
+    }
+  },
+  {
+    "id": "patrick-hand",
+    "family": "Patrick Hand",
+    "category": "dialogue",
+    "author": "Patrick Neveu",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/patrickhand/PatrickHand-Regular.ttf"
+    }
+  },
+  {
+    "id": "mali",
+    "family": "Mali",
+    "category": "dialogue",
+    "author": "Cadson Demak",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/mali/Mali-Regular.ttf",
+      "bold": "https://raw.githubusercontent.com/google/fonts/main/ofl/mali/Mali-Bold.ttf",
+      "italic": "https://raw.githubusercontent.com/google/fonts/main/ofl/mali/Mali-Italic.ttf"
+    }
+  },
+  {
+    "id": "gochi-hand",
+    "family": "Gochi Hand",
+    "category": "dialogue",
+    "author": "FontDiner",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/gochihand/GochiHand-Regular.ttf"
+    }
+  },
+  {
+    "id": "pangolin",
+    "family": "Pangolin",
+    "category": "dialogue",
+    "author": "Kevin Burke",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/pangolin/Pangolin-Regular.ttf"
+    }
+  },
+  {
+    "id": "balsamiq-sans",
+    "family": "Balsamiq Sans",
+    "category": "dialogue",
+    "author": "Michael Charyk",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/balsamiqsans/BalsamiqSans-Regular.ttf",
+      "bold": "https://raw.githubusercontent.com/google/fonts/main/ofl/balsamiqsans/BalsamiqSans-Bold.ttf",
+      "italic": "https://raw.githubusercontent.com/google/fonts/main/ofl/balsamiqsans/BalsamiqSans-Italic.ttf"
+    }
+  },
+  {
+    "id": "neucha",
+    "family": "Neucha",
+    "category": "dialogue",
+    "author": "Jovanny Lemonad",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/neucha/Neucha.ttf"
+    }
+  },
+  {
+    "id": "itim",
+    "family": "Itim",
+    "category": "dialogue",
+    "author": "Cadson Demak",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/itim/Itim-Regular.ttf"
+    }
+  },
+  {
+    "id": "sniglet",
+    "family": "Sniglet",
+    "category": "dialogue",
+    "author": "Brenda Gallo",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/sniglet/Sniglet-Regular.ttf"
+    }
+  },
+  {
+    "id": "short-stack",
+    "family": "Short Stack",
+    "category": "dialogue",
+    "author": "James Grieshaber",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/shortstack/ShortStack-Regular.ttf"
+    }
+  },
+  {
+    "id": "delius",
+    "family": "Delius",
+    "category": "dialogue",
+    "author": "Natalia Raices",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/delius/Delius-Regular.ttf"
+    }
+  },
+  {
+    "id": "schoolbell",
+    "family": "Schoolbell",
+    "category": "dialogue",
+    "author": "Font Diner",
+    "license": "Apache 2.0",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/apache/schoolbell/Schoolbell-Regular.ttf"
+    }
+  },
+  {
+    "id": "bangers",
+    "family": "Bangers",
+    "category": "scream",
+    "author": "Vernon Adams",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/bangers/Bangers-Regular.ttf"
+    }
+  },
+  {
+    "id": "black-ops-one",
+    "family": "Black Ops One",
+    "category": "scream",
+    "author": "James Grieshaber",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/blackopsone/BlackOpsOne-Regular.ttf"
+    }
+  },
+  {
+    "id": "creepster",
+    "family": "Creepster",
+    "category": "scream",
+    "author": "Sideshow",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/creepster/Creepster-Regular.ttf"
+    }
+  },
+  {
+    "id": "rampart-one",
+    "family": "Rampart One",
+    "category": "scream",
+    "author": "Fontworks",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/rampartone/RampartOne-Regular.ttf"
+    }
+  },
+  {
+    "id": "bungee",
+    "family": "Bungee",
+    "category": "scream",
+    "author": "David Jonathan Ross",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/bungee/Bungee-Regular.ttf"
+    }
+  },
+  {
+    "id": "rubik-beastly",
+    "family": "Rubik Beastly",
+    "category": "scream",
+    "author": "Philipp Nurullin",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/rubikbeastly/RubikBeastly-Regular.ttf"
+    }
+  },
+  {
+    "id": "anton",
+    "family": "Anton",
+    "category": "scream",
+    "author": "Vernon Adams",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/anton/Anton-Regular.ttf"
+    }
+  },
+  {
+    "id": "russo-one",
+    "family": "Russo One",
+    "category": "scream",
+    "author": "Jovanny Lemonad",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/russoone/RussoOne-Regular.ttf"
+    }
+  },
+  {
+    "id": "righteous",
+    "family": "Righteous",
+    "category": "scream",
+    "author": "Astigmatic",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/righteous/Righteous-Regular.ttf"
+    }
+  },
+  {
+    "id": "fugaz-one",
+    "family": "Fugaz One",
+    "category": "scream",
+    "author": "LatinoType",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/fugazone/FugazOne-Regular.ttf"
+    }
+  },
+  {
+    "id": "nosifer",
+    "family": "Nosifer",
+    "category": "scream",
+    "author": "Typomondo",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/nosifer/Nosifer-Regular.ttf"
+    }
+  },
+  {
+    "id": "eater",
+    "family": "Eater",
+    "category": "scream",
+    "author": "Typomondo",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/eater/Eater-Regular.ttf"
+    }
+  },
+  {
+    "id": "faster-one",
+    "family": "Faster One",
+    "category": "scream",
+    "author": "Eduardo Tunni",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/fasterone/FasterOne-Regular.ttf"
+    }
+  },
+  {
+    "id": "rubik-glitch",
+    "family": "Rubik Glitch",
+    "category": "scream",
+    "author": "Philipp Nurullin",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/rubikglitch/RubikGlitch-Regular.ttf"
+    }
+  },
+  {
+    "id": "sigmar-one",
+    "family": "Sigmar One",
+    "category": "scream",
+    "author": "Vernon Adams",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/sigmarone/SigmarOne-Regular.ttf"
+    }
+  },
+  {
+    "id": "kalam",
+    "family": "Kalam",
+    "category": "whisper",
+    "author": "Indian Type Foundry",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/kalam/Kalam-Regular.ttf",
+      "bold": "https://raw.githubusercontent.com/google/fonts/main/ofl/kalam/Kalam-Bold.ttf"
+    }
+  },
+  {
+    "id": "caveat",
+    "family": "Caveat",
+    "category": "whisper",
+    "author": "Impallari Type",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/caveat/Caveat%5Bwght%5D.ttf"
+    }
+  },
+  {
+    "id": "nanum-pen-script",
+    "family": "Nanum Pen Script",
+    "category": "whisper",
+    "author": "Sandoll Communications",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/nanumpenscript/NanumPenScript-Regular.ttf"
+    }
+  },
+  {
+    "id": "architects-daughter",
+    "family": "Architects Daughter",
+    "category": "whisper",
+    "author": "Kimberly Geswein",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/architectsdaughter/ArchitectsDaughter-Regular.ttf"
+    }
+  },
+  {
+    "id": "shadows-into-light",
+    "family": "Shadows Into Light",
+    "category": "whisper",
+    "author": "Kimberly Geswein",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/shadowsintolight/ShadowsIntoLight.ttf"
+    }
+  },
+  {
+    "id": "handlee",
+    "family": "Handlee",
+    "category": "whisper",
+    "author": "Joe Prince",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/handlee/Handlee-Regular.ttf"
+    }
+  },
+  {
+    "id": "reenie-beanie",
+    "family": "Reenie Beanie",
+    "category": "whisper",
+    "author": "James Grieshaber",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/reeniebeanie/ReenieBeanie.ttf"
+    }
+  },
+  {
+    "id": "indie-flower",
+    "family": "Indie Flower",
+    "category": "whisper",
+    "author": "Kimberly Geswein",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/indieflower/IndieFlower-Regular.ttf"
+    }
+  },
+  {
+    "id": "covered-by-your-grace",
+    "family": "Covered By Your Grace",
+    "category": "whisper",
+    "author": "Kimberly Geswein",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/coveredbyyourgrace/CoveredByYourGrace.ttf"
+    }
+  },
+  {
+    "id": "just-another-hand",
+    "family": "Just Another Hand",
+    "category": "whisper",
+    "author": "Astigmatic",
+    "license": "Apache 2.0",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/apache/justanotherhand/JustAnotherHand-Regular.ttf"
+    }
+  },
+  {
+    "id": "amatic-sc",
+    "family": "Amatic SC",
+    "category": "whisper",
+    "author": "Vernon Adams",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/amaticsc/AmaticSC-Regular.ttf",
+      "bold": "https://raw.githubusercontent.com/google/fonts/main/ofl/amaticsc/AmaticSC-Bold.ttf"
+    }
+  },
+  {
+    "id": "permanent-marker",
+    "family": "Permanent Marker",
+    "category": "sfx",
+    "author": "Font Diner",
+    "license": "Apache 2.0",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/apache/permanentmarker/PermanentMarker-Regular.ttf"
+    }
+  },
+  {
+    "id": "sedgwick-ave",
+    "family": "Sedgwick Ave",
+    "category": "sfx",
+    "author": "Kevin Burke",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/sedgwickave/SedgwickAve-Regular.ttf"
+    }
+  },
+  {
+    "id": "rock-salt",
+    "family": "Rock Salt",
+    "category": "sfx",
+    "author": "Sideshow",
+    "license": "Apache 2.0",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/apache/rocksalt/RockSalt-Regular.ttf"
+    }
+  },
+  {
+    "id": "shojumaru",
+    "family": "Shojumaru",
+    "category": "sfx",
+    "author": "Astigmatic",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/shojumaru/Shojumaru-Regular.ttf"
+    }
+  },
+  {
+    "id": "press-start-2p",
+    "family": "Press Start 2P",
+    "category": "sfx",
+    "author": "CodeMan38",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/pressstart2p/PressStart2P-Regular.ttf"
+    }
+  },
+  {
+    "id": "kranky",
+    "family": "Kranky",
+    "category": "sfx",
+    "author": "Font Diner",
+    "license": "Apache 2.0",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/apache/kranky/Kranky-Regular.ttf"
+    }
+  },
+  {
+    "id": "freckle-face",
+    "family": "Freckle Face",
+    "category": "sfx",
+    "author": "Astigmatic",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/freckleface/FreckleFace-Regular.ttf"
+    }
+  },
+  {
+    "id": "rye",
+    "family": "Rye",
+    "category": "sfx",
+    "author": "Nicole Fally",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/rye/Rye-Regular.ttf"
+    }
+  },
+  {
+    "id": "trade-winds",
+    "family": "Trade Winds",
+    "category": "sfx",
+    "author": "Sideshow",
+    "files": {
+      "regular": "https://raw.githubusercontent.com/google/fonts/main/ofl/tradewinds/TradeWinds-Regular.ttf"
+    }
+  }
+]

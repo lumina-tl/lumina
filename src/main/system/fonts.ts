@@ -1,9 +1,18 @@
 /** Fonts — scan system fonts. */
 import fs from "fs";
 import path from "path";
+import { app } from "electron";
 import { IPC } from "../../shared/bridge";
 import type { FontInfo } from "../../shared/bridge";
 import { handle } from "../core/ipc";
+
+export function getUserFontsDir(): string {
+  const dir = path.join(app.getPath("userData"), "fonts");
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  return dir;
+}
 
 function readMeta(
   buf: Buffer,
@@ -108,10 +117,12 @@ function fontDirs(): string[] {
     dirs.push("/usr/share/fonts", "/usr/local/share/fonts");
     if (process.env.HOME) dirs.push(path.join(process.env.HOME, ".fonts"));
   }
+  const appFonts = getUserFontsDir();
+  if (fs.existsSync(appFonts)) dirs.push(appFonts);
   return dirs;
 }
 
-function scanFonts(): FontInfo[] {
+export function scanFonts(): FontInfo[] {
   const fonts: FontInfo[] = [];
   const seen = new Set<string>();
   const validExts = new Set([".ttf", ".otf"]);

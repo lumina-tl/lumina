@@ -21,6 +21,11 @@ import type {
   TempPngWritePayload,
   TempPngWriteResult,
 } from "./misc";
+import type {
+  FontMarketItem,
+  FontInstallPayload,
+  FontInstallResult,
+} from "./font-market";
 import type { RecentsData } from "./recent";
 import type { RuntimeInfo, RuntimeProgress } from "./runtime";
 import type { LogLevel } from "../logger";
@@ -48,6 +53,16 @@ export interface LuminaAPI {
   deleteModel(modelId: string): Promise<void>;
   onDownloadProgress(cb: (msg: DownloadProgress) => void): void;
   getFonts(): Promise<FontInfo[]>;
+  getFontMarketCatalog(): Promise<FontMarketItem[]>;
+  searchGoogleFonts(
+    params: import("./font-market").GoogleFontSearchParams,
+  ): Promise<import("./font-market").GoogleFontSearchResult>;
+  installFont(payload: FontInstallPayload): Promise<FontInstallResult>;
+  uninstallFont(payload: {
+    fontId: string;
+    family?: string;
+  }): Promise<{ ok: boolean; error?: string }>;
+  openFontsFolder(): Promise<void>;
   loadTranslations(): Promise<Record<string, Record<string, string>>>;
   loadDefaultInstruction(): Promise<string>;
   setSecret(key: string, value: string): Promise<void>;

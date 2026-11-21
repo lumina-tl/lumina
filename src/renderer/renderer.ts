@@ -38,6 +38,7 @@ import { importImages, openImagePaths } from "./lib/project/page-loader";
 import { initAutoUpdate } from "./lib/ui/auto-update";
 import { updateDirtyUI, setDirtyListener } from "./lib/project/dirty";
 import { resourceMonitor } from "./lib/ui/resource-monitor";
+import { fontMarketModal } from "./lib/font-market/modal";
 import {
   openChangelogModal,
   checkAutoOpenChangelog,
@@ -141,6 +142,10 @@ function initMenuBar(): void {
     item.addEventListener("click", () => {
       closeMenus();
     });
+  });
+
+  document.getElementById("menu-font-market")?.addEventListener("click", () => {
+    fontMarketModal.open();
   });
 
   document.getElementById("menu-settings")?.addEventListener("click", () => {

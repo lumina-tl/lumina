@@ -367,5 +367,25 @@
   "shortcuts.resetAll": "Reset Semua",
   "shortcuts.done": "Selesai",
 
+  "fontMarket.title": "Font Market & Rekomendasi",
+  "fontMarket.openMarket": "Buka Font Market",
+  "fontMarket.settingsHint": "Jelajahi, pratinjau, dan pasang font komik & manga langsung di dalam Lumina atau Windows.",
+  "fontMarket.openDir": "Buka Folder Font",
+  "fontMarket.catAll": "Semua",
+  "fontMarket.catDialogue": "Dialog",
+  "fontMarket.catScream": "Teriakan / Jeritan",
+  "fontMarket.catWhisper": "Bisikan / Monolog",
+  "fontMarket.catSfx": "SFX",
+  "fontMarket.catInstalled": "Terpasang",
+  "fontMarket.loading": "Memuat katalog font...",
+  "fontMarket.noFonts": "Tidak ada font yang cocok",
+  "fontMarket.statusSystem": "Sistem OS",
+  "fontMarket.statusInApp": "Internal App",
+  "fontMarket.statusNotInstalled": "Belum Terpasang",
+  "fontMarket.installInAppTip": "Unduh dan pasang di Lumina (tanpa admin)",
+  "fontMarket.installSystemTip": "Pasang ke registry font user Windows",
+  "fontMarket.applyToSelected": "Terapkan font ke teks layer yang dipilih",
+  "fontMarket.uninstall": "Hapus font",
+
   "error.prefix": "Error: {{message}}"
 }

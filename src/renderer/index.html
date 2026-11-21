@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self' https://cdn.jsdelivr.net; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' file: data:; font-src 'self' data: file:; connect-src 'self';"
+      content="default-src 'self' https://cdn.jsdelivr.net; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' file: data:; font-src 'self' data: file: https://fonts.gstatic.com https://raw.githubusercontent.com; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://raw.githubusercontent.com;"
     />
     <title>Lumina</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
@@ -126,6 +126,14 @@
               <span class="menu-item-shortcut">Ctrl+Y</span>
             </button>
             <div class="menu-sep"></div>
+            <button class="menu-item" id="menu-font-market">
+              <span class="menu-item-icon"
+                ><i data-lucide="store" class="w-3.5 h-3.5 text-lumina"></i
+              ></span>
+              <span class="menu-item-label" data-i18n="fontMarket.title"
+                >Font Market & Recommendations</span
+              >
+            </button>
             <button class="menu-item" id="menu-settings">
               <span class="menu-item-icon"
                 ><i data-lucide="settings" class="w-3.5 h-3.5"></i

@@ -42,6 +42,11 @@ const api: LuminaAPI = {
     on(IPC.modelDownloadProgress, cb);
   },
   getFonts: () => invoke(IPC.getFonts),
+  getFontMarketCatalog: () => invoke(IPC.fontMarketCatalog),
+  searchGoogleFonts: (params) => invoke(IPC.fontMarketSearchGoogle, params),
+  installFont: (payload) => invoke(IPC.fontMarketInstall, payload),
+  uninstallFont: (payload) => invoke(IPC.fontMarketUninstall, payload),
+  openFontsFolder: () => invoke(IPC.fontMarketOpenDir),
   loadTranslations: () => invoke(IPC.loadTranslations),
   loadDefaultInstruction: () => invoke(IPC.loadDefaultInstruction),
   setSecret: (key, value) => invoke(IPC.secretsSet, key, value),

@@ -3,7 +3,9 @@ import { state } from "../state";
 import * as i18n from "../i18n";
 import { canvas } from "../canvas/index";
 import { history } from "../history";
+import { createIcons } from "../ui/icons";
 import { internalFontName } from "../utils/font-loader";
+import { fontMarketModal } from "../font-market/modal";
 import {
   restoreEditorSelection,
   getEditorSelection,
@@ -390,12 +392,25 @@ export const typeSection = {
     const title = document.createElement("span");
     title.className = "font-picker-panel-title";
     title.textContent = i18n.t("type.font");
+    const marketBtn = document.createElement("button");
+    marketBtn.type = "button";
+    marketBtn.className = "font-picker-market-btn";
+    marketBtn.innerHTML =
+      '<i data-lucide="store" class="w-3 h-3"></i> <span>Market</span>';
+    marketBtn.title = i18n.t("fontMarket.title");
+    marketBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      close();
+      fontMarketModal.open();
+    });
     const closeBtn = document.createElement("button");
     closeBtn.type = "button";
     closeBtn.className = "font-picker-close";
     closeBtn.textContent = "✕";
     head.appendChild(title);
+    head.appendChild(marketBtn);
     head.appendChild(closeBtn);
+    createIcons({ root: head });
     const search = document.createElement("input");
     search.type = "text";
     search.className = "font-picker-search";

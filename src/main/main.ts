@@ -16,6 +16,7 @@ import { registerApiHandlers } from "./backend/proxy";
 import { registerConfigHandlers } from "./system/config";
 import { registerSecretHandlers } from "./system/secrets";
 import { registerFontHandlers } from "./system/fonts";
+import { registerFontMarketHandlers } from "./system/font-market";
 import { registerTranslationHandlers } from "./system/translations";
 import { registerUpdaterHandlers } from "./system/updater";
 import { registerDeviceHandlers } from "./models/device";
@@ -41,6 +42,7 @@ function registerAll(win: BrowserWindow): void {
   registerSecretHandlers();
   registerConfigHandlers();
   registerFontHandlers();
+  registerFontMarketHandlers();
   registerTranslationHandlers();
   registerUpdaterHandlers(win);
   registerProjectHandlers();

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Font market and recommendations.** In-app catalog and Google Fonts browser with live previews, curated manga categories, and one-click in-app or Windows user-space installation.
 - **Interactive canvas scrollbars.** Adaptive contrast horizontal and vertical scrollbars with pan shortcuts (Alt/Shift+Scroll).
 - **Auto-expand vertical text boxes.** Automatically reflows narrow vertical detection boxes into horizontal bubble proportions upon translation.
 - **Floating text formatting toolbar.** Quick font, color, size, and style controls anchored above active text boxes.

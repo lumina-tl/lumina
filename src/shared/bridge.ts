@@ -32,4 +32,13 @@ export type {
   TempPngWriteResult,
   ModelsPathState,
 } from "./types/misc";
+export type {
+  FontMarketItem,
+  FontMarketCategory,
+  FontInstallStatus,
+  FontInstallPayload,
+  FontInstallResult,
+  GoogleFontSearchParams,
+  GoogleFontSearchResult,
+} from "./types/font-market";
 export type { LuminaAPI } from "./types/api";

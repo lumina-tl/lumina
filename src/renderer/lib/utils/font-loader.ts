@@ -58,3 +58,33 @@ export async function loadSystemFonts(): Promise<void> {
   });
   await Promise.all(jobs);
 }
+
+/** Detect whether a font is installed and where (system or in-app) */
+export function detectFontStatus(family: string): {
+  status: "not_installed" | "in_app" | "system";
+  matchedFont?: { family: string; path: string };
+} {
+  const norm = family.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const found = (state.fontList || []).find(function (f) {
+    return f.family.toLowerCase().replace(/[^a-z0-9]/g, "") === norm;
+  });
+  if (!found) {
+    return { status: "not_installed" };
+  }
+  const p = found.path.toLowerCase().replace(/\\/g, "/");
+  if (
+    p.includes("/windows/fonts") ||
+    p.includes("/microsoft/windows/fonts") ||
+    p.includes("/library/fonts") ||
+    p.includes("/usr/share/fonts")
+  ) {
+    return { status: "system", matchedFont: found };
+  }
+  return { status: "in_app", matchedFont: found };
+}
+
+/** Reload fonts from main process and re-register newly added FontFaces */
+export async function reloadFonts(): Promise<void> {
+  await loadSystemFonts();
+}
+

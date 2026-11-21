@@ -81,5 +81,5 @@
 - [x] detailed progress for pipeline
 - [x] multi collor support on text tool
 - [x] multi font support on text tool
-- [ ] font market and recomendation
+- [x] font market and recomendation
 - [ ] testing and hunt another bugs

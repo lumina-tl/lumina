@@ -4736,5 +4736,312 @@ body.resizing-row {
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.85);
 }
 
+/* ── Font Market Modal (Feed Gallery Design) ── */
+.font-market-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+.font-market-modal {
+  min-width: 720px;
+  min-height: 520px;
+  width: 940px;
+  height: 640px;
+}
+
+/* Toolbar */
+.font-gallery-toolbar {
+  background: rgba(255, 255, 255, 0.015);
+}
+.font-gallery-modes {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  padding: 2px;
+  gap: 2px;
+}
+.font-gallery-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  border-radius: 5px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.font-gallery-mode-btn:hover {
+  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.04);
+}
+.font-gallery-mode-btn.active {
+  background: rgba(233, 69, 96, 0.18);
+  color: #fff;
+  border: 1px solid rgba(233, 69, 96, 0.35);
+}
+.font-gallery-badge {
+  font-size: 0.6rem;
+  padding: 0.5px 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-muted);
+}
+.font-gallery-mode-btn.active .font-gallery-badge {
+  background: rgba(233, 69, 96, 0.3);
+  color: #ff94a5;
+}
+.font-gallery-search-wrap .font-gallery-search {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.font-gallery-search-wrap .font-gallery-search:focus {
+  border-color: rgba(233, 69, 96, 0.4);
+}
+
+/* Category pills */
+.font-gallery-cat-pills {
+  display: flex;
+  align-items: center;
+}
+.font-cat-pill {
+  padding: 2px 8px;
+  font-size: 0.68rem;
+  font-weight: 500;
+  border-radius: 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.font-cat-pill:hover {
+  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+.font-cat-pill.active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Custom sample input & size slider */
+.font-sample-text-wrap input {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 5px;
+  outline: none;
+}
+.font-sample-text-wrap input:focus {
+  border-color: rgba(233, 69, 96, 0.4);
+}
+.font-size-slider-wrap {
+  display: flex;
+  align-items: center;
+}
+.font-size-slider {
+  width: 70px;
+  height: 4px;
+  accent-color: var(--color-lumina);
+  cursor: pointer;
+}
+
+/* Feed List & Rows */
+.font-feed-body {
+  background: rgba(14, 14, 18, 0.6);
+}
+.font-feed-list {
+  display: flex;
+  flex-direction: column;
+}
+.font-feed-row {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: background 0.15s ease;
+  position: relative;
+}
+.font-feed-row:hover {
+  background: rgba(255, 255, 255, 0.018);
+}
+.font-feed-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.font-feed-family {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+.font-feed-meta {
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Category tags */
+.font-cat-tag {
+  font-size: 0.58rem;
+  font-weight: 600;
+  padding: 1.5px 5.5px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+.font-cat-tag.tag-dialogue {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.font-cat-tag.tag-scream {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.font-cat-tag.tag-whisper {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+.font-cat-tag.tag-sfx {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.font-cat-tag.tag-google {
+  background: rgba(96, 165, 250, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+/* Typography Preview Area */
+.font-feed-sample {
+  padding: 4px 0 6px 0;
+  color: #ededed;
+  line-height: 1.35;
+  outline: none;
+  word-break: break-word;
+  cursor: text;
+  transition: color 0.15s ease;
+}
+.font-feed-sample:focus {
+  color: #fff;
+}
+
+/* Status badge */
+.font-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.62rem;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+.font-status-badge.badge-system {
+  background: rgba(52, 211, 153, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+.font-status-badge.badge-in-app {
+  background: rgba(96, 165, 250, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+/* Single Action Button & Dropdown */
+.font-feed-action-wrap {
+  position: relative;
+}
+.font-market-single-btn {
+  padding: 4px 10px;
+}
+.font-market-installed-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--color-text-primary);
+}
+.font-market-installed-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+.font-action-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 5px);
+  z-index: 100;
+  min-width: 220px;
+  background: rgba(24, 24, 28, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.font-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 5px;
+  background: transparent;
+  border: none;
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all 0.12s ease;
+}
+.font-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+.font-dropdown-sep {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 3px 0;
+}
+.font-picker-market-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.65rem;
+  color: #ff7b92;
+  background: rgba(233, 69, 96, 0.12);
+  border: 1px solid rgba(233, 69, 96, 0.25);
+  border-radius: 4px;
+  padding: 2px 6px;
+  cursor: pointer;
+  margin-left: auto;
+  margin-right: 6px;
+  transition: all 0.15s;
+}
+.font-picker-market-btn:hover {
+  background: rgba(233, 69, 96, 0.22);
+  color: #fff;
+}
+
+
 
 

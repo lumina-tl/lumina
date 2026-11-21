@@ -21,6 +21,11 @@ export const IPC = {
 
   // Fonts / i18n
   getFonts: "get-fonts",
+  fontMarketCatalog: "font-market-catalog",
+  fontMarketSearchGoogle: "font-market-search-google",
+  fontMarketInstall: "font-market-install",
+  fontMarketUninstall: "font-market-uninstall",
+  fontMarketOpenDir: "font-market-open-dir",
   loadTranslations: "load-translations",
   loadDefaultInstruction: "load-default-instruction",
 
