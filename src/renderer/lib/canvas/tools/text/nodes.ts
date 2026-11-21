@@ -16,12 +16,15 @@ import {
 // the node mid-gesture and breaks Konva's native dblclick — a timestamp
 // check in the click handler is immune to that.
 const _lastClickAt: Record<string, number> = {};
+let _multiDragStarts: Map<Konva.Node, { x: number; y: number }> | null = null;
+let _dragLeaderStart: { x: number; y: number } | null = null;
 import { makeNode } from "./node-factory";
 import {
   syncTransformerSelection,
   onNodeTransformEnd,
   resetTransformer,
   getTransformer,
+  getTransformers,
 } from "./transformer";
 import { getEditor } from "./shared";
 import { startEdit, syncEditorBox, refreshEditingState } from "./editor";
@@ -74,27 +77,97 @@ export function renderLayerTextNodes(): void {
         }
         _lastClickAt[lay.id] = now;
         // Click = select (shows transform handles).
-        canvas.selectLayer(lay.id);
+        const isToggle = !!(
+          e.evt &&
+          (e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey)
+        );
+        canvas.selectLayer(lay.id, { toggle: isToggle });
         syncTransformerSelection();
         canvas.getLayer()?.draw();
+      });
+      node.on("dragstart", function () {
+        const page = state.getActivePage();
+        const selIds =
+          page?._selectedLayerIds && page._selectedLayerIds.length > 0
+            ? page._selectedLayerIds
+            : page?._selectedLayerId
+              ? [page._selectedLayerId]
+              : [];
+        if (!selIds.includes(lay.id)) {
+          canvas.selectLayer(lay.id);
+        }
+        const activeSelIds = page?._selectedLayerIds || [lay.id];
+        const selectedNodes = activeSelIds
+          .map((id) => layerTextNodes.find((n) => n.getAttr("layerId") === id))
+          .filter((n): n is Konva.Group => !!n);
+
+        if (selectedNodes.length > 1 && selectedNodes.includes(node)) {
+          _multiDragStarts = new Map();
+          selectedNodes.forEach((n) => {
+            _multiDragStarts!.set(n, { x: n.x(), y: n.y() });
+          });
+          _dragLeaderStart = { x: node.x(), y: node.y() };
+        } else {
+          _multiDragStarts = null;
+          _dragLeaderStart = null;
+        }
+      });
+      node.on("dragmove", function () {
+        if (_multiDragStarts && _dragLeaderStart) {
+          const dx = node.x() - _dragLeaderStart.x;
+          const dy = node.y() - _dragLeaderStart.y;
+          _multiDragStarts.forEach((pos, other) => {
+            if (other !== node) {
+              other.position({ x: pos.x + dx, y: pos.y + dy });
+            }
+          });
+          getTransformers().forEach((tr) => tr.forceUpdate());
+        }
       });
       node.on("dragend", function () {
         // Dragging moves the whole group; node.x()/y() is its local top-left
         // (already rotated with the group) — commit directly. Using the AABB
         // would shift the box for non-cardinal rotations.
-        const img = stageToImg(node.x(), node.y());
-        const target = page.layers.find(function (l) {
-          return l.id === (node.getAttr("layerId") as string);
-        });
-        if (target) {
-          target.bbox.x = img.x;
-          target.bbox.y = img.y;
+        if (_multiDragStarts) {
+          const activeSelIds = page?._selectedLayerIds || [lay.id];
+          const selectedNodes = activeSelIds
+            .map((id) => layerTextNodes.find((n) => n.getAttr("layerId") === id))
+            .filter((n): n is Konva.Group => !!n);
+          selectedNodes.forEach((n) => {
+            const img = stageToImg(n.x(), n.y());
+            const target = page.layers.find(function (l) {
+              return l.id === (n.getAttr("layerId") as string);
+            });
+            if (target) {
+              target.bbox.x = img.x;
+              target.bbox.y = img.y;
+            }
+          });
+          _multiDragStarts = null;
+          _dragLeaderStart = null;
+          getTransformers().forEach((tr) => tr.forceUpdate());
           history.snapshot();
+        } else {
+          const img = stageToImg(node.x(), node.y());
+          const target = page.layers.find(function (l) {
+            return l.id === (node.getAttr("layerId") as string);
+          });
+          if (target) {
+            target.bbox.x = img.x;
+            target.bbox.y = img.y;
+            history.snapshot();
+          }
         }
         sidebar.render();
       });
       node.on("transformend", function () {
-        onNodeTransformEnd(node);
+        // Multi-node transform is handled on the Transformer instance;
+        // single-node transform falls back here if not handled by transformer.
+        const tr = getTransformer();
+        const trNodes = tr?.nodes() || [];
+        if (trNodes.length <= 1) {
+          onNodeTransformEnd(node);
+        }
         // Box was resized with the transformer while editing — onNodeTransformEnd()
         // full-renders, so re-hide the fresh node's glyphs, keep the handles
         // attached and move the textarea to the new box.

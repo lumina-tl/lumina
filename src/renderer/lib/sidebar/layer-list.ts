@@ -149,7 +149,10 @@ function virtualRowHTML(
 }
 
 function layerRowHTML(page: Page, layer: PageLayer, idx: number): string {
-  const selected = page._selectedLayerId === layer.id;
+  const selected =
+    page._selectedLayerIds && page._selectedLayerIds.length > 0
+      ? page._selectedLayerIds.includes(layer.id)
+      : page._selectedLayerId === layer.id;
   const expanded = page._expandedLayerId === layer.id;
   const kindLabel = i18n.t(KIND_KEYS[layer.type]);
   const name = esc(layerName(layer));
@@ -269,16 +272,18 @@ export function wireEvents(): void {
       // Single click: select row; double click: expand editor (text layers only).
       // Clicking an already-expanded row collapses it.
       const page = state.getActivePage();
-      const layer = page?.layers.find(function (l) {
-        return l.id === id;
-      });
-      const isTextRow =
-        layer && (layer.type === "text-dialogue" || layer.type === "text-free");
-      if (el.classList.contains("selected") && page?._expandedLayerId === id) {
+      const isToggle = !!(e.ctrlKey || e.metaKey);
+      const isRange = !!e.shiftKey;
+      if (
+        !isToggle &&
+        !isRange &&
+        el.classList.contains("selected") &&
+        page?._expandedLayerId === id
+      ) {
         // Already selected + expanded → collapse editor
         canvas.expandLayer(null);
       } else {
-        canvas.selectLayer(id);
+        canvas.selectLayer(id, { toggle: isToggle, range: isRange });
       }
     });
 

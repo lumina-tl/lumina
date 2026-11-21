@@ -28,6 +28,10 @@ const BADGE_H = 16;
 const BADGE_GAP = 2;
 const BADGE_W = 28;
 
+let _detMultiDragStarts: Map<Konva.Group, { x: number; y: number }> | null =
+  null;
+let _detDragLeaderStart: { x: number; y: number } | null = null;
+
 /** "Re-OCR" context-menu items — run OCR on a detection with chosen model. */
 function _ocrReRunItems(idx: number): MenuItem[] {
   const current = models.selectedModel("ocr");
@@ -274,8 +278,13 @@ canvas._createTextGroup = function (
 
   // Select on press / dragstart so drag already shows handles (not after click).
   // Always re-apply — skipping when already selected left stroke stuck at 1px.
-  const selectDet = function (): void {
-    canvas.selectTextDetection(idx);
+  const selectDet = function (e?: Konva.KonvaEventObject<MouseEvent>): void {
+    const isToggle = !!(
+      e &&
+      e.evt &&
+      (e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey)
+    );
+    canvas.selectTextDetection(idx, { toggle: isToggle });
   };
   const paintBlocked = function (): boolean {
     const t = state.activeTool;
@@ -290,12 +299,11 @@ canvas._createTextGroup = function (
     node.on("mousedown touchstart", function (e) {
       e.cancelBubble = true;
       if (paintBlocked()) return;
-      selectDet();
+      selectDet(e as Konva.KonvaEventObject<MouseEvent>);
     });
     node.on("click tap", function (e) {
       e.cancelBubble = true;
       if (paintBlocked()) return;
-      selectDet();
     });
     node.on("contextmenu", function (e) {
       e.cancelBubble = true;
@@ -365,19 +373,66 @@ canvas._createTextGroup = function (
   wireSelect(group);
   wireSelect(badge);
   group.on("dragstart", function () {
-    // Always re-apply chrome — selectDet no-ops when already selected, which
-    // left the box stuck at 1px stroke after a prior overlay fight.
-    canvas.selectTextDetection(idx);
+    const page = state.getActivePage();
+    const isAlreadySelected =
+      page?._selectedTextIndices?.includes(idx) ??
+      page?._selectedTextIdx === idx;
+    if (!isAlreadySelected) {
+      canvas.selectTextDetection(idx);
+    }
+    const selIndices = page?._selectedTextIndices || [idx];
+    const textGroups = groupRegistry.textGroups();
+    const selectedGroups = selIndices
+      .map((i) => textGroups[i])
+      .filter((g): g is Konva.Group => !!g);
+
+    if (selectedGroups.length > 1 && selectedGroups.includes(group)) {
+      _detMultiDragStarts = new Map();
+      selectedGroups.forEach((g) => {
+        _detMultiDragStarts!.set(g, { x: g.x(), y: g.y() });
+      });
+      _detDragLeaderStart = { x: group.x(), y: group.y() };
+    } else {
+      _detMultiDragStarts = null;
+      _detDragLeaderStart = null;
+    }
   });
   group.on("dragmove", function () {
+    if (_detMultiDragStarts && _detDragLeaderStart) {
+      const dx = group.x() - _detDragLeaderStart.x;
+      const dy = group.y() - _detDragLeaderStart.y;
+      _detMultiDragStarts.forEach((pos, other) => {
+        if (other !== group) {
+          other.position({ x: pos.x + dx, y: pos.y + dy });
+          _syncBadgePos(other);
+          const oIdx = groupRegistry.textGroups().indexOf(other);
+          if (oIdx >= 0) _syncTextBboxFromGroup(oIdx);
+        }
+      });
+      groupRegistry.textTransformers().forEach((tr) => tr.forceUpdate());
+    }
     _syncBadgePos(group);
     _syncTextBboxFromGroup(idx);
   });
   group.on("dragend", function () {
-    _syncBadgePos(group);
-    _syncTextBboxFromGroup(idx);
-    applyTextSelection(idx);
-    history.snapshot();
+    if (_detMultiDragStarts) {
+      _detMultiDragStarts.forEach((pos, g) => {
+        _syncBadgePos(g);
+        const gIdx = groupRegistry.textGroups().indexOf(g);
+        if (gIdx >= 0) _syncTextBboxFromGroup(gIdx);
+      });
+      _detMultiDragStarts = null;
+      _detDragLeaderStart = null;
+      groupRegistry.textTransformers().forEach((tr) => tr.forceUpdate());
+      const page = state.getActivePage();
+      applyTextSelection(page?._selectedTextIdx ?? null);
+      history.snapshot();
+    } else {
+      _syncBadgePos(group);
+      _syncTextBboxFromGroup(idx);
+      applyTextSelection(idx);
+      history.snapshot();
+    }
   });
 
   // Bake scale into width each frame (Transformer expects scale reset to 1).

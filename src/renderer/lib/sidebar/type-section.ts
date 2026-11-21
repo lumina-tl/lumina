@@ -124,6 +124,21 @@ function selectedTextLayer(page: Page | null): PageLayer | null {
   return null;
 }
 
+function selectedTextLayers(page: Page | null): PageLayer[] {
+  if (!page) return [];
+  const selIds =
+    page._selectedLayerIds && page._selectedLayerIds.length > 0
+      ? page._selectedLayerIds
+      : page._selectedLayerId
+        ? [page._selectedLayerId]
+        : [];
+  return page.layers.filter(
+    (l) =>
+      selIds.includes(l.id) &&
+      (l.type === "text-dialogue" || l.type === "text-free"),
+  );
+}
+
 export const typeSection = {
   isCollapsed(): boolean {
     return _collapsed;
@@ -833,21 +848,23 @@ export const typeSection = {
     return el ? el.value : "#ffffff";
   },
 
-  /** Apply a partial typography update. With a text layer selected it goes
-   * to that layer; without one it updates the global defaults (persisted). */
+  /** Apply a partial typography update. With one or more text layers selected
+   * it goes to all selected layers; without one it updates the global defaults. */
   _apply(patch: Partial<Typography>): void {
     const page: Page | null = state.getActivePage();
-    const layer = selectedTextLayer(page);
-    if (!layer) {
+    const layers = selectedTextLayers(page);
+    if (!layers.length) {
       Object.assign(_globalType, patch);
       saveGlobalTypography(_globalType);
       typeSection.refresh();
       return;
     }
-    Object.assign(layer.typography, patch);
-    // The box rotates WITH the text (Photoshop-style) — keep the bbox
-    // rotation in sync so nodeFactory spins the whole group identically.
-    if (patch.rotation !== undefined) layer.bbox.rotation = patch.rotation;
+    layers.forEach((layer) => {
+      Object.assign(layer.typography, patch);
+      // The box rotates WITH the text (Photoshop-style) — keep the bbox
+      // rotation in sync so nodeFactory spins the whole group identically.
+      if (patch.rotation !== undefined) layer.bbox.rotation = patch.rotation;
+    });
     canvas.render();
     history.snapshot();
     typeSection.refresh(); // keep toggles/segments/alerts in sync

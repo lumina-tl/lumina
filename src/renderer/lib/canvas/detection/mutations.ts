@@ -19,12 +19,46 @@ canvas.deleteTextDetection = function (idx: number): void {
     if (lIdx >= 0) page.layers.splice(lIdx, 1);
     if (page._selectedLayerId === layer.id) page._selectedLayerId = null;
     if (page._expandedLayerId === layer.id) page._expandedLayerId = null;
+    if (page._selectedLayerIds) {
+      page._selectedLayerIds = page._selectedLayerIds.filter((x) => x !== layer.id);
+    }
   }
   if (page._selectedTextIdx === idx) {
     page._selectedTextIdx = null;
   } else if (page._selectedTextIdx !== null && page._selectedTextIdx > idx) {
     page._selectedTextIdx--;
   }
+  if (page._selectedTextIndices) {
+    page._selectedTextIndices = page._selectedTextIndices.filter((x) => x !== idx).map((x) => (x > idx ? x - 1 : x));
+  }
+  canvas.render();
+  sidebar.render();
+  history.snapshot();
+};
+
+canvas.deleteMultipleTextDetections = function (indices: number[]): void {
+  const page = state.getActivePage();
+  if (!page || !indices.length) return;
+
+  const unique = Array.from(new Set(indices))
+    .filter((i) => i >= 0 && i < page.textDetections.length)
+    .sort((a, b) => b - a);
+
+  unique.forEach((idx) => {
+    page.textDetections.splice(idx, 1);
+    const layer = dialogueLayerForTextIdx(page, idx);
+    if (layer) {
+      const lIdx = page.layers.indexOf(layer);
+      if (lIdx >= 0) page.layers.splice(lIdx, 1);
+    }
+  });
+
+  page._selectedTextIdx = null;
+  page._selectedTextIndices = [];
+  page._selectedLayerId = null;
+  page._selectedLayerIds = [];
+  page._expandedLayerId = null;
+
   canvas.render();
   sidebar.render();
   history.snapshot();

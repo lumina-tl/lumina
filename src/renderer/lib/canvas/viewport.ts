@@ -105,6 +105,12 @@ canvas._initWheelZoom = function (): void {
 /** Pan via select-tool background drag or middle-mouse drag */
 let _panBound = false;
 let _panWindowBound = false;
+let _isSpaceDown = false;
+
+export function isSpacePressed(): boolean {
+  return _isSpaceDown;
+}
+
 const _panState = {
   active: false,
   last: null as { x: number; y: number } | null,
@@ -120,6 +126,41 @@ export function bindPanWhenStageReady(): void {
   // Window-level listeners survive stage destroy — register once
   if (!_panWindowBound) {
     _panWindowBound = true;
+    window.addEventListener("keydown", function (e) {
+      if (
+        e.code === "Space" &&
+        !(
+          e.target instanceof HTMLInputElement ||
+          e.target instanceof HTMLTextAreaElement
+        )
+      ) {
+        _isSpaceDown = true;
+        const container = document.getElementById("canvas-container");
+        if (container && !_panState.active) container.style.cursor = "grab";
+      }
+    });
+    window.addEventListener("keyup", function (e) {
+      if (e.code === "Space") {
+        _isSpaceDown = false;
+        const container = document.getElementById("canvas-container");
+        if (container && !_panState.active) {
+          const t = state.activeTool;
+          const isPaint =
+            t === "brush" ||
+            t === "eraser" ||
+            t === "bucket" ||
+            t === "eyedropper";
+          container.style.cursor =
+            t === "lasso" || t === "rect"
+              ? "crosshair"
+              : t === "text"
+                ? "text"
+                : isPaint
+                  ? "none"
+                  : "default";
+        }
+      }
+    });
     window.addEventListener("mousemove", function (e) {
       if (!_panState.active || !_panState.last) return;
       state._panX = (state._panX || 0) + (e.clientX - _panState.last.x);
@@ -152,12 +193,8 @@ export function bindPanWhenStageReady(): void {
   const s = canvas.getStage()!;
   s.on("mousedown touchstart", function (e) {
     const middleBtn = e.evt && e.evt.button === 1;
-    const onBackground =
-      e.target === s || (e.target.name && e.target.name() === "bg");
-    if (middleBtn) {
-      // middle-mouse pans regardless of tool
-    } else if (state.activeTool === "select" && onBackground) {
-      // select tool pans on background drag
+    if (middleBtn || _isSpaceDown) {
+      // middle-mouse or space+drag pans
     } else {
       return;
     }

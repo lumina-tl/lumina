@@ -5,7 +5,9 @@ import { invalidateComposite } from "./canvas/render";
 import { sidebar } from "./sidebar";
 import { markDirty } from "./project/dirty";
 import { hydrateCleanupCanvas } from "./canvas/tools/paint/shared";
-import type { Page } from "../types";
+import { resetTransformer } from "./canvas/tools/text/transformer";
+import { applyTextSelection } from "./canvas/detection/selection";
+import type { Page, PageLayer, TextDetection } from "../types";
 
 /** Convert a Windows path to a loadable file:// URL */
 function _fileUrl(p: string): string {
@@ -15,6 +17,9 @@ function _fileUrl(p: string): string {
 }
 
 const MAX_STACK = 50;
+
+/** In-memory cache of mask images across undo/redo to avoid reload failure or flicker. */
+const _maskImageCache = new Map<string, HTMLImageElement>();
 
 interface HistoryEntry {
   stack: string[];
@@ -55,11 +60,19 @@ function _entry(page: Page): HistoryEntry {
 
 /** Serialize one page's editable state (images not serialized). */
 function _serializePage(p: Page): string {
+  (p.inpaintMasks || []).forEach((m) => {
+    if (m.image && m.imagePath) {
+      _maskImageCache.set(m.imagePath, m.image);
+    }
+  });
+
   return JSON.stringify({
     textDetections: p.textDetections,
     _selectedTextIdx: p._selectedTextIdx,
+    _selectedTextIndices: p._selectedTextIndices,
     layers: p.layers,
     _selectedLayerId: p._selectedLayerId,
+    _selectedLayerIds: p._selectedLayerIds,
     inpaintMasks: p.inpaintMasks.map((m) => ({
       id: m.id,
       bbox: m.bbox,
@@ -83,8 +96,10 @@ function _serializePage(p: Page): string {
 interface PageSnapshot {
   textDetections: unknown;
   _selectedTextIdx: number | null;
+  _selectedTextIndices?: number[];
   layers: unknown;
   _selectedLayerId: string | null;
+  _selectedLayerIds?: string[];
   backgroundVisible?: boolean;
   selections?: SelectionSnapshotState | null;
   inpaintMasks?: Array<{
@@ -105,9 +120,13 @@ interface PageSnapshot {
 /** Re-hydrate mask PNGs from imagePath after deserialization. */
 export function hydrateMaskImages(page: Page): void {
   (page.inpaintMasks || []).forEach((m) => {
+    if (!m.image && m.imagePath && _maskImageCache.has(m.imagePath)) {
+      m.image = _maskImageCache.get(m.imagePath);
+    }
     if (m.image) return;
     const img = new Image();
     img.onload = function () {
+      _maskImageCache.set(m.imagePath, img);
       const live = page.inpaintMasks.find((lm) => lm.id === m.id);
       if (live) live.image = img;
       if (state.getActivePage() === page) {
@@ -212,24 +231,55 @@ export const history = {
   _applyPage(page: Page, data: string): void {
     const snap = JSON.parse(data) as PageSnapshot;
     this._restoring = true;
-    page.textDetections = snap.textDetections as never;
-    page._selectedTextIdx = snap._selectedTextIdx;
-    page.layers = snap.layers as never;
-    page._selectedLayerId = snap._selectedLayerId;
+
+    const layers = (snap.layers as PageLayer[]) || [];
+    page.layers = layers;
+    const validLayerIds = new Set(layers.map((l) => l.id));
+    const rawLayerIds =
+      snap._selectedLayerIds ||
+      (snap._selectedLayerId ? [snap._selectedLayerId] : []);
+    const filteredLayerIds = rawLayerIds.filter((id) => validLayerIds.has(id));
+    page._selectedLayerIds = filteredLayerIds;
+    page._selectedLayerId =
+      filteredLayerIds.length > 0
+        ? filteredLayerIds[filteredLayerIds.length - 1]
+        : null;
+
+    const dets = (snap.textDetections as TextDetection[]) || [];
+    page.textDetections = dets;
+    const detCount = dets.length;
+    const rawTextIndices =
+      snap._selectedTextIndices ||
+      (snap._selectedTextIdx !== null && snap._selectedTextIdx !== undefined
+        ? [snap._selectedTextIdx]
+        : []);
+    const filteredTextIndices = rawTextIndices.filter(
+      (i) => typeof i === "number" && i >= 0 && i < detCount,
+    );
+    page._selectedTextIndices = filteredTextIndices;
+    page._selectedTextIdx =
+      filteredTextIndices.length > 0
+        ? filteredTextIndices[filteredTextIndices.length - 1]
+        : null;
+
     // Always collapse editor on undo/redo — double-click to re-expand.
     page._expandedLayerId = null;
     if (typeof snap.backgroundVisible === "boolean")
       page.backgroundVisible = snap.backgroundVisible;
-    // Preserve existing mask images when the imagePath matches — avoids
-    // a 1-frame flash of the bare background while PNGs reload from disk.
+
+    // Preserve existing mask images from memory cache or current page
     const prevMaskImages = new Map(
       (page.inpaintMasks || []).map((m) => [m.imagePath, m.image]),
     );
     const masks = (snap.inpaintMasks || []).map((m) => ({
       ...m,
-      image: prevMaskImages.get(m.imagePath) ?? undefined,
+      image:
+        _maskImageCache.get(m.imagePath) ??
+        prevMaskImages.get(m.imagePath) ??
+        undefined,
     }));
     page.inpaintMasks = masks as never;
+
     // Cleanup raster layer: preserve the runtime canvas when the imagePath
     // hasn't changed; only drop + rehydrate when it points to a different file.
     if (snap.cleanupMask) {
@@ -258,8 +308,10 @@ export const history = {
       _restoreSelections(
         snap.selections ?? { selections: [], activeId: null },
       );
+    resetTransformer();
     canvas._clearGroups();
     canvas.render();
+    applyTextSelection(page._selectedTextIdx ?? null);
     if (sidebar && sidebar.render) sidebar.render();
     this._restoring = false;
   },

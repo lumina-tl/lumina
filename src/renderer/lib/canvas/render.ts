@@ -19,6 +19,9 @@ import {
   bindPaintTool,
 } from "./tools/paint/index";
 import { applyTextSelection } from "./detection/selection";
+import { bindRubberband, resetRubberbandBinding } from "./rubberband";
+import { sidebar } from "../sidebar";
+import { history } from "../history";
 let _stage: Konva.Stage | null = null;
 let _layer: Konva.Layer | null = null;
 let _bgImage: Konva.Image | null = null; // Konva.Image for background
@@ -48,6 +51,7 @@ export function destroyStage(): void {
   resetSelectStage();
   resetTextStage();
   resetPaintStage();
+  resetRubberbandBinding();
 }
 
 export function scheduleRender(): void {
@@ -273,6 +277,7 @@ function _render(): void {
   bindSelectStage();
   bindTextStage();
   bindPaintTool();
+  bindRubberband();
 
   _stage.setSize({ width: w, height: h });
   _destroyLayerChildren();
@@ -343,41 +348,6 @@ function _render(): void {
   // visual representation of the boxes. After OCR the boxes stay visible so
   // the user can verify/adjust a box and re-run OCR.
   if (state.showDetBoxes && page.inpaintMasks.length === 0) {
-    // Keep ONE persistent transformer for detection groups — re-creating it
-    // every render (and dropping the old one without destroy) leaked nodes
-    // during zoom/pan. The group registry clears it via _clearGroups().
-    let tTransformer = canvas._getTextTransformer();
-    if (!tTransformer) {
-      // Same handle chrome as text boxes (group target; badge is a sibling).
-      tTransformer = new Konva.Transformer({
-        nodes: [],
-        rotateEnabled: false,
-        keepRatio: false,
-        borderEnabled: true,
-        borderStroke: TEXT_COLOR,
-        borderStrokeWidth: 1,
-        padding: 0,
-        ignoreStroke: true,
-        enabledAnchors: [
-          "top-left",
-          "top-center",
-          "top-right",
-          "middle-left",
-          "middle-right",
-          "bottom-left",
-          "bottom-center",
-          "bottom-right",
-        ],
-        anchorStroke: TEXT_COLOR,
-        anchorFill: "#ffffff",
-        anchorSize: 7,
-        anchorCornerRadius: 1,
-        anchorStrokeWidth: 1.5,
-      });
-      _layer.add(tTransformer);
-      canvas._setTextTransformer(tTransformer);
-    }
-
     page.textDetections.forEach((det, i) => {
       const g = canvas._createTextGroup(det, i, sr, off);
       addDetGroupToLayer(_layer!, g);

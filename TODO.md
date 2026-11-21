@@ -63,7 +63,7 @@
 - [x] fix eraser tool visually delayed and cant be dragged
 - [x] fix how to get apikey 404
 - [x] refactor codebase to be more modular and maintainable
-- [ ] add multi selection feature
+- [x] add multi selection feature
 - [x] fix font fitting visually changed when zoom in/out
 - [x] save as psd
 - [x] normalize log and add more debug log
@@ -78,6 +78,7 @@
 - [x] what's changed after update (changelog) dialog
 - [x] fix koharu layout RF-DETR memory leak (switch to FP16 model, VRAM 5.9GB -> 3.2GB)
 - [x] add progress bar for extraction phase
+- [ ] detailed progress for pipeline
 - [ ] multi collor support on text tool
 - [ ] multi font support on text tool
 - [ ] testing and hunt another bugs

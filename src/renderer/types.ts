@@ -187,8 +187,10 @@ export interface Page {
   /** Original image visibility (the background layer in the Layers tab) */
   backgroundVisible: boolean;
   _selectedTextIdx: number | null;
+  _selectedTextIndices?: number[];
   /** Selected layer id in the unified layer model */
   _selectedLayerId: string | null;
+  _selectedLayerIds?: string[];
   /** Expanded layer id — drives inline editor visibility (double-click to expand) */
   _expandedLayerId: string | null;
   /** Selected mask row id (expand reveal opacity/delete) */

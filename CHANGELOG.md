@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Multi-selection feature for layers and detection boxes.** Multi-selection across canvas and sidebar with rubberband marquee selection, Shift/Ctrl-click toggling, multi-node move and scale via Konva Transformer, batch typography updates, and batch deletion.
 - **Live progress bar for extraction phase.** Real-time progress bar and percentage tracking during CUDA runtime extraction, transitioning smoothly from download to unpacking without appearing frozen at 100% (fixes lumina-tl/lumina#1).
 - **Full page context for line re-translation.** Single-layer re-translate now supplies the LLM with full page dialogue context (all lines before and after with current translations and target marker) to maintain conversation coherence and accurate tone.
 - **Cross-page dialogue context for multi-page translation.** Page translation pipeline automatically carries over the last 3–5 dialogue lines from the preceding page as initial context, ensuring terminology and sentence continuations stay consistent across page boundaries.

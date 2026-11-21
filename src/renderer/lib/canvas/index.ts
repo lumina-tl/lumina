@@ -22,16 +22,26 @@ export interface CanvasAPI {
   ): Konva.Group;
   _setTextTransformer(t: Konva.Transformer): void;
   _getTextTransformer(): Konva.Transformer | null;
-  selectTextDetection(idx: number | null): void;
+  selectTextDetection(
+    idx: number | null,
+    opts?: { toggle?: boolean; range?: boolean },
+  ): void;
+  selectMultipleTextDetections(indices: number[]): void;
   deleteTextDetection(idx: number): void;
+  deleteMultipleTextDetections(indices: number[]): void;
   moveTextDetection(idx: number, dir: number): void;
   setTextDetectionText(idx: number, text: string): void;
-  selectLayer(id: string | null): void;
+  selectLayer(
+    id: string | null,
+    opts?: { toggle?: boolean; range?: boolean },
+  ): void;
+  selectMultipleLayers(ids: string[]): void;
   /** Expand/collapse the inline editor for a text layer (double-click in sidebar) */
   expandLayer(id: string | null): void;
   setLayerText(id: string, field: "source" | "translation", text: string): void;
   toggleLayerVisible(id: string): void;
   deleteLayer(id: string): void;
+  deleteMultipleLayers(ids: string[]): void;
   /** Insert layer `id` before `insertAt` (clamped to its type group) */
   moveLayerTo(id: string, insertAt: number): void;
   toggleMaskVisible(id: string): void;
@@ -102,14 +112,18 @@ export const canvas: CanvasAPI = {
     return null;
   },
   selectTextDetection() {},
+  selectMultipleTextDetections() {},
   deleteTextDetection() {},
+  deleteMultipleTextDetections() {},
   moveTextDetection() {},
   setTextDetectionText() {},
   selectLayer() {},
+  selectMultipleLayers() {},
   expandLayer() {},
   setLayerText() {},
   toggleLayerVisible() {},
   deleteLayer() {},
+  deleteMultipleLayers() {},
   moveLayerTo() {},
   toggleMaskVisible() {},
   deleteMask() {},
@@ -168,12 +182,33 @@ canvas._initKeyboard = function (): void {
         return;
       const page = state.getActivePage();
       if (!page) return;
-      if (page._selectedTextIdx !== null) {
+
+      const isDetMode = state.showDetBoxes && page.inpaintMasks.length === 0;
+      if (isDetMode) {
+        const indices =
+          page._selectedTextIndices && page._selectedTextIndices.length > 0
+            ? [...page._selectedTextIndices]
+            : page._selectedTextIdx !== null &&
+                page._selectedTextIdx !== undefined
+              ? [page._selectedTextIdx]
+              : [];
+        if (indices.length > 0) {
+          e.preventDefault();
+          canvas.deleteMultipleTextDetections(indices);
+          return;
+        }
+      }
+
+      const layerIds =
+        page._selectedLayerIds && page._selectedLayerIds.length > 0
+          ? [...page._selectedLayerIds]
+          : page._selectedLayerId
+            ? [page._selectedLayerId]
+            : [];
+      if (layerIds.length > 0) {
         e.preventDefault();
-        canvas.deleteTextDetection(page._selectedTextIdx);
-      } else if (page._selectedLayerId) {
-        e.preventDefault();
-        canvas.deleteLayer(page._selectedLayerId);
+        canvas.deleteMultipleLayers(layerIds);
+        return;
       }
       return;
     }

@@ -194,6 +194,7 @@
 
   "status.noDetections": "Tidak ada deteksi",
   "status.selected": "{{type}}#{{index}} dipilih",
+  "status.selectedCount": "{{count}} dipilih",
   "status.detections": "{{texts}} · {{bubbles}}",
   "status.textCount": "{{count}} teks",
   "status.bubbleCount": "{{count}} bubble",

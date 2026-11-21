@@ -16,24 +16,98 @@ function _findLayer(
   });
 }
 
-canvas.selectLayer = function (id): void {
+canvas.selectLayer = function (
+  id,
+  opts?: { toggle?: boolean; range?: boolean },
+): void {
   const page = state.getActivePage();
   if (!page) return;
-  page._selectedLayerId = id;
-  // Collapse editor when switching selection — double-click to re-expand.
-  if (id !== page._expandedLayerId) page._expandedLayerId = null;
-  // Mirror to the parallel detection selection so the text box on the
-  // canvas highlights when a layer is picked from the sidebar.
-  page._selectedTextIdx = textIdxForLayerId(page, id);
-  canvas.render(); // re-syncs textool transformer to _selectedLayerId
-  if (page._selectedTextIdx !== null) {
-    canvas.selectTextDetection(page._selectedTextIdx);
-  } else {
-    // Free-text layer — no parallel detection box; clear the rect highlight
-    // without touching _selectedLayerId.
+
+  if (id === null) {
+    page._selectedLayerId = null;
+    page._selectedLayerIds = [];
+    page._expandedLayerId = null;
+    page._selectedTextIdx = null;
+    page._selectedTextIndices = [];
+    canvas.render();
     applyTextSelection(null);
     if (sidebar && sidebar.render) sidebar.render();
+    return;
   }
+
+  let ids = page._selectedLayerIds
+    ? [...page._selectedLayerIds]
+    : page._selectedLayerId
+      ? [page._selectedLayerId]
+      : [];
+
+  if (opts?.toggle) {
+    if (ids.includes(id)) {
+      ids = ids.filter((x) => x !== id);
+    } else {
+      ids.push(id);
+    }
+  } else if (opts?.range && page._selectedLayerId) {
+    const fromIdx = page.layers.findIndex((l) => l.id === page._selectedLayerId);
+    const toIdx = page.layers.findIndex((l) => l.id === id);
+    if (fromIdx >= 0 && toIdx >= 0) {
+      const start = Math.min(fromIdx, toIdx);
+      const end = Math.max(fromIdx, toIdx);
+      ids = page.layers.slice(start, end + 1).map((l) => l.id);
+    } else {
+      ids = [id];
+    }
+  } else {
+    ids = [id];
+  }
+
+  page._selectedLayerIds = ids;
+  page._selectedLayerId = ids.length > 0 ? ids[ids.length - 1] : null;
+  if (!ids.includes(page._expandedLayerId || "")) {
+    page._expandedLayerId = null;
+  }
+
+  // Mirror to detection indices
+  const indices: number[] = [];
+  ids.forEach((lid) => {
+    const dIdx = textIdxForLayerId(page, lid);
+    if (dIdx !== null) indices.push(dIdx);
+  });
+  page._selectedTextIndices = indices;
+  page._selectedTextIdx =
+    indices.length > 0 ? indices[indices.length - 1] : null;
+
+  canvas.render();
+  applyTextSelection(page._selectedTextIdx);
+  if (sidebar && sidebar.render) sidebar.render();
+};
+
+canvas.selectMultipleLayers = function (ids: string[]): void {
+  const page = state.getActivePage();
+  if (!page) return;
+
+  const validIds = Array.from(new Set(ids)).filter((id) =>
+    page.layers.some((l) => l.id === id),
+  );
+  page._selectedLayerIds = validIds;
+  page._selectedLayerId =
+    validIds.length > 0 ? validIds[validIds.length - 1] : null;
+  if (!validIds.includes(page._expandedLayerId || "")) {
+    page._expandedLayerId = null;
+  }
+
+  const indices: number[] = [];
+  validIds.forEach((lid) => {
+    const dIdx = textIdxForLayerId(page, lid);
+    if (dIdx !== null) indices.push(dIdx);
+  });
+  page._selectedTextIndices = indices;
+  page._selectedTextIdx =
+    indices.length > 0 ? indices[indices.length - 1] : null;
+
+  canvas.render();
+  applyTextSelection(page._selectedTextIdx);
+  if (sidebar && sidebar.render) sidebar.render();
 };
 
 canvas.expandLayer = function (id): void {
@@ -122,6 +196,44 @@ canvas.deleteLayer = function (id): void {
     page._selectedLayerId = null;
     page._expandedLayerId = null;
   }
+  if (page._selectedLayerIds) {
+    page._selectedLayerIds = page._selectedLayerIds.filter((x) => x !== id);
+  }
+  canvas.render();
+  sidebar.render();
+  history.snapshot();
+};
+
+canvas.deleteMultipleLayers = function (ids): void {
+  const page = state.getActivePage();
+  if (!page || !ids.length) return;
+
+  const toDelete = new Set(ids);
+  // Find all detection indices to remove
+  const detIndicesToRemove: number[] = [];
+  page.layers.forEach((l) => {
+    if (toDelete.has(l.id) && l.type === "text-dialogue") {
+      const dIdx = textIdxForLayerId(page, l.id);
+      if (dIdx !== null) detIndicesToRemove.push(dIdx);
+    }
+  });
+
+  page.layers = page.layers.filter((l) => !toDelete.has(l.id));
+
+  detIndicesToRemove
+    .sort((a, b) => b - a)
+    .forEach((dIdx) => {
+      if (dIdx >= 0 && dIdx < page.textDetections.length) {
+        page.textDetections.splice(dIdx, 1);
+      }
+    });
+
+  page._selectedLayerId = null;
+  page._selectedLayerIds = [];
+  page._expandedLayerId = null;
+  page._selectedTextIdx = null;
+  page._selectedTextIndices = [];
+
   canvas.render();
   sidebar.render();
   history.snapshot();

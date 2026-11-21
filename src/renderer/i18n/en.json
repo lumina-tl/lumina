@@ -194,6 +194,7 @@
 
   "status.noDetections": "No detections",
   "status.selected": "{{type}}#{{index}} selected",
+  "status.selectedCount": "{{count}} selected",
   "status.detections": "{{texts}} · {{bubbles}}",
   "status.textCount": "{{count}} text(s)",
   "status.bubbleCount": "{{count}} bubble(s)",
