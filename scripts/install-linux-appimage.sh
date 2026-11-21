@@ -44,7 +44,7 @@ cat > "$APPS_DIR/lumina.desktop" <<EOF
 Name=Lumina
 Comment=Manga, Manhwa, and Manhua Translation Studio
 Exec=$BIN_DIR/lumina %U
-Icon=lumina
+Icon=$ICON_DIR/lumina.png
 Terminal=false
 Type=Application
 Categories=Graphics;Utility;
