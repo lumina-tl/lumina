@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 
 import cv2 as cv
 import numpy as np
@@ -30,6 +30,7 @@ class LamaModel(BaseInpaintModel):
         boxes: list[dict],
         output_dir: Optional[Path] = None,
         mask_path: Optional[str] = None,
+        on_progress: Optional[Callable[[int, int], None]] = None,
     ) -> list[dict]:
         session = self._load_session()
         img = cv.imread(image_path)  # BGR
@@ -91,6 +92,8 @@ class LamaModel(BaseInpaintModel):
             x1 = min(w, int(box["x"] + box["w"]) + CONTEXT_PAD)
             y1 = min(h, int(box["y"] + box["h"]) + CONTEXT_PAD)
             if x1 - x0 < 2 or y1 - y0 < 2:
+                if on_progress:
+                    on_progress(i + 1, len(boxes))
                 continue
 
             crop = img[y0:y1, x0:x1]
@@ -144,6 +147,8 @@ class LamaModel(BaseInpaintModel):
                     "imagePath": str(patch_path),
                 }
             )
+            if on_progress:
+                on_progress(i + 1, len(boxes))
 
         log.info(f"Inpaint complete: {len(patches)} patch(es) -> {output_dir}")
         return patches

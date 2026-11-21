@@ -25,10 +25,21 @@ import type { RecentsData } from "./recent";
 import type { RuntimeInfo, RuntimeProgress } from "./runtime";
 import type { LogLevel } from "../logger";
 
+export interface StreamProgress {
+  current: number;
+  total: number;
+  [key: string]: unknown;
+}
+
 export interface LuminaAPI {
   importImage(): Promise<string | null>;
   importImages(): Promise<string[] | null>;
   apiPost<T = unknown>(endpoint: string, body: unknown): Promise<T>;
+  apiPostStream<T = unknown>(
+    endpoint: string,
+    body: unknown,
+    onProgress?: (progress: StreamProgress) => void,
+  ): Promise<T>;
   getDevice(): Promise<DeviceInfo>;
   setUseGpu(useGpu: boolean): Promise<DeviceInfo>;
   checkModel(): Promise<ModelCheck>;

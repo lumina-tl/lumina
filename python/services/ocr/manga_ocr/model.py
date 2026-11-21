@@ -1,7 +1,7 @@
 """manga-ocr — Japanese text recognition."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Callable, Optional
 
 import numpy as np
 
@@ -99,7 +99,12 @@ class MangaOcrModel(BaseOcrModel):
             if i < len(self._vocab) and self._vocab[i] not in special
         ).replace("##", "")
 
-    def ocr_boxes(self, image_path: str, boxes: list[dict]) -> list[str]:
+    def ocr_boxes(
+        self,
+        image_path: str,
+        boxes: list[dict],
+        on_progress: Optional[Callable[[int, int], None]] = None,
+    ) -> list[str]:
         from PIL import Image
 
         self._load()
@@ -118,6 +123,8 @@ class MangaOcrModel(BaseOcrModel):
             hidden = np.asarray(enc.run(None, {"pixel_values": pixel_values})[0])
             text = self._decode(hidden)
             texts.append(text)
+            if on_progress:
+                on_progress(i + 1, len(boxes))
             log.debug(f"OCR box {i + 1}/{len(boxes)}: {text!r}")
 
         return texts

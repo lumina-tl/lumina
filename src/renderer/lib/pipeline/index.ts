@@ -47,22 +47,22 @@ export const pipeline = {
   runTranslate: translate.run,
   runInpaint: inpaint.run,
   async runAll(): Promise<void> {
-    await detection.run();
-    await ocr.run();
-    await translate.run();
-    await inpaint.run();
+    await detection.run({ current: 1, total: 4 });
+    await ocr.run({ current: 2, total: 4 });
+    await translate.run({ current: 3, total: 4 });
+    await inpaint.run({ current: 4, total: 4 });
   },
   /** Run the given preset by id. */
   async runPreset(id: PresetId): Promise<void> {
     if (id === "clean") {
-      await detection.run();
-      await inpaint.run();
+      await detection.run({ current: 1, total: 2 });
+      await inpaint.run({ current: 2, total: 2 });
     } else {
       // "full"
-      await detection.run();
-      await ocr.run();
-      await translate.run();
-      await inpaint.run();
+      await detection.run({ current: 1, total: 4 });
+      await ocr.run({ current: 2, total: 4 });
+      await translate.run({ current: 3, total: 4 });
+      await inpaint.run({ current: 4, total: 4 });
     }
   },
 };

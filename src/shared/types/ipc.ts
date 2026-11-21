@@ -6,6 +6,7 @@ export const IPC = {
 
   // Backend proxy
   apiPost: "api-post",
+  apiPostStream: "api-post-stream",
 
   // Device / GPU
   device: "device",

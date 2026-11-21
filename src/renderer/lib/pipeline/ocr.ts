@@ -15,9 +15,14 @@ import {
 import type { OcrResult } from "../../types";
 import { log } from "../logger";
 
+export interface PipelineStepInfo {
+  current: number;
+  total: number;
+}
+
 export const ocr = {
   /** Run OCR on all text detections of the active page */
-  run: async function (): Promise<void> {
+  run: async function (stepInfo?: PipelineStepInfo): Promise<void> {
     const page = state.getActivePage();
     if (state.isRunning || !page) return;
     if (!page.textDetections.length) {
@@ -32,8 +37,10 @@ export const ocr = {
     const btn = document.getElementById("btn-ocr") as HTMLButtonElement | null;
     if (btn) btn.disabled = true;
 
+    const stepPrefix = stepInfo ? `[${stepInfo.current}/${stepInfo.total}] ` : "";
+    const totalCount = page.textDetections.length;
     const loadingToast = ui.toast(
-      i18n.t("toast.ocrRunning", { count: page.textDetections.length }),
+      `${stepPrefix}${i18n.t("toast.ocrProgress", { current: 0, total: totalCount })}`,
       "running",
       0,
     );
@@ -44,14 +51,23 @@ export const ocr = {
         "fe",
         `ocr: start model=${model} boxes=${page.textDetections.length}`,
       );
-      const result = await window.lumina.apiPost<{
+      const result = await window.lumina.apiPostStream<{
         results?: OcrResult[];
         detail?: string;
-      }>("/ocr", {
-        imagePath: page.filePath,
-        boxes: page.textDetections.map((d) => d.bbox),
-        model,
-      });
+      }>(
+        "/ocr/stream",
+        {
+          imagePath: page.filePath,
+          boxes: page.textDetections.map((d) => d.bbox),
+          model,
+        },
+        (p) => {
+          ui.updateToast(
+            loadingToast,
+            `${stepPrefix}${i18n.t("toast.ocrProgress", { current: p.current, total: p.total })}`,
+          );
+        },
+      );
       if (!result || !result.results)
         throw new Error(result?.detail || "OCR failed");
 
@@ -122,7 +138,7 @@ export const ocr = {
 
     state.isRunning = true;
     const loadingToast = ui.toast(
-      i18n.t("toast.ocrRunning", { count: boxes.length }),
+      i18n.t("toast.ocrProgress", { current: 0, total: boxes.length }),
       "running",
       0,
     );
@@ -130,14 +146,23 @@ export const ocr = {
     try {
       const model = modelId || models.selectedModel("ocr") || "manga_ocr";
       log.debug("fe", `ocr boxes: start model=${model} indices=[${indices}]`);
-      const result = await window.lumina.apiPost<{
+      const result = await window.lumina.apiPostStream<{
         results?: OcrResult[];
         detail?: string;
-      }>("/ocr", {
-        imagePath: page.filePath,
-        boxes: boxes,
-        model,
-      });
+      }>(
+        "/ocr/stream",
+        {
+          imagePath: page.filePath,
+          boxes: boxes,
+          model,
+        },
+        (p) => {
+          ui.updateToast(
+            loadingToast,
+            i18n.t("toast.ocrProgress", { current: p.current, total: p.total }),
+          );
+        },
+      );
       if (!result || !result.results)
         throw new Error(result?.detail || "OCR failed");
 

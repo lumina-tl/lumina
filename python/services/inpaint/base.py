@@ -133,5 +133,6 @@ class BaseInpaintModel(ABC):
         boxes: list[dict],
         output_dir: Optional[Path] = None,
         mask_path: Optional[str] = None,
+        on_progress: Optional[Callable[[int, int], None]] = None,
     ) -> list[dict]:
         """Inpaint each box; write one RGBA patch PNG per box."""

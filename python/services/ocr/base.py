@@ -117,13 +117,26 @@ class BaseOcrModel(ABC):
         """Release loaded sessions (VRAM/RAM). Reloads on next ocr_boxes()."""
 
     @abstractmethod
-    def ocr_boxes(self, image_path: str, boxes: list[dict]) -> list[str]:
+    def ocr_boxes(
+        self,
+        image_path: str,
+        boxes: list[dict],
+        on_progress: Optional[Callable[[int, int], None]] = None,
+    ) -> list[str]:
         """Recognize text in each box; returns one string per box."""
 
     def supports_regions(self) -> bool:
         """True when this model recognizes several boxes in one crop (VLM)."""
         return False
 
-    def ocr_regions(self, image_path: str, regions: list[dict]) -> list[list[str]]:
+    def ocr_regions(
+        self,
+        image_path: str,
+        regions: list[dict],
+        on_progress: Optional[Callable[[int, int], None]] = None,
+    ) -> list[list[str]]:
         """Region-based recognition; default = per-box fallback."""
-        return [self.ocr_boxes(image_path, r["boxes"]) for r in regions]
+        return [
+            self.ocr_boxes(image_path, r["boxes"], on_progress=on_progress)
+            for r in regions
+        ]

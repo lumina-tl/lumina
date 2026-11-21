@@ -78,7 +78,7 @@
 - [x] what's changed after update (changelog) dialog
 - [x] fix koharu layout RF-DETR memory leak (switch to FP16 model, VRAM 5.9GB -> 3.2GB)
 - [x] add progress bar for extraction phase
-- [ ] detailed progress for pipeline
+- [x] detailed progress for pipeline
 - [ ] multi collor support on text tool
 - [ ] multi font support on text tool
 - [ ] testing and hunt another bugs

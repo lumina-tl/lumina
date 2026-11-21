@@ -56,6 +56,7 @@ def inpaint_boxes(
     output_dir: Optional[Path] = None,
     model: str = DEFAULT_MODEL,
     mask_path: Optional[str] = None,
+    on_progress: Optional[Callable[[int, int], None]] = None,
 ) -> list[dict]:
     """Inpaint every box and return per-patch RGBA PNG records.
 
@@ -65,7 +66,13 @@ def inpaint_boxes(
     """
     if model not in MODELS:
         raise ValueError(f"Unknown inpaint model: {model}")
-    return MODELS[model].inpaint(image_path, boxes, output_dir, mask_path)
+    return MODELS[model].inpaint(
+        image_path,
+        boxes,
+        output_dir,
+        mask_path,
+        on_progress=on_progress,
+    )
 
 
 def unload_models() -> None:

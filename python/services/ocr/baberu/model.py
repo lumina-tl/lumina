@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 import unicodedata
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Callable, Optional
 
 import numpy as np
 
@@ -153,7 +153,12 @@ class BaberuOcrModel(BaseOcrModel):
             pos += 1
         return v.decode(toks)
 
-    def ocr_boxes(self, image_path: str, boxes: list[dict]) -> list[str]:
+    def ocr_boxes(
+        self,
+        image_path: str,
+        boxes: list[dict],
+        on_progress: Optional[Callable[[int, int], None]] = None,
+    ) -> list[str]:
         from PIL import Image
 
         self._load()
@@ -173,6 +178,8 @@ class BaberuOcrModel(BaseOcrModel):
             )
             text = self._decode(embeds)
             texts.append(text)
+            if on_progress:
+                on_progress(i + 1, len(boxes))
             log.debug(f"OCR box {i + 1}/{len(boxes)}: {text!r}")
 
         return texts

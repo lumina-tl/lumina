@@ -10,10 +10,11 @@ import type { DetectResult, PageLayer, TextDetection } from "../../types";
 import { sortReadingOrder } from "../utils/reading-order";
 import { log } from "../logger";
 import { defaultTypography, loadGlobalTypography } from "../../types";
+import type { PipelineStepInfo } from "./ocr";
 
 export const detection = {
   /** Run detection on active page */
-  run: async function (): Promise<void> {
+  run: async function (stepInfo?: PipelineStepInfo): Promise<void> {
     const page = state.getActivePage();
     if (state.isRunning || !page) return;
     state.isRunning = true;
@@ -25,12 +26,21 @@ export const detection = {
       btn.disabled = true;
     }
 
+    const stepPrefix = stepInfo ? `[${stepInfo.current}/${stepInfo.total}] ` : "";
     const isFirstRun = !state._modelLoaded;
     let loadingToast: ReturnType<typeof ui.toast> | null;
     if (isFirstRun) {
-      loadingToast = ui.toast(i18n.t("toast.detectFirstRun"), "running", 0);
+      loadingToast = ui.toast(
+        `${stepPrefix}${i18n.t("toast.detectFirstRun")}`,
+        "running",
+        0,
+      );
     } else {
-      loadingToast = ui.toast(i18n.t("toast.detectRunning"), "running", 0);
+      loadingToast = ui.toast(
+        `${stepPrefix}${i18n.t("toast.detectRunning")}`,
+        "running",
+        0,
+      );
     }
 
     try {
@@ -126,35 +136,57 @@ export const detection = {
     if (state.isRunning || state.pages.length === 0) return;
     state.isRunning = true;
 
-    for (let i = 0; i < state.pages.length; i++) {
-      const page = state.pages[i];
-      if (!page.filePath) continue;
-      try {
-        const result = await window.lumina.apiPost<DetectResult>("/detect", {
-          imagePath: page.filePath,
-          model: models.selectedModel("detect") || "rtdetr",
-        });
-        if (!result || result.error) continue;
+    const total = state.pages.length;
+    const loadingToast = ui.toast(
+      i18n.t("toast.detectAllProgress", { current: 1, total }),
+      "running",
+      0,
+    );
 
-        page.textDetections = (result.textDetections || []).map(
-          (d, j): TextDetection => ({
-            id: "text-" + j,
-            bbox: Object.assign({}, d.bbox),
-            type: d.type,
-            confidence: d.confidence || 0,
-            status: "auto",
-          }),
+    try {
+      for (let i = 0; i < total; i++) {
+        ui.updateToast(
+          loadingToast,
+          i18n.t("toast.detectAllProgress", { current: i + 1, total }),
         );
-        page.maskPath = result.maskPath ?? null;
-      } catch (err) {
-        log.error("fe", `Detection page ${i + 1}: ${err}`);
-      }
-    }
+        const page = state.pages[i];
+        if (!page.filePath) continue;
+        try {
+          const result = await window.lumina.apiPost<DetectResult>("/detect", {
+            imagePath: page.filePath,
+            model: models.selectedModel("detect") || "rtdetr",
+          });
+          if (!result || result.error) continue;
 
-    state.isRunning = false;
-    canvas._clearGroups();
-    canvas.render();
-    canvas.renderPageStrip();
-    sidebar.render();
+          page.textDetections = (result.textDetections || []).map(
+            (d, j): TextDetection => ({
+              id: "text-" + j,
+              bbox: Object.assign({}, d.bbox),
+              type: d.type,
+              confidence: d.confidence || 0,
+              status: "auto",
+            }),
+          );
+          page.maskPath = result.maskPath ?? null;
+        } catch (err) {
+          log.error("fe", `Detection page ${i + 1}: ${err}`);
+        }
+      }
+      ui.dismissToast(loadingToast);
+      ui.toast(
+        i18n.t("toast.detectDone", { texts: total }),
+        "success",
+        3000,
+      );
+    } catch (err) {
+      ui.dismissToast(loadingToast);
+      ui.toast((err as Error).message || i18n.t("toast.detectFailed"), "error");
+    } finally {
+      state.isRunning = false;
+      canvas._clearGroups();
+      canvas.render();
+      canvas.renderPageStrip();
+      sidebar.render();
+    }
   },
 };

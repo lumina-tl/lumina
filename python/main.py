@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
+import queue
 import sys
 import threading
 from pathlib import Path
 from typing import Any, Callable
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
 import uvicorn
 
 from schemas import (
@@ -235,6 +238,59 @@ def ocr(req: OcrRequest):
         _keep_one_hot("ocr")
 
 
+@app.post("/ocr/stream")
+def ocr_stream(req: OcrRequest):
+    if not Path(req.imagePath).is_file():
+        raise HTTPException(status_code=400, detail="Image file not found")
+    if not req.boxes:
+        def empty_gen():
+            yield json.dumps({"type": "done", "results": []}) + "\n"
+
+        return StreamingResponse(empty_gen(), media_type="application/x-ndjson")
+
+    def generate():
+        q: queue.Queue = queue.Queue()
+
+        def worker():
+            try:
+                from services.ocr import ocr_boxes
+
+                log.debug(f"OCR stream: model={req.model}, {len(req.boxes)} box(es)")
+
+                def on_progress(cur: int, total: int):
+                    q.put({"type": "progress", "current": cur, "total": total})
+
+                texts = ocr_boxes(
+                    req.imagePath,
+                    [b.model_dump() for b in req.boxes],
+                    model=req.model,
+                    on_progress=on_progress,
+                )
+                results = [
+                    OcrResult(index=i, text=t).model_dump()
+                    for i, t in enumerate(texts)
+                ]
+                q.put({"type": "done", "results": results})
+            except Exception as e:
+                log.error(f"OCR stream failed: {e}")
+                import traceback
+
+                log.debug(traceback.format_exc())
+                q.put({"type": "error", "detail": str(e)})
+            finally:
+                _keep_one_hot("ocr")
+                q.put(None)
+
+        threading.Thread(target=worker, daemon=True).start()
+        while True:
+            msg = q.get()
+            if msg is None:
+                break
+            yield json.dumps(msg) + "\n"
+
+    return StreamingResponse(generate(), media_type="application/x-ndjson")
+
+
 @app.post("/translate", response_model=TranslateResponse)
 def translate(req: TranslateRequest):
     if not req.texts:
@@ -298,6 +354,60 @@ def inpaint(req: InpaintRequest):
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         _keep_one_hot("inpaint")
+
+
+@app.post("/inpaint/stream")
+def inpaint_stream(req: InpaintRequest):
+    if not Path(req.imagePath).is_file():
+        raise HTTPException(status_code=400, detail="Image file not found")
+    if not req.boxes:
+        def empty_gen():
+            yield json.dumps({"type": "done", "patches": []}) + "\n"
+
+        return StreamingResponse(empty_gen(), media_type="application/x-ndjson")
+
+    def generate():
+        q: queue.Queue = queue.Queue()
+
+        def worker():
+            try:
+                from services.inpaint import inpaint_boxes
+
+                log.debug(f"Inpaint stream: model={req.model}, {len(req.boxes)} box(es)")
+
+                def on_progress(cur: int, total: int):
+                    q.put({"type": "progress", "current": cur, "total": total})
+
+                patches = inpaint_boxes(
+                    req.imagePath,
+                    [b.model_dump() for b in req.boxes],
+                    model=req.model,
+                    mask_path=req.maskPath,
+                    on_progress=on_progress,
+                )
+                results = [
+                    InpaintPatch.model_validate(p).model_dump()
+                    for p in patches
+                ]
+                q.put({"type": "done", "patches": results})
+            except Exception as e:
+                log.error(f"Inpaint stream failed: {e}")
+                import traceback
+
+                log.debug(traceback.format_exc())
+                q.put({"type": "error", "detail": str(e)})
+            finally:
+                _keep_one_hot("inpaint")
+                q.put(None)
+
+        threading.Thread(target=worker, daemon=True).start()
+        while True:
+            msg = q.get()
+            if msg is None:
+                break
+            yield json.dumps(msg) + "\n"
+
+    return StreamingResponse(generate(), media_type="application/x-ndjson")
 
 
 def _all_model_infos() -> list[dict]:

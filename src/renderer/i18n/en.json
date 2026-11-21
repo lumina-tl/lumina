@@ -236,11 +236,13 @@
 
   "toast.detectFirstRun": "First run — preparing the detection engine, please wait...",
   "toast.detectRunning": "Detecting text...",
+  "toast.detectAllProgress": "Detect: page {{current}}/{{total}}...",
   "toast.detectDone": "Done — {{texts}} text box(es) detected",
   "toast.detectFailed": "Detection failed",
 
   "toast.ocrNoText": "Run Detect first — no text boxes to OCR",
   "toast.ocrRunning": "Running OCR on {{count}} text box(es)...",
+  "toast.ocrProgress": "OCR: {{current}}/{{total}} boxes...",
   "toast.ocrDone": "OCR done — {{count}} text(s) recognized",
   "toast.ocrFailed": "OCR failed",
 
@@ -252,6 +254,7 @@
   "toast.inpaintNoText": "Run Detect first — no boxes to inpaint",
   "toast.inpaintFirstRun": "First run — loading the inpainting engine, please wait...",
   "toast.inpaintRunning": "Inpainting text regions...",
+  "toast.inpaintProgress": "Inpaint: {{current}}/{{total}} patches...",
   "toast.inpaintDone": "Inpaint complete — {{count}} mask(s) created",
   "toast.inpaintFailed": "Inpaint failed",
 

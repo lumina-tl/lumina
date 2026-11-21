@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import json
-from typing import Optional
+from typing import Callable, Optional
 
 import numpy as np
 
@@ -110,7 +110,12 @@ class PaddleOcrVlModel(BaseOcrModel):
         )
         return dec.decode(vis.encode(pixel_values, grid))
 
-    def ocr_boxes(self, image_path: str, boxes: list[dict]) -> list[str]:
+    def ocr_boxes(
+        self,
+        image_path: str,
+        boxes: list[dict],
+        on_progress: Optional[Callable[[int, int], None]] = None,
+    ) -> list[str]:
         """Per-box fallback path."""
         from PIL import Image
 
@@ -120,16 +125,25 @@ class PaddleOcrVlModel(BaseOcrModel):
         for i, b in enumerate(boxes):
             text = self._ocr_region(img, b)
             texts.append(text)
+            if on_progress:
+                on_progress(i + 1, len(boxes))
             log.debug(f"OCR box {i + 1}/{len(boxes)}: {text!r}")
         return texts
 
-    def ocr_regions(self, image_path: str, regions: list[dict]) -> list[list[str]]:
+    def ocr_regions(
+        self,
+        image_path: str,
+        regions: list[dict],
+        on_progress: Optional[Callable[[int, int], None]] = None,
+    ) -> list[list[str]]:
         """Region mode: one VLM pass per region, split into lines."""
         from PIL import Image
 
         self._load()
         img = Image.open(image_path).convert("RGB")
         out: list[list[str]] = []
+        total_boxes = sum(len(r["boxes"]) for r in regions)
+        processed = 0
         for ri, region in enumerate(regions):
             boxes = region["boxes"]
             pad = 8  # a little context around the merged boxes
@@ -153,6 +167,9 @@ class PaddleOcrVlModel(BaseOcrModel):
             lines = [ln for ln in lines if ln]
             if lines and len(lines) == len(boxes):
                 out.append(lines)
+                processed += len(boxes)
+                if on_progress:
+                    on_progress(processed, total_boxes)
                 log.debug(
                     f"OCR region {ri + 1}/{len(regions)} ({len(boxes)} boxes): {lines!r}"
                 )
@@ -161,5 +178,10 @@ class PaddleOcrVlModel(BaseOcrModel):
                     f"Region {ri + 1}/{len(regions)}: model returned {len(lines)} "
                     f"line(s) for {len(boxes)} box(es) — falling back per-box"
                 )
-                out.append(self.ocr_boxes(image_path, boxes))
+                def _region_box_prog(cur: int, _: int):
+                    if on_progress:
+                        on_progress(processed + cur, total_boxes)
+                res = self.ocr_boxes(image_path, boxes, on_progress=_region_box_prog)
+                processed += len(boxes)
+                out.append(res)
         return out

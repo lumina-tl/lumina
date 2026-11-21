@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Detailed streaming progress for pipeline stages.** Real-time per-box and per-patch progress tracking for OCR (`OCR: X/Y boxes...`), Inpainting (`Inpaint: X/Y patches...`), and multi-page text detection (`Detect: page X/Y...`) via NDJSON HTTP streaming. Preset pipeline runs now display phase prefixes (e.g. `[2/4]`) in the docked sub-capsule and dynamic island.
 - **Multi-selection feature for layers and detection boxes.** Multi-selection across canvas and sidebar with rubberband marquee selection, Shift/Ctrl-click toggling, multi-node move and scale via Konva Transformer, batch typography updates, and batch deletion.
 - **Live progress bar for extraction phase.** Real-time progress bar and percentage tracking during CUDA runtime extraction, transitioning smoothly from download to unpacking without appearing frozen at 100% (fixes lumina-tl/lumina#1).
 - **Full page context for line re-translation.** Single-layer re-translate now supplies the LLM with full page dialogue context (all lines before and after with current translations and target marker) to maintain conversation coherence and accurate tone.

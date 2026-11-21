@@ -1,7 +1,7 @@
 """OCR model registry + region grouping."""
 from __future__ import annotations
 
-from typing import Optional
+from typing import Callable, Optional
 
 from .base import BaseOcrModel, ProgressCallback
 from .baberu.model import BaberuOcrModel
@@ -85,15 +85,18 @@ def ocr_boxes(
     image_path: str,
     boxes: list[dict],
     model: str = DEFAULT_MODEL,
+    on_progress: Optional[Callable[[int, int], None]] = None,
 ) -> list[str]:
     """Recognize text in every box; returns one string per box."""
     if model not in MODELS:
         raise ValueError(f"Unknown OCR model: {model}")
     m = MODELS[model]
     if m.supports_regions():
-        per_region = m.ocr_regions(image_path, _group_regions(boxes))
+        per_region = m.ocr_regions(
+            image_path, _group_regions(boxes), on_progress=on_progress
+        )
         return [line for r in per_region for line in r]
-    return m.ocr_boxes(image_path, boxes)
+    return m.ocr_boxes(image_path, boxes, on_progress=on_progress)
 
 
 def unload_models() -> None:

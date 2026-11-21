@@ -236,11 +236,13 @@
 
   "toast.detectFirstRun": "menyiapkan mesin deteksi, mohon tunggu...",
   "toast.detectRunning": "Mendeteksi teks...",
+  "toast.detectAllProgress": "Deteksi: halaman {{current}}/{{total}}...",
   "toast.detectDone": "Selesai — {{texts}} kotak teks terdeteksi",
   "toast.detectFailed": "Deteksi gagal",
 
   "toast.ocrNoText": "Jalankan Deteksi dulu — belum ada kotak teks untuk OCR",
   "toast.ocrRunning": "Menjalankan OCR pada {{count}} kotak teks...",
+  "toast.ocrProgress": "OCR: {{current}}/{{total}} kotak...",
   "toast.ocrDone": "OCR selesai — {{count}} teks dikenali",
   "toast.ocrFailed": "OCR gagal",
 
@@ -252,6 +254,7 @@
   "toast.inpaintNoText": "Jalankan Deteksi dulu — belum ada area untuk di-inpaint",
   "toast.inpaintFirstRun": "menyiapkan mesin inpainting, mohon tunggu...",
   "toast.inpaintRunning": "Membersihkan area teks...",
+  "toast.inpaintProgress": "Inpaint: {{current}}/{{total}} area...",
   "toast.inpaintDone": "Inpaint selesai — {{count}} mask dibuat",
   "toast.inpaintFailed": "Inpaint gagal",
 

@@ -13,6 +13,7 @@ import { sidebar } from "../sidebar";
 import { models } from "../models";
 import { log } from "../logger";
 import type { BBox, InpaintMask, Page } from "../../types";
+import type { PipelineStepInfo } from "./ocr";
 
 /** Convert a Windows path to a loadable file:// URL */
 function fileUrl(p: string): string {
@@ -38,17 +39,22 @@ async function createMasks(
   page: Page,
   model: string,
   boxes: BBox[] = page.textDetections.map((d) => d.bbox),
+  onProgress?: (p: { current: number; total: number }) => void,
 ): Promise<InpaintMask[]> {
-  const result = await window.lumina.apiPost<{
+  const result = await window.lumina.apiPostStream<{
     patches?: Array<{ bbox: BBox; imagePath: string }>;
     detail?: string;
     error?: string;
-  }>("/inpaint", {
-    imagePath: page.filePath,
-    maskPath: page.maskPath ?? null,
-    boxes,
-    model,
-  });
+  }>(
+    "/inpaint/stream",
+    {
+      imagePath: page.filePath,
+      maskPath: page.maskPath ?? null,
+      boxes,
+      model,
+    },
+    onProgress,
+  );
   if (!result || !Array.isArray(result.patches))
     throw new Error(result?.detail || result?.error || "Inpaint failed");
 
@@ -110,7 +116,7 @@ function imageFromBlob(blob: Blob): Promise<HTMLImageElement> {
 
 export const inpaint = {
   /** Inpaint all text detection boxes of the active page → mask layers */
-  run: async function (): Promise<void> {
+  run: async function (stepInfo?: PipelineStepInfo): Promise<void> {
     const page = state.getActivePage();
     if (state.isRunning || !page) return;
     if (!page.textDetections.length) {
@@ -119,11 +125,13 @@ export const inpaint = {
     }
     state.isRunning = true;
 
+    const stepPrefix = stepInfo ? `[${stepInfo.current}/${stepInfo.total}] ` : "";
     const isFirstRun = !state._inpaintLoaded;
+    const totalCount = page.textDetections.length;
     const loadingToast = ui.toast(
       isFirstRun
-        ? i18n.t("toast.inpaintFirstRun")
-        : i18n.t("toast.inpaintRunning"),
+        ? `${stepPrefix}${i18n.t("toast.inpaintFirstRun")}`
+        : `${stepPrefix}${i18n.t("toast.inpaintProgress", { current: 0, total: totalCount })}`,
       "running",
       0,
     );
@@ -134,7 +142,12 @@ export const inpaint = {
         "fe",
         `inpaint: start model=${model} boxes=${page.textDetections.length}`,
       );
-      const masks = await createMasks(page, model);
+      const masks = await createMasks(page, model, undefined, (p) => {
+        ui.updateToast(
+          loadingToast,
+          `${stepPrefix}${i18n.t("toast.inpaintProgress", { current: p.current, total: p.total })}`,
+        );
+      });
       log.debug("fe", `inpaint: done ${masks.length} patch(es)`);
 
       // Replace previous masks (re-run = fresh set of patches).
@@ -173,13 +186,18 @@ export const inpaint = {
 
     state.isRunning = true;
     const loadingToast = ui.toast(
-      i18n.t("toast.inpaintRunning"),
+      i18n.t("toast.inpaintProgress", { current: 0, total: validBoxes.length }),
       "running",
       0,
     );
     try {
       const model = models.selectedModel("inpaint") || "lama_manga";
-      const masks = await createMasks(page, model, validBoxes);
+      const masks = await createMasks(page, model, validBoxes, (p) => {
+        ui.updateToast(
+          loadingToast,
+          i18n.t("toast.inpaintProgress", { current: p.current, total: p.total }),
+        );
+      });
       page.inpaintMasks.push(...masks);
       if (masks.length)
         page._selectedMaskId = masks[masks.length - 1].id;

@@ -1,7 +1,7 @@
 """PP-OCRv6 medium rec — multilingual CTC text recognition."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Callable, Optional
 
 import numpy as np
 
@@ -60,7 +60,12 @@ class PPOcrV6Model(BaseOcrModel):
         self._chars = ["blank"] + chars + [" "]  # idx 0 = CTC blank, last = space
         log.info(f"PP-OCRv6 ready ({len(chars)} chars)")
 
-    def ocr_boxes(self, image_path: str, boxes: list[dict]) -> list[str]:
+    def ocr_boxes(
+        self,
+        image_path: str,
+        boxes: list[dict],
+        on_progress: Optional[Callable[[int, int], None]] = None,
+    ) -> list[str]:
         import numpy as np
 
         from PIL import Image
@@ -96,5 +101,7 @@ class PPOcrV6Model(BaseOcrModel):
                 log.debug(f"OCR box {i + 1}/{len(boxes)} ({score:.2f}): {text!r}")
             # Vertical columns read right-to-left as one logical line.
             texts.append("".join(parts) if vertical else "\n".join(parts))
+            if on_progress:
+                on_progress(i + 1, len(boxes))
 
         return texts

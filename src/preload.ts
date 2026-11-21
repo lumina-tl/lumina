@@ -18,6 +18,20 @@ const api: LuminaAPI = {
   importImages: () => invoke(IPC.importImages),
   apiPost: <T>(endpoint: string, body: unknown) =>
     invoke<T>(IPC.apiPost, endpoint, body),
+  apiPostStream: <T>(
+    endpoint: string,
+    body: unknown,
+    onProgress?: (progress: import("./shared/types/api").StreamProgress) => void,
+  ) => {
+    const streamId = Math.random().toString(36).slice(2);
+    let cleanup: (() => void) | null = null;
+    if (onProgress) {
+      cleanup = on(`stream-progress:${streamId}`, onProgress);
+    }
+    return invoke<T>(IPC.apiPostStream, endpoint, body, streamId).finally(() => {
+      cleanup?.();
+    });
+  },
   getDevice: () => invoke(IPC.device),
   setUseGpu: (useGpu) => invoke(IPC.deviceConfigure, useGpu),
   checkModel: () => invoke(IPC.checkModel),

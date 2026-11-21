@@ -15,6 +15,7 @@ import {
 } from "../canvas/detection/selection";
 import type { TextDetection } from "../../types";
 import { log } from "../logger";
+import type { PipelineStepInfo } from "./ocr";
 
 const STORAGE_KEY = "lumina-translate";
 
@@ -144,7 +145,7 @@ export const translateSettings = {
 
 export const translate = {
   /** Translate all text detections of the active page */
-  run: async function (): Promise<void> {
+  run: async function (stepInfo?: PipelineStepInfo): Promise<void> {
     const page = state.getActivePage();
     if (state.isRunning || !page) return;
     const withText = page.textDetections.filter(function (d) {
@@ -156,8 +157,9 @@ export const translate = {
     }
     state.isRunning = true;
 
+    const stepPrefix = stepInfo ? `[${stepInfo.current}/${stepInfo.total}] ` : "";
     const loadingToast = ui.toast(
-      i18n.t("toast.trRunning", { count: withText.length }),
+      `${stepPrefix}${i18n.t("toast.trRunning", { count: withText.length })}`,
       "running",
       0,
     );
