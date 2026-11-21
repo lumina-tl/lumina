@@ -380,6 +380,7 @@ function _render(): void {
 
   // Selection overlay (marching ants + context bar) follows stage scale/pan
   if (canvas._syncSelectOverlay) canvas._syncSelectOverlay();
+  if (canvas.updateScrollbars) canvas.updateScrollbars();
 }
 
 /** Drop baked composite for a page (on page removal). */

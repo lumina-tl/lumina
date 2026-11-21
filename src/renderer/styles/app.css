@@ -4260,13 +4260,6 @@ body.resizing-row {
   color: #ffffff;
   border-color: rgba(255, 255, 255, 0.2);
 }
-  align-items: center;
-  gap: 6px;
-  font-size: 0.72rem;
-  padding: 4px 12px;
-  border-radius: 6px;
-  font-weight: 600;
-}
 .changelog-group {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -4638,5 +4631,110 @@ body.resizing-row {
   border-color: rgba(122, 162, 247, 0.35);
   color: #a5c3f9;
 }
+
+/* ── Canvas Viewport Scrollbars ── */
+.canvas-scrollbar {
+  position: absolute;
+  z-index: 25;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+  opacity: 0.55;
+  transition:
+    opacity 0.25s ease,
+    background 0.25s ease;
+  user-select: none;
+}
+.canvas-scrollbar:hover,
+.canvas-scrollbar.highlighted {
+  opacity: 0.85;
+  background: rgba(255, 255, 255, 0.05);
+}
+.canvas-scrollbar.hidden {
+  display: none !important;
+}
+.canvas-scrollbar-v {
+  right: 4px;
+  top: 28px;
+  bottom: 16px;
+  width: 8px;
+}
+.canvas-scrollbar-h {
+  bottom: 4px;
+  left: 130px;
+  right: 20px;
+  height: 8px;
+}
+.canvas-scrollbar-thumb {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+  border-radius: 4px;
+  cursor: grab;
+  transition:
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    width 0.18s ease,
+    height 0.18s ease,
+    left 0.18s ease,
+    top 0.18s ease;
+}
+.canvas-scrollbar-thumb:hover,
+.canvas-scrollbar.highlighted .canvas-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+.canvas-scrollbar-thumb:active,
+.canvas-scrollbar-thumb.dragging {
+  cursor: grabbing;
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+}
+.canvas-scrollbar-v .canvas-scrollbar-thumb {
+  left: 1px;
+  width: 6px;
+}
+.canvas-scrollbar-h .canvas-scrollbar-thumb {
+  top: 1px;
+  height: 6px;
+}
+.canvas-scrollbar:hover .canvas-scrollbar-thumb,
+.canvas-scrollbar.highlighted .canvas-scrollbar-thumb {
+  border-radius: 4px;
+}
+.canvas-scrollbar-v:hover .canvas-scrollbar-thumb,
+.canvas-scrollbar-v.highlighted .canvas-scrollbar-thumb {
+  left: 0;
+  width: 8px;
+}
+.canvas-scrollbar-h:hover .canvas-scrollbar-thumb,
+.canvas-scrollbar-h.highlighted .canvas-scrollbar-thumb {
+  top: 0;
+  height: 8px;
+}
+
+/* ── Light background adaptive mode (over white manga pages) ── */
+.canvas-scrollbar.theme-light {
+  background: rgba(0, 0, 0, 0.04);
+}
+.canvas-scrollbar.theme-light:hover,
+.canvas-scrollbar.theme-light.highlighted {
+  opacity: 0.9;
+  background: rgba(0, 0, 0, 0.08);
+}
+.canvas-scrollbar.theme-light .canvas-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.32);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+.canvas-scrollbar.theme-light .canvas-scrollbar-thumb:hover,
+.canvas-scrollbar.theme-light.highlighted .canvas-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.52);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.7);
+}
+.canvas-scrollbar.theme-light .canvas-scrollbar-thumb:active,
+.canvas-scrollbar.theme-light .canvas-scrollbar-thumb.dragging {
+  background: rgba(0, 0, 0, 0.75);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.85);
+}
+
 
 

@@ -81,6 +81,7 @@ export interface CanvasAPI {
   _initKeyboard(): void;
   _initSidebarResize(): void;
   _initDeselectClick(): void;
+  updateScrollbars?(): void;
 }
 
 export const canvas: CanvasAPI = {

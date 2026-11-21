@@ -10,12 +10,13 @@ const ZOOM_MIN = 0.1;
 const ZOOM_STEP = 1.2;
 
 /** Clamp pan so the image can never be dragged fully out of view */
-function _clampPan(): void {
+export function clampPan(): void {
   const container = document.getElementById("canvas-container");
   const page = state.getActivePage();
   if (!container || !page) {
     state._panX = 0;
     state._panY = 0;
+    if (canvas.updateScrollbars) canvas.updateScrollbars();
     return;
   }
   const sr = canvas.getBaseScaleRatio();
@@ -30,7 +31,9 @@ function _clampPan(): void {
 
   state._panX = Math.max(-marginX, Math.min(marginX, state._panX || 0));
   state._panY = Math.max(-marginY, Math.min(marginY, state._panY || 0));
+  if (canvas.updateScrollbars) canvas.updateScrollbars();
 }
+const _clampPan = clampPan;
 
 /** Set zoom level (1 = fit). anchor: optional {x,y} screen point to zoom around */
 canvas.setZoom = function (level, anchor) {
@@ -79,7 +82,12 @@ canvas.zoomReset = function () {
   canvas.scheduleRender();
 };
 
-/** Wheel: ctrl+wheel or plain wheel = zoom at cursor */
+/** Wheel:
+ * - Alt + wheel: pan vertically
+ * - Shift + wheel: pan horizontally
+ * - Trackpad horizontal swipe: pan horizontally
+ * - Ctrl + wheel or plain wheel: zoom at cursor
+ */
 canvas._initWheelZoom = function (): void {
   const container = document.getElementById("canvas-container");
   if (!container) return;
@@ -89,13 +97,49 @@ canvas._initWheelZoom = function (): void {
       const page = state.getActivePage();
       if (!page) return;
       e.preventDefault();
+
+      // 1. Alt + wheel -> Vertical pan
+      if (e.altKey && !e.ctrlKey) {
+        state._panY = (state._panY || 0) - e.deltaY;
+        clampPan();
+        canvas.scheduleRender();
+        return;
+      }
+
+      // 2. Shift + wheel -> Horizontal pan
+      if (e.shiftKey && !e.ctrlKey) {
+        const delta = Math.abs(e.deltaX) > 0 ? e.deltaX : e.deltaY;
+        state._panX = (state._panX || 0) - delta;
+        clampPan();
+        canvas.scheduleRender();
+        return;
+      }
+
+      // 3. Trackpad 2-finger horizontal swipe (without modifiers)
+      if (
+        !e.ctrlKey &&
+        !e.altKey &&
+        !e.shiftKey &&
+        Math.abs(e.deltaX) > 0 &&
+        Math.abs(e.deltaX) > Math.abs(e.deltaY)
+      ) {
+        state._panX = (state._panX || 0) - e.deltaX;
+        clampPan();
+        canvas.scheduleRender();
+        return;
+      }
+
+      // 4. Ctrl + wheel OR plain wheel -> Zoom at cursor
       if (e.deltaY < 0) {
         canvas.setZoom((state._zoomLevel || 1) * ZOOM_STEP, {
           x: e.clientX,
           y: e.clientY,
         });
       } else {
-        canvas.setZoom((state._zoomLevel || 1) / ZOOM_STEP);
+        canvas.setZoom((state._zoomLevel || 1) / ZOOM_STEP, {
+          x: e.clientX,
+          y: e.clientY,
+        });
       }
     },
     { passive: false },

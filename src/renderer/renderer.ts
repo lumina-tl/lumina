@@ -21,6 +21,7 @@ import "./lib/canvas/detection/mutations";
 import "./lib/canvas/layers/layers";
 import "./lib/canvas/layers/masks";
 import "./lib/canvas/viewport";
+import { initScrollbars } from "./lib/canvas/scrollbar";
 import { bindHoverCursor } from "./lib/canvas/cursor";
 import { bindTextTool } from "./lib/canvas/tools/text";
 import { bindSelectTool } from "./lib/canvas/tools/select";
@@ -262,6 +263,7 @@ i18n.init().then(function () {
   tools.init();
   ui.initResize();
   canvas.initBindings();
+  initScrollbars();
   bindHoverCursor();
   bindTextTool();
   bindSelectTool();
