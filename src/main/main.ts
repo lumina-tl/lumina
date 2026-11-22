@@ -1,5 +1,8 @@
 /** App entry — boot, window, backend, handlers. */
 import { app, BrowserWindow, Menu } from "electron";
+import { loadEnvFile } from "./backend/env";
+
+loadEnvFile();
 
 // Configure Wayland/X11 auto-detection on Linux before app readiness.
 if (process.platform === "linux") {
@@ -13,6 +16,7 @@ if (process.platform === "linux") {
     "WaylandWindowDecorations,UseOzonePlatform",
   );
   app.commandLine.appendSwitch("enable-wayland-ime");
+  app.commandLine.appendSwitch("disable-dev-shm-usage");
   if (process.env.LUMINA_NO_SANDBOX === "1") {
     app.commandLine.appendSwitch("no-sandbox");
   }
