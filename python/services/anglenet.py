@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import math
+import os
 import urllib.request
 from pathlib import Path
 from typing import Callable, Optional, Tuple
@@ -22,14 +23,22 @@ _tried = False
 _MIN_SIDE = 4  # px — skip crops smaller than this (nothing to measure)
 
 
+def _default_models_dir() -> Path:
+    return Path(
+        os.environ.get(
+            "LUMINA_MODEL_DIR", Path(__file__).resolve().parents[2] / "models"
+        )
+    )
+
+
 def model_path(models_dir: Optional[Path] = None) -> Path:
     """Path of the AngleNet onnx (models/anglenet/)."""
-    root = models_dir or Path(__file__).resolve().parents[2] / "models"
+    root = models_dir or _default_models_dir()
     return root / MODEL_DIR_NAME / _ANGLE_FILE
 
 
 def model_dir(models_dir: Optional[Path] = None) -> Path:
-    root = models_dir or Path(__file__).resolve().parents[2] / "models"
+    root = models_dir or _default_models_dir()
     return root / MODEL_DIR_NAME
 
 
