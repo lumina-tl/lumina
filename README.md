@@ -15,7 +15,7 @@ See the [documentation website](https://lumina.navierr.dev/) for guides and deta
 - [Models](#models)
 - [Translation](#translation)
 - [GPU Acceleration](#gpu-acceleration)
-- [Installers](#installers)
+- [Installers & Packages](#installers--packages)
 - [Project File Format (.lmi)](#project-file-format-lmi)
 - [Development](#development)
 - [Roadmap](#roadmap)
@@ -27,12 +27,13 @@ See the [documentation website](https://lumina.navierr.dev/) for guides and deta
 - **Semi-automatic pipeline** — automated detection, OCR, translation, inpainting, and typesetting with floating pipeline controls, preset switcher (*Full Pipeline* / *Clean Only*), and real-time streaming progress.
 - **Full manual control** — re-order/resize detected boxes, re-translate lines with surrounding dialogue context, edit or remove inpaint masks, and cancel in-place text edits with Escape.
 - **Rich text & typography** — character-level formatting (multi-color, multi-font, weight, italic), floating formatting toolbar, rotated in-place editor matching text slant, and auto-fit sizing.
-- **Font Market & Recommendations** — built-in catalog with 47 curated manga fonts (Dialogue, Scream, Whisper, SFX) and live search across 1,960+ Google Fonts, supporting one-click in-app or Windows user-space installation with instant glyph preview.
+- **Font Market & Recommendations** — built-in catalog with 47 curated manga fonts (Dialogue, Scream, Whisper, SFX) and live search across 1,960+ Google Fonts, supporting one-click in-app or system user-space installation (Windows and Linux) with instant glyph preview.
 - **Content-aware inpainting** — text-instance masking plus full-page binary text segmentation (`rfdetr_seg`).
 - **Selection tools** — lasso and rectangle with multi-selection (Shift add, Alt subtract), transform controls, and quick actions (clean area / erase masks).
 - **Flexible export** — export pages to PNG, JPG, multi-page PDF documents, or layered Photoshop (PSD) files with editable text artboards.
 - **Hardware resource monitor** — real-time status bar monitor for CPU, RAM, GPU VRAM (via NVML), active models, and automatic memory-pressure LRU eviction.
 - **Context-aware translation** — whole-page dialogue awareness and cross-page context continuity across chapter transitions.
+- **Cross-platform desktop support** — native support for Windows and Linux with Wayland and X11 auto-detection.
 - **Single project format (.lmi)** — zip-packaged project files bundling pages, detection data, rich text layers, and mask patches.
 - **GPU acceleration** — optimized ONNX Runtime execution with NVIDIA CUDA 12 and universal DirectML providers.
 
@@ -138,7 +139,7 @@ lumina/
 
 Models are managed in Settings → Models. They are not bundled with the app; each one is downloaded on demand or placed manually in a models directory.
 
-The models directory is resolved in this order: the `LUMINA_MODEL_DIR` environment variable, the location saved in Settings → Models (via the “Models directory” card), or the platform default `userData/models` (`%APPDATA%\Lumina\models` on Windows). In a source checkout, set `LUMINA_MODEL_DIR` in `.env` (see [.env.example](.env.example)) to keep using the repo's `models/` folder.
+The models directory is resolved in this order: the `LUMINA_MODEL_DIR` environment variable, the location saved in Settings → Models (via the “Models directory” card), or the platform default `userData/models` (`%APPDATA%\Lumina\models` on Windows, `~/.config/lumina/models` on Linux). In a source checkout, set `LUMINA_MODEL_DIR` in `.env` (see [.env.example](.env.example)) to keep using the repo's `models/` folder.
 
 | Category | Model          | Status          | Execution                        | Notes                                          |
 | -------- | -------------- | --------------- | -------------------------------- | ---------------------------------------------- |
@@ -180,18 +181,31 @@ Lumina uses ONNX Runtime with GPU support where available.
 - **`LUMINA_EP` environment variable** overrides the runtime preference: `auto` (CUDA → DirectML → CPU, falling back per wheel), `cuda` (CUDA, falling back to CPU — never DirectML), `dml`, or `cpu`.
 - **Per-model preferences** are baked into each model's configuration. Some models cannot run on certain providers: `lama` is CPU-only (GPU acceleration is ignored when enabled), `lama_manga` and `paddleocr_vl` never use DirectML (CUDA when available, otherwise CPU), and some OCR models keep their autoregressive decoder on CPU regardless of the chosen provider.
 
-## Installers
+## Installers & Packages
 
-Two Windows installers ship, one per execution provider:
+Installers and packages are published on the [Releases](https://github.com/lumina-tl/lumina/releases) page:
 
-- **`Lumina-Setup-DML-<version>.exe`** — DirectML (CPU + DirectML), universal: runs on any DirectX 12 GPU — including NVIDIA — and falls back to CPU on machines without a compatible GPU. Choose this if you don't have an NVIDIA RTX/GTX card.
-- **`Lumina-Setup-CUDA-<version>.exe`** — CUDA 12, NVIDIA-only. **Highly recommended over the DML installer if you have an NVIDIA RTX/GTX card** — it's noticeably faster. Requires an NVIDIA GPU with a reasonably recent driver.
+### Windows
 
-Both are published as a release on the [Releases](https://github.com/lumina-tl/lumina/releases) page, together with their update feed files. Each variant uses its own update channel, so a DML install only ever updates from DML artifacts and a CUDA install only from CUDA artifacts. Updates are differential — the app downloads only the parts that changed, not the whole installer — and install on launch, so a one-time install is usually all that's needed. Release notes are taken from the matching `## [<version>]` section in [CHANGELOG.md](CHANGELOG.md); if that section is missing, notes are generated from the commits.
+- **`Lumina-Setup-DML-<version>.exe`** — DirectML (universal): runs on any DirectX 12 GPU (AMD, Intel, NVIDIA) and falls back to CPU on machines without a compatible GPU.
+- **`Lumina-Setup-CUDA-<version>.exe`** — NVIDIA CUDA 12: **highly recommended over the DML installer if you have an NVIDIA RTX/GTX card** for significantly faster inference.
 
-> **CUDA note:** starting with v0.3.0, the CUDA installer no longer bundles the ~1.4 GB ONNX Runtime — the app downloads it once into your user folder on first run (shown in Settings → Models) and verifies it before use. That keeps the installer small and makes every update after this one a small differential download. If you update from an older CUDA version, this first launch downloads the runtime once; later updates won't re-download it. DML installs are unaffected — the runtime is still bundled in that installer.
+Both Windows installers feature differential auto-updates on launch via their respective update channels (`dml` or `cuda`).
 
-When running from source, pick the provider wheel yourself: `onnxruntime-directml` for universal GPU support, or `onnxruntime-gpu[cuda,cudnn]` for NVIDIA CUDA (see [Development](#development)), then start the app with `npm start`.
+### Linux
+
+- **`Lumina-CPU-<version>-linux-x86_64.AppImage`** — Universal Linux AppImage using ONNX Runtime CPU.
+- **`Lumina-CUDA-<version>-linux-x86_64.AppImage`** — NVIDIA CUDA 12 AppImage for Linux systems with proprietary NVIDIA drivers.
+
+Both Linux packages support Wayland and X11 out of the box. To integrate the AppImage into your desktop environment (launcher shortcuts, icons, and `.lmi` file associations), run:
+
+```sh
+bash scripts/install-linux-appimage.sh /path/to/Lumina-*.AppImage
+```
+
+> **CUDA on-demand runtime:** CUDA packages (Windows installer and Linux AppImage) do not bundle the ~1.4 GB ONNX Runtime and NVIDIA libraries directly. Instead, the app downloads and verifies the platform runtime archive (`cuda-runtime-win.7z` or `cuda-runtime-linux.tar.gz`) once into user data on first launch. This keeps initial downloads small (~120 MB) and ensures subsequent application updates stay fast and differential without re-downloading CUDA weights.
+
+When running from source, pick the provider wheel yourself: `onnxruntime-directml` for universal GPU support, or `onnxruntime-gpu[cuda,cudnn]` for NVIDIA CUDA (see [Development](#development)), then start the app with `npm run dev`.
 
 ## Project File Format (.lmi)
 
@@ -201,8 +215,8 @@ A `.lmi` file is a zip archive containing a `project.json` manifest plus page im
 
 ### Prerequisites
 
-- Node.js (for Electron, esbuild, TypeScript)
-- Python 3.13
+- Node.js v22+ (for Electron, esbuild, TypeScript)
+- Python 3.13 (Windows) or Python 3.12 (Linux)
 - A GPU execution provider, if GPU acceleration is wanted:
   - NVIDIA: CUDA-enabled driver plus the `onnxruntime-gpu[cuda,cudnn]` wheel
   - Otherwise: the `onnxruntime-directml` wheel (any GPU) or plain CPU
@@ -219,7 +233,15 @@ venv\Scripts\pip install -r python\requirements.txt   # Windows
 # Frontend
 npm install
 npm run build
-npm start
+
+# Run in dev mode
+npm run dev
+
+# Package binaries
+npm run dist:dml          # Windows DML installer
+npm run dist:cuda         # Windows CUDA installer
+npm run dist:linux        # Linux CPU AppImage
+npm run dist:linux:cuda   # Linux CUDA AppImage
 ```
 
 The backend is started automatically by the Electron main process; no separate server setup is needed.
