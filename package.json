@@ -17,6 +17,8 @@
     "bundle:cuda": "node scripts/bundle.mjs --variant=cuda",
     "bundle:linux": "node scripts/bundle-linux.mjs --variant=cpu",
     "bundle:linux:cuda": "node scripts/bundle-linux.mjs --variant=cuda",
+    "runtime:cuda:win": "node scripts/build-cuda-runtime.mjs --platform=win32",
+    "runtime:cuda:linux": "node scripts/build-cuda-runtime.mjs --platform=linux",
     "dist:dml": "npm run build && npm run bundle:dml && electron-builder --config scripts/electron-builder.config.mjs --publish never",
     "dist:cuda": "npm run build && npm run bundle:cuda && electron-builder --config scripts/electron-builder.config.cuda.mjs --publish never",
     "dist:linux": "npm run build && npm run bundle:linux && LUMINA_LINUX_VARIANT=cpu LUMINA_LINUX_TARGET=AppImage electron-builder --config scripts/electron-builder.config.linux.mjs --publish never",

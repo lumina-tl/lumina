@@ -14,6 +14,7 @@ import { fetchBuffer, downloadFile } from "./download";
 import { extract7z, sha512File } from "./extract";
 import {
   cudaDir,
+  getOrtNativeLibPath,
   installerVariant,
   isCudaRuntimeReady,
   markerFile,
@@ -28,8 +29,52 @@ let version: string | undefined;
 let error: string | undefined;
 let progress = 0;
 
+const CUDA_RUNTIME_REPO = process.env.LUMINA_RUNTIME_REPO || "lumina-tl/lumina";
+const CUDA_RUNTIME_TAG = process.env.LUMINA_RUNTIME_TAG || "cuda-runtime-v1";
+
 function runtimeVersionBase(): string {
-  return `https://github.com/lumina-tl/lumina/releases/download/v${app.getVersion()}`;
+  return `https://github.com/${CUDA_RUNTIME_REPO}/releases/download/${CUDA_RUNTIME_TAG}`;
+}
+
+function legacyRuntimeVersionBase(): string {
+  return `https://github.com/${CUDA_RUNTIME_REPO}/releases/download/v${app.getVersion()}`;
+}
+
+interface PlatformRuntimeInfo {
+  url: string;
+  sha512: string;
+}
+
+interface RawRuntimeManifest {
+  version?: string;
+  platforms?: Record<string, PlatformRuntimeInfo>;
+  url?: string;
+  sha512?: string;
+}
+
+async function fetchManifest(): Promise<{
+  url: string;
+  sha512: string;
+  version: string;
+  baseUrl: string;
+} | null> {
+  const bases = [runtimeVersionBase(), legacyRuntimeVersionBase()];
+  for (const base of bases) {
+    try {
+      const buf = await fetchBuffer(`${base}/cuda-runtime.json`);
+      const raw = JSON.parse(buf.toString("utf-8")) as RawRuntimeManifest;
+      const platformInfo = raw?.platforms?.[process.platform];
+      const url = platformInfo?.url || raw?.url;
+      const sha512 = platformInfo?.sha512 || raw?.sha512;
+      const ver = raw?.version;
+      if (url && sha512 && ver) {
+        return { url, sha512, version: ver, baseUrl: base };
+      }
+    } catch {
+      /* continue to next base */
+    }
+  }
+  return null;
 }
 
 function push(p: RuntimeProgress): void {
@@ -68,17 +113,7 @@ export function getRuntimeStatus(): RuntimeInfo {
 async function ensureInternal(): Promise<void> {
   if (installerVariant() !== "cuda") return;
 
-  let info: { url: string; sha512: string; version: string } | null = null;
-  try {
-    const raw = JSON.parse(
-      (await fetchBuffer(`${runtimeVersionBase()}/cuda-runtime.json`)).toString(
-        "utf-8",
-      ),
-    );
-    if (raw?.url && raw?.sha512) info = raw;
-  } catch {
-    /* manifest unreachable */
-  }
+  const info = await fetchManifest();
 
   if (!info?.url || !info?.sha512) {
     if (isCudaRuntimeReady()) return;
@@ -91,14 +126,11 @@ async function ensureInternal(): Promise<void> {
   }
 
   const existing = readMarker();
-  const dllExists = fs.existsSync(
-    path.join(cudaDir(), "onnxruntime", "capi", "onnxruntime.dll"),
-  );
+  const nativeLib = getOrtNativeLibPath(cudaDir());
   if (
     existing &&
-    dllExists &&
-    existing.version === info.version &&
-    existing.sha512 === info.sha512
+    nativeLib &&
+    (existing.version === info.version || existing.sha512 === info.sha512)
   ) {
     return;
   }
@@ -108,12 +140,16 @@ async function ensureInternal(): Promise<void> {
   progress = 0;
   push({ state: "downloading", percent: 0 });
 
-  const archive = path.join(runtimeDir(), "cuda.7z");
+  const archiveExt = info.url.endsWith(".tar.gz")
+    ? ".tar.gz"
+    : path.extname(info.url) ||
+      (process.platform === "win32" ? ".7z" : ".tar.gz");
+  const archive = path.join(runtimeDir(), `cuda-runtime${archiveExt}`);
   fs.mkdirSync(runtimeDir(), { recursive: true });
 
   const archiveUrl = /^https?:\/\//i.test(info.url)
     ? info.url
-    : `${runtimeVersionBase()}/${info.url}`;
+    : `${info.baseUrl}/${info.url}`;
   try {
     let lastPct = -1;
     await downloadFile(archiveUrl, archive, (done, total) => {
@@ -144,12 +180,14 @@ async function ensureInternal(): Promise<void> {
     } catch {
       /* Defender may hold handle; marker decides readiness */
     }
+    const updatedLib = getOrtNativeLibPath(cudaDir());
     const marker: RuntimeMarker = {
       version: info.version,
       sha512: info.sha512,
-      size: fs.statSync(
-        path.join(cudaDir(), "onnxruntime", "capi", "onnxruntime.dll"),
-      ).size,
+      size:
+        updatedLib && fs.existsSync(updatedLib)
+          ? fs.statSync(updatedLib).size
+          : 0,
     };
     fs.writeFileSync(markerFile(), JSON.stringify(marker, null, 2));
     push({ state: "ready", version: info.version });

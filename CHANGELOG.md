@@ -19,7 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live extraction progress bar.** Real-time progress bar tracking during CUDA runtime extraction (#1).
 - **Full-page context for line re-translation.** Single-layer re-translation supplies full dialogue context to the LLM.
 - **Cross-page dialogue context.** Carries over trailing dialogue lines across page boundaries for consistent translation tone.
-- **Linux support and packaging.** Cross-distro desktop support (Wayland/X11), AppImage targets for CPU and CUDA, and dev runnerv (thanks @kouzen-neo).
+- **Linux support and packaging.** Cross-distro desktop support (Wayland/X11), AppImage targets for CPU and CUDA, and dev runner (thanks @kouzen-neo).
+- **Cross-platform CUDA runtime delivery.** Dedicated standalone runtime releases for Windows and Linux with backward compatibility.
 
 ### Changed
 

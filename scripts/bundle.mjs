@@ -360,6 +360,7 @@ function fixPth(pythonDir) {
 async function main() {
   const variantArg = process.argv.find((a) => a.startsWith("--variant="));
   const variant = variantArg ? variantArg.split("=")[1] : "dml";
+  const archiveRuntime = process.argv.includes("--archive-runtime");
   if (variant !== "dml" && variant !== "cuda") {
     throw new Error(`Unknown variant '${variant}' (expected dml|cuda)`);
   }
@@ -406,7 +407,7 @@ async function main() {
   }
 
   // 3. onnxruntime variant — DML: extracted to ort/dml/; CUDA: the runtime
-  // is a SEPARATE release artifact (cuda-runtime.7z + manifest) the app
+  // is a SEPARATE release artifact (cuda-runtime-win.7z + manifest) the app
   // downloads at first run — nothing in the installer keeps it small.
   // 7zr.exe still ships so the app can extract the downloaded archive.
   const ortWheel = listWheels(wheelDir).find((w) =>
@@ -415,7 +416,9 @@ async function main() {
   if (!ortWheel) throw new Error(`onnxruntime wheel not found in ${wheelDir}`);
   const ortRoot = path.join(out, "ort", variant);
   if (variant === "cuda") {
-    await archiveOrtCuda(wheelDir, ortRoot);
+    if (archiveRuntime) {
+      await archiveOrtCuda(wheelDir, ortRoot);
+    }
     // ship 7zr.exe for the app's first-run extraction
     copyFileSync(SEVENZR_EXE, path.join(out, "7zr.exe"));
   } else {
@@ -453,8 +456,10 @@ async function main() {
   ];
   if (variant === "cuda") {
     checks.push([path.join(out, "7zr.exe"), "7zr.exe extractor"]);
-    checks.push([path.join(BUILD, "cuda-runtime.7z"), "cuda-runtime.7z"]);
-    checks.push([path.join(BUILD, "cuda-runtime.json"), "cuda-runtime.json"]);
+    if (archiveRuntime) {
+      checks.push([path.join(BUILD, "cuda-runtime.7z"), "cuda-runtime.7z"]);
+      checks.push([path.join(BUILD, "cuda-runtime.json"), "cuda-runtime.json"]);
+    }
   } else {
     checks.push([
       path.join(ortRoot, "onnxruntime"),

@@ -87,7 +87,6 @@ jobs:
             dist/cuda/Lumina-Setup-CUDA-${{ steps.version.outputs.version }}.exe \
             dist/dml/dml.yml dist/dml/*.blockmap \
             dist/cuda/cuda.yml dist/cuda/*.blockmap \
-            build/cuda-runtime.7z build/cuda-runtime.json \
             --repo "${{ github.repository }}" $NOTES \
             --title "Lumina v${{ steps.version.outputs.version }}"
 

@@ -67,16 +67,23 @@ export function activeOrtDir(): string | null {
   return null;
 }
 
-/** Check whether an ONNX Runtime native library exists in a capi folder. */
-function hasOrtNativeLib(baseDir: string): boolean {
+/** Get path of ONNX Runtime native library in a capi folder if it exists. */
+export function getOrtNativeLibPath(baseDir: string): string | null {
   const capi = path.join(baseDir, "onnxruntime", "capi");
   if (process.platform === "win32") {
-    return fs.existsSync(path.join(capi, "onnxruntime.dll"));
+    const p = path.join(capi, "onnxruntime.dll");
+    return fs.existsSync(p) ? p : null;
   }
-  if (!fs.existsSync(capi)) return false;
-  return fs
+  if (!fs.existsSync(capi)) return null;
+  const match = fs
     .readdirSync(capi)
-    .some((f) => f.startsWith("libonnxruntime") && f.includes(".so"));
+    .find((f) => f.startsWith("libonnxruntime") && f.includes(".so"));
+  return match ? path.join(capi, match) : null;
+}
+
+/** Check whether an ONNX Runtime native library exists in a capi folder. */
+export function hasOrtNativeLib(baseDir: string): boolean {
+  return getOrtNativeLibPath(baseDir) !== null;
 }
 
 export function isCudaRuntimeReady(): boolean {

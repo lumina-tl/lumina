@@ -176,20 +176,23 @@ function main() {
     path.join(ROOT, "scripts", "requirements-backend.txt"),
   ]);
 
-  // 3. Install ONNX Runtime (CPU or CUDA) into ort/<variant>
-  const ortPkg =
-    VARIANT === "cuda" ? "onnxruntime-gpu[cuda,cudnn]" : "onnxruntime";
-  console.log(`Installing ${ortPkg}...`);
-  run("uv", [
-    "pip",
-    "install",
-    "--python",
-    pyBin,
-    "--target",
-    ortDir,
-    "--no-compile",
-    ortPkg,
-  ]);
+  // 3. Install ONNX Runtime for CPU variant.
+  // For CUDA, the runtime is downloaded on-demand at first run (like Windows)
+  // to keep the AppImage lightweight (~120MB instead of ~2.5GB).
+  let ortVer = "1.24.4+cuda12";
+  if (VARIANT === "cpu") {
+    console.log("Installing onnxruntime (CPU)...");
+    run("uv", [
+      "pip",
+      "install",
+      "--python",
+      pyBin,
+      "--target",
+      ortDir,
+      "--no-compile",
+      "onnxruntime",
+    ]);
+  }
 
   // Remove __pycache__ from installed targets
   prunePython(pyRoot);
@@ -202,23 +205,43 @@ function main() {
 
   // 6. Verify imports via bundled Python
   console.log("Verifying bundled Python imports...");
-  const ortVer = run(
-    pyBin,
-    [
-      "-c",
-      "import os, sys; " +
-        "sys.path[:0] = os.environ['LUMINA_PYTHONPATH'].split(os.pathsep); " +
-        "import fastapi, uvicorn, cv2, PIL, numpy, yaml, openai, tokenizers, onnxruntime as ort; " +
-        "print(ort.__version__)",
-    ],
-    {
-      capture: true,
-      env: {
-        ...process.env,
-        LUMINA_PYTHONPATH: `${ortDir}${path.delimiter}${sitePkgs}`,
+  if (VARIANT === "cpu") {
+    ortVer = run(
+      pyBin,
+      [
+        "-c",
+        "import os, sys; " +
+          "sys.path[:0] = os.environ['LUMINA_PYTHONPATH'].split(os.pathsep); " +
+          "import fastapi, uvicorn, cv2, PIL, numpy, yaml, openai, tokenizers, onnxruntime as ort; " +
+          "print(ort.__version__)",
+      ],
+      {
+        capture: true,
+        env: {
+          ...process.env,
+          LUMINA_PYTHONPATH: `${ortDir}${path.delimiter}${sitePkgs}`,
+        },
       },
-    },
-  ).trim();
+    ).trim();
+  } else {
+    run(
+      pyBin,
+      [
+        "-c",
+        "import os, sys; " +
+          "sys.path[:0] = os.environ['LUMINA_PYTHONPATH'].split(os.pathsep); " +
+          "import fastapi, uvicorn, cv2, PIL, numpy, yaml, openai, tokenizers; " +
+          "print('backend imports ok')",
+      ],
+      {
+        capture: true,
+        env: {
+          ...process.env,
+          LUMINA_PYTHONPATH: sitePkgs,
+        },
+      },
+    );
+  }
 
   // 7. Write manifest
   writeFileSync(

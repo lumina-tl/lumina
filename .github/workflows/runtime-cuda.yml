@@ -1,0 +1,112 @@
+name: Release CUDA Runtime
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag for CUDA runtime"
+        required: true
+        default: "cuda-runtime-v1"
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-win:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Build Windows CUDA runtime archive
+        run: node scripts/build-cuda-runtime.mjs --platform=win32
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cuda-runtime-win
+          path: |
+            build/cuda-runtime-win.7z
+            build/cuda-runtime.7z
+            build/cuda-runtime-win.json
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Build Linux CUDA runtime archive
+        run: node scripts/build-cuda-runtime.mjs --platform=linux
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cuda-runtime-linux
+          path: |
+            build/cuda-runtime-linux.tar.gz
+            build/cuda-runtime-linux.json
+
+  publish:
+    needs: [build-win, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release files
+        run: |
+          mkdir -p build
+          cp artifacts/cuda-runtime-win/cuda-runtime-win.7z build/
+          cp artifacts/cuda-runtime-win/cuda-runtime.7z build/
+          cp artifacts/cuda-runtime-win/cuda-runtime-win.json build/
+          cp artifacts/cuda-runtime-linux/cuda-runtime-linux.tar.gz build/
+          cp artifacts/cuda-runtime-linux/cuda-runtime-linux.json build/
+          node scripts/build-cuda-runtime.mjs --merge-manifest
+
+      - name: Publish or update release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ inputs.tag }}"
+          if gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "Updating existing release $TAG..."
+            gh release upload "$TAG" \
+              build/cuda-runtime-win.7z \
+              build/cuda-runtime.7z \
+              build/cuda-runtime-linux.tar.gz \
+              build/cuda-runtime.json \
+              --repo "${{ github.repository }}" \
+              --clobber
+          else
+            echo "Creating new release $TAG..."
+            gh release create "$TAG" \
+              build/cuda-runtime-win.7z \
+              build/cuda-runtime.7z \
+              build/cuda-runtime-linux.tar.gz \
+              build/cuda-runtime.json \
+              --repo "${{ github.repository }}" \
+              --title "CUDA Runtime $TAG" \
+              --notes "Pre-built standalone CUDA runtime for Lumina (Windows & Linux). Downloaded automatically on first launch."
+          fi
