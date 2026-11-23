@@ -8,6 +8,11 @@ on:
         required: true
         default: "cuda-runtime-v1"
         type: string
+  push:
+    branches: [main]
+    paths:
+      - "scripts/requirements-ort-cuda.txt"
+      - "scripts/build-cuda-runtime.mjs"
 
 permissions:
   contents: write
@@ -89,7 +94,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="${{ inputs.tag }}"
+          TAG="${{ inputs.tag || 'cuda-runtime-v1' }}"
           if gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
             echo "Updating existing release $TAG..."
             gh release upload "$TAG" \
