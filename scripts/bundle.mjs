@@ -42,7 +42,6 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SCRIPTS = path.join(ROOT, "scripts");
 const BUILD = path.join(ROOT, "build");
 const WHEELS = path.join(BUILD, "wheels");
-const WHEELS_CUDA = path.join(BUILD, "wheels-cuda");
 const WHEELS_BACKEND = path.join(BUILD, "wheels-backend");
 const EMBED_DIR = path.join(BUILD, "embed");
 
@@ -56,7 +55,6 @@ const SEVENZR_MIN_BYTES = 300 * 1024; // ~600KB, reject truncated downloads
 
 const REQ_BACKEND = path.join(SCRIPTS, "requirements-backend.txt");
 const REQ_ORT = path.join(SCRIPTS, "requirements-ort.txt");
-const REQ_ORT_CUDA = path.join(SCRIPTS, "requirements-ort-cuda.txt");
 
 const PY_VER = "3.13.5"; // must match the cp313 wheels in build/wheels
 const EMBED_ZIP = path.join(EMBED_DIR, `python-${PY_VER}-embed-amd64.zip`);
@@ -221,25 +219,18 @@ function downloadBackendWheels() {
   ]);
 }
 
-function downloadOrtWheels(variant) {
-  const dir = variant === "cuda" ? WHEELS_CUDA : WHEELS;
-  const req = variant === "cuda" ? REQ_ORT_CUDA : REQ_ORT;
-  if (listWheels(dir).length > 0) {
-    console.log(`ORT wheels already downloaded: ${dir}`);
+function downloadOrtWheels() {
+  if (listWheels(WHEELS).length > 0) {
+    console.log(`ORT wheels already downloaded: ${WHEELS}`);
     return;
   }
-  mkdirSync(dir, { recursive: true });
+  mkdirSync(WHEELS, { recursive: true });
   const [pip, ...pipArgs] = pipCmd();
-  // CUDA: no --no-deps so the [cuda,cudnn] extra pulls the nvidia_* wheels
-  // (cublas, cudnn, cufft, curand, nvrtc, runtime, nvjitlink) — they must
-  // ship in ort/cuda.7z or the CUDA EP can't load.
-  const noDeps = variant !== "cuda";
   sh(pip, [
     ...pipArgs,
     "download",
     "-r",
-    req,
-    ...(noDeps ? ["--no-deps"] : []),
+    REQ_ORT,
     "--only-binary=:all:",
     "--platform",
     "win_amd64",
@@ -248,7 +239,7 @@ function downloadOrtWheels(variant) {
     "--implementation",
     "cp",
     "--dest",
-    dir,
+    WHEELS,
   ]);
 }
 
@@ -279,7 +270,6 @@ async function main() {
     throw new Error(`Unknown variant '${variant}' (expected dml|cuda)`);
   }
   const out = path.join(BUILD, `bundle-${variant}`);
-  const wheelDir = variant === "cuda" ? WHEELS_CUDA : WHEELS;
   const ortVer = variant === "cuda" ? "1.24.4+cuda12" : "1.24.4";
 
   console.log(`=== Bundling Lumina (${variant.toUpperCase()}) ===`);
@@ -288,7 +278,7 @@ async function main() {
   await ensureEmbeddedPython();
   if (variant === "cuda") await ensureSevenZr();
   downloadBackendWheels();
-  downloadOrtWheels(variant);
+  downloadOrtWheels();
 
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
@@ -298,7 +288,7 @@ async function main() {
   const pyRoot = path.join(out, "python");
   fixPth(pyRoot);
 
-  // 2. backend deps -> site-packages (common ORT deps win from wheelDir)
+  // 2. backend deps -> site-packages (common ORT deps win from WHEELS)
   const sitePkgs = path.join(pyRoot, "Lib", "site-packages");
   mkdirSync(sitePkgs, { recursive: true });
   const backendWheels = listWheels(WHEELS_BACKEND).filter(
@@ -310,29 +300,29 @@ async function main() {
   for (const w of backendWheels) {
     extractZip(path.join(WHEELS_BACKEND, w), sitePkgs);
   }
-  const commonWheels = listWheels(wheelDir).filter(
+  const commonWheels = listWheels(WHEELS).filter(
     (w) => COMMON_DEPS.has(distName(w)) && !w.startsWith("onnxruntime"),
   );
   console.log(
     `Extracting ${commonWheels.length} common wheels -> site-packages`,
   );
   for (const w of commonWheels) {
-    extractZip(path.join(wheelDir, w), sitePkgs);
+    extractZip(path.join(WHEELS, w), sitePkgs);
   }
 
   // 3. onnxruntime variant — DML: extracted to ort/dml/; CUDA: the runtime
   // is a standalone release artifact managed by scripts/build-cuda-runtime.mjs.
   // 7zr.exe is bundled so the app can extract the downloaded archive on first run.
-  const ortWheel = listWheels(wheelDir).find((w) =>
-    w.startsWith("onnxruntime"),
-  );
-  if (!ortWheel) throw new Error(`onnxruntime wheel not found in ${wheelDir}`);
   const ortRoot = path.join(out, "ort", variant);
   if (variant === "cuda") {
     // ship 7zr.exe for the app's first-run extraction
     copyFileSync(SEVENZR_EXE, path.join(out, "7zr.exe"));
   } else {
-    extractZip(path.join(wheelDir, ortWheel), ortRoot);
+    const ortWheel = listWheels(WHEELS).find((w) =>
+      w.startsWith("onnxruntime"),
+    );
+    if (!ortWheel) throw new Error(`onnxruntime wheel not found in ${WHEELS}`);
+    extractZip(path.join(WHEELS, ortWheel), ortRoot);
   }
 
   // 4. backend source (real files — Python cannot read inside asar)
