@@ -6,7 +6,7 @@ Thank you for your interest in contributing to Lumina. Lumina is a free, open-so
 
 ### Prerequisites
 
-- **Node.js** (v18+)
+- **Node.js** (v22+)
 - **Python** 3.13
 - Git
 
