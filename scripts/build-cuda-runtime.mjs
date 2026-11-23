@@ -91,26 +91,25 @@ async function ensureSevenZr() {
   await fetchFile(SEVENZR_URL, SEVENZR_EXE, SEVENZR_MIN_BYTES);
 }
 
-function listWheels(dir) {
-  return existsSync(dir)
-    ? readdirSync(dir)
-        .filter((f) => f.endsWith(".whl"))
-        .sort()
-    : [];
-}
-
-function extractZip(zip, dest) {
-  mkdirSync(dest, { recursive: true });
-  const r = spawnSync("tar", ["-xf", zip, "-C", dest], { stdio: "inherit" });
-  if (r.error || r.status !== 0) {
-    throw new Error(`Failed to extract ${zip} with tar (exit ${r.status})`);
+function pruneTree(dir) {
+  for (const entry of readdirSync(dir)) {
+    const full = path.join(dir, entry);
+    let st;
+    try {
+      st = statSync(full);
+    } catch {
+      continue;
+    }
+    if (st.isDirectory()) {
+      if (entry === "__pycache__" || entry === "tests") {
+        rmSync(full, { recursive: true, force: true });
+      } else {
+        pruneTree(full);
+      }
+    } else if (entry.endsWith(".a") || entry.endsWith(".pyc")) {
+      rmSync(full, { force: true });
+    }
   }
-}
-
-function pipCmd() {
-  const venv = path.join(ROOT, "venv", "Scripts", "python.exe");
-  if (existsSync(venv)) return [venv, "-m", "pip"];
-  return ["python", "-m", "pip"];
 }
 
 async function buildWindows() {
@@ -118,50 +117,34 @@ async function buildWindows() {
   mkdirSync(BUILD, { recursive: true });
   await ensureSevenZr();
 
-  mkdirSync(WHEELS_CUDA, { recursive: true });
-  if (listWheels(WHEELS_CUDA).length === 0) {
-    console.log("Downloading Windows CUDA wheels...");
-    const [pip, ...pipArgs] = pipCmd();
-    sh(pip, [
-      ...pipArgs,
-      "download",
-      "-r",
-      REQ_ORT_CUDA,
-      "--only-binary=:all:",
-      "--platform",
-      "win_amd64",
-      "--python-version",
-      "313",
-      "--implementation",
-      "cp",
-      "--dest",
-      WHEELS_CUDA,
-    ]);
-  }
-
   const staging = path.join(BUILD, "ort-cuda-win");
   rmSync(staging, { recursive: true, force: true });
   mkdirSync(staging, { recursive: true });
 
-  const wheels = listWheels(WHEELS_CUDA).filter((w) => w.startsWith("onnxruntime"));
-  const ortWheel = wheels.find((w) => !w.includes("onnxruntime_gpu")) || wheels[0];
-  if (!ortWheel) throw new Error(`onnxruntime wheel not found in ${WHEELS_CUDA}`);
+  console.log("Ensuring Python 3.13 via uv...");
+  sh("uv", ["python", "install", "3.13"]);
 
-  console.log(`Extracting ${ortWheel}...`);
-  extractZip(path.join(WHEELS_CUDA, ortWheel), staging);
+  console.log("Installing ONNX Runtime GPU and NVIDIA DLLs via uv...");
+  sh("uv", [
+    "pip",
+    "install",
+    "--target",
+    staging,
+    "--python",
+    "3.13",
+    "--no-compile",
+    "onnxruntime-gpu[cuda,cudnn]==1.24.4",
+  ]);
 
-  for (const w of listWheels(WHEELS_CUDA).filter((w) => w.startsWith("nvidia_"))) {
-    console.log(`Extracting ${w}...`);
-    extractZip(path.join(WHEELS_CUDA, w), staging);
-  }
+  pruneTree(staging);
 
   const archiveWin = path.join(BUILD, "cuda-runtime-win.7z");
   const archiveLegacy = path.join(BUILD, "cuda-runtime.7z");
   rmSync(archiveWin, { force: true });
   rmSync(archiveLegacy, { force: true });
 
-  console.log("Compressing cuda-runtime-win.7z (LZMA2 -mx=9)...");
-  sh(SEVENZR_EXE, ["a", "-t7z", "-mx=9", archiveWin, "."], { cwd: staging });
+  console.log("Compressing cuda-runtime-win.7z (LZMA2 -mx=5)...");
+  sh(SEVENZR_EXE, ["a", "-t7z", "-mx=5", archiveWin, "."], { cwd: staging });
 
   copyFileSync(archiveWin, archiveLegacy);
   rmSync(staging, { recursive: true, force: true });
@@ -182,27 +165,6 @@ async function buildWindows() {
   console.log(`Windows archive ready: ${(manifestWin.size / 1024 / 1024).toFixed(0)} MB`);
 }
 
-function pruneLinuxTree(dir) {
-  for (const entry of readdirSync(dir)) {
-    const full = path.join(dir, entry);
-    let st;
-    try {
-      st = statSync(full);
-    } catch {
-      continue;
-    }
-    if (st.isDirectory()) {
-      if (entry === "__pycache__" || entry === "tests") {
-        rmSync(full, { recursive: true, force: true });
-      } else {
-        pruneLinuxTree(full);
-      }
-    } else if (entry.endsWith(".a") || entry.endsWith(".pyc")) {
-      rmSync(full, { force: true });
-    }
-  }
-}
-
 async function buildLinux() {
   console.log("=== Building Linux CUDA runtime archive ===");
   mkdirSync(BUILD, { recursive: true });
@@ -210,6 +172,9 @@ async function buildLinux() {
   const staging = path.join(BUILD, "ort-cuda-linux");
   rmSync(staging, { recursive: true, force: true });
   mkdirSync(staging, { recursive: true });
+
+  console.log("Ensuring Python 3.12 via uv...");
+  sh("uv", ["python", "install", "3.12"]);
 
   console.log("Installing ONNX Runtime GPU and NVIDIA libs via uv...");
   sh("uv", [
@@ -223,7 +188,7 @@ async function buildLinux() {
     "onnxruntime-gpu[cuda,cudnn]==1.24.4",
   ]);
 
-  pruneLinuxTree(staging);
+  pruneTree(staging);
 
   const archiveLinux = path.join(BUILD, "cuda-runtime-linux.tar.gz");
   rmSync(archiveLinux, { force: true });

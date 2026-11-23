@@ -27,9 +27,7 @@ jobs:
         with:
           node-version: 22
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
+      - uses: astral-sh/setup-uv@v5
 
       - name: Build Windows CUDA runtime archive
         run: node scripts/build-cuda-runtime.mjs --platform=win32
@@ -83,11 +81,8 @@ jobs:
       - name: Prepare release files
         run: |
           mkdir -p build
-          cp artifacts/cuda-runtime-win/cuda-runtime-win.7z build/
-          cp artifacts/cuda-runtime-win/cuda-runtime.7z build/
-          cp artifacts/cuda-runtime-win/cuda-runtime-win.json build/
-          cp artifacts/cuda-runtime-linux/cuda-runtime-linux.tar.gz build/
-          cp artifacts/cuda-runtime-linux/cuda-runtime-linux.json build/
+          find artifacts -type f -exec cp {} build/ \;
+          ls -la build/
           node scripts/build-cuda-runtime.mjs --merge-manifest
 
       - name: Publish or update release
