@@ -82,4 +82,7 @@
 - [x] multi collor support on text tool
 - [x] multi font support on text tool
 - [x] font market and recomendation
+- [ ] fix anglenet rotation
+- [ ] optimize update installation speed (terminate python backend before quitAndInstall to prevent file lock, handle before-quit cleanup, and provide visible installer progress)
+- [ ] text behind object/overlapping text feature
 - [ ] testing and hunt another bugs
