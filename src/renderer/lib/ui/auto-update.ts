@@ -8,6 +8,7 @@ type UpdateState =
   | "available"
   | "downloading"
   | "downloaded"
+  | "installing"
   | "error";
 
 export function initAutoUpdate(): void {
@@ -36,7 +37,7 @@ export function initAutoUpdate(): void {
     btnUpdate.hidden = state === "checking";
     if (title) btnUpdate.title = title;
     if (badge) badge.hidden = state !== "available" && state !== "downloaded";
-    if (state === "downloading") setUpdateIcon("loader-2");
+    if (state === "downloading" || state === "installing") setUpdateIcon("loader-2");
     else if (state === "downloaded") setUpdateIcon("download");
     else if (state === "error") setUpdateIcon("alert-triangle");
     else setUpdateIcon("cloud-download");
@@ -45,6 +46,8 @@ export function initAutoUpdate(): void {
   if (btnUpdate) {
     btnUpdate.addEventListener("click", function () {
       if (updateState === "downloaded") {
+        setUpdateButton("installing", i18n.t("update.installing"));
+        ui.toast(i18n.t("update.installingToast"), "info", 10000);
         void window.lumina.installUpdate();
       } else if (updateState === "available" || updateState === "error") {
         setUpdateButton("downloading", i18n.t("update.downloading"));
@@ -71,6 +74,11 @@ export function initAutoUpdate(): void {
         "downloaded",
         i18n.t("update.install", { version: p.version || "" }),
       );
+    } else if (p.state === "installing") {
+      ui.dismissDownloadToast();
+      updateToast = null;
+      setUpdateButton("installing", i18n.t("update.installing"));
+      ui.toast(i18n.t("update.installingToast"), "info", 10000);
     } else if (p.state === "error") {
       ui.dismissDownloadToast();
       updateToast = null;

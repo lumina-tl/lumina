@@ -1,4 +1,4 @@
-# Agent Instructions 
+# Agent Instructions
 
 ## Communication Style
 - Be concise. Say what needs to be said, nothing more.
@@ -32,6 +32,12 @@
 - Avoid jargon unless the user uses it first.
 - If a technical term is necessary, explain it in plain words in the same sentence.
 - Prefer everyday analogies over technical definitions when explaining concepts.
+
+## Changelog Updates
+- Keep entries concise, matching the existing changelog format and tone.
+- Follow the [Keep a Changelog](https://keepachangelog.com/) standard (`Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`).
+- Group changes under the appropriate version header (`[Unreleased]` or `[X.Y.Z] - YYYY-MM-DD`).
+- Write one brief bullet point per change, focusing on user-facing impact rather than internal code details.
 
 ## Fixes & Recommendations
 - When a fix or solution is needed, give one recommended option — the best one.

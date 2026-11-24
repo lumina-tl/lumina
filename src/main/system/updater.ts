@@ -5,6 +5,8 @@ import { IPC } from "../../shared/bridge";
 import type { CheckUpdateResult, UpdateProgress } from "../../shared/bridge";
 import { handle, send } from "../core/ipc";
 import { withDownloadMutex } from "../core/mutex";
+import { clearExtractedCache } from "../backend/cache";
+import { stopBackend } from "../backend/spawn";
 
 const { autoUpdater } = updaterPkg;
 
@@ -103,9 +105,16 @@ export function registerUpdaterHandlers(target: BrowserWindow | null): void {
       push({ state: "error", error: String((e as Error)?.message || e) });
     }
   });
-  handle(IPC.installUpdate, () => {
+  handle(IPC.installUpdate, async () => {
     if (!downloadedVersion) return;
-    autoUpdater.quitAndInstall();
+    push({ state: "installing", version: downloadedVersion });
+    try {
+      await stopBackend();
+      clearExtractedCache();
+    } catch {
+      /* proceed with install even if cache cleanup fails */
+    }
+    autoUpdater.quitAndInstall(false, true);
   });
   handle(IPC.openUpdateUrl, (_e, url: string) => {
     if (url) void shell.openExternal(url);

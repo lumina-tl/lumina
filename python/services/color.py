@@ -69,11 +69,11 @@ def _box_style(crop: np.ndarray) -> tuple[Optional[str], Optional[float]]:
 
     color = np.median(fg.astype(np.float32), axis=0)
     color_hex = "#%02x%02x%02x" % tuple(int(round(c)) for c in color)
-    # Text slant from AngleNet (error ~2.9°) when available, else the PCA
-    # heuristic (error ~9°) so translated layers rotate to match the page.
+    # Text slant from AngleNet when available. Do not fall back to PCA
+    # because multi-line paragraph crops produce severe false slants.
     angle = anglenet.lean_deg(crop)
-    if angle is None:
-        angle = _blob_angle(fg_mask)
+    if angle is None or abs(angle) < 4.0:
+        angle = 0.0
     return color_hex, angle
 
 

@@ -210,35 +210,52 @@ def _rot_delta(pred_deg: float) -> Optional[float]:
     return pred_deg if pred_deg <= 90.0 else pred_deg - 180.0
 
 
-def predict(crop_bgr: np.ndarray) -> Tuple[Optional[float], Optional[bool]]:
-    """Return ``(pred_deg, is_vert)`` for one crop, or (None, None) when
-    the model is unavailable or the crop is too small. ``is_vert`` is the
-    crop aspect (h >= w) — a layout hint, not the model verdict."""
+# Minimum probability from tilt_logit classifier to consider text actually tilted.
+_MIN_TILT_PROB = 0.65
+# Minimum angle threshold (deadband) — ignore micro-rotations below 4 degrees.
+_MIN_LEAN_ANGLE = 4.0
+
+
+def predict(
+    crop_bgr: np.ndarray,
+) -> Tuple[Optional[float], Optional[bool], Optional[float]]:
+    """Return ``(pred_deg, is_vert, tilt_prob)`` for one crop, or (None, None, None)
+    when the model is unavailable or the crop is too small."""
     sess = _load()
     if sess is None:
-        return None, None
+        return None, None, None
     h, w = crop_bgr.shape[:2]
     if w < _MIN_SIDE or h < _MIN_SIDE:
-        return None, None
+        return None, None, None
     gray = cv2.cvtColor(crop_bgr, cv2.COLOR_BGR2GRAY)
     # 10% context margin around the crop (same as the model card).
     pw, ph = int(w * 0.10), int(h * 0.10)
     ctx = np.pad(gray, ((ph, ph), (pw, pw)), mode="edge")
     tensor = _letterbox(ctx, 64)
     log.debug(f"AngleNet predict: crop {w}x{h}, tensor {tensor.shape}")
-    csl_logits, _tilt = sess.run(None, {"input": tensor})
+    csl_logits, tilt_logit = sess.run(None, {"input": tensor})
     pred_deg = _decode_angle(csl_logits)
-    return pred_deg, h >= w
+    raw_tilt = float(tilt_logit[0][0])
+    tilt_prob = 1.0 / (1.0 + math.exp(-raw_tilt))
+    return pred_deg, h >= w, tilt_prob
 
 
 def lean_deg(crop_bgr: np.ndarray) -> Optional[float]:
     """Signed text slant in [-45, 45]° (positive = clockwise lean), or
     None when the model can't be used. This is what /detect stores in
     ``textAngle``."""
-    pred_deg, is_vert = predict(crop_bgr)
-    if pred_deg is None or is_vert is None:
+    pred_deg, is_vert, tilt_prob = predict(crop_bgr)
+    if pred_deg is None or is_vert is None or tilt_prob is None:
         log.debug("AngleNet lean_deg: unavailable - no textAngle")
         return None
+
+    # Text is classified as upright/orthogonal (not tilted)
+    if tilt_prob < _MIN_TILT_PROB:
+        log.debug(
+            f"AngleNet lean_deg: text is orthogonal (tilt_prob {tilt_prob:.2f} < {_MIN_TILT_PROB}) -> 0.0 deg"
+        )
+        return 0.0
+
     axis = _read_axis(pred_deg)
     if axis is None:
         log.debug(
@@ -269,10 +286,10 @@ def lean_deg(crop_bgr: np.ndarray) -> Optional[float]:
         lean -= 90
     elif lean < -45:
         lean += 90
-    if abs(lean) < 0.5:
+    if abs(lean) < _MIN_LEAN_ANGLE:
         lean = 0.0
     lean = round(float(lean), 1)
     log.debug(
-        f"AngleNet lean_deg: pred {pred_deg:.1f} deg -> textAngle {lean:+.1f} deg"
+        f"AngleNet lean_deg: pred {pred_deg:.1f} deg, tilt_prob {tilt_prob:.2f} -> textAngle {lean:+.1f} deg"
     )
     return lean

@@ -14,6 +14,7 @@ import {
 } from "./shared";
 import { refreshOverlay } from "./render";
 import { toDetection } from "./actions/to-detection";
+import { toForeground } from "./actions/to-foreground";
 import { inpaint } from "../../../pipeline/inpaint";
 
 let _bar: HTMLDivElement | null = null;
@@ -127,6 +128,18 @@ export function showContextBar(): void {
           refreshOverlay();
           hideContextBar();
         });
+      },
+    ),
+  );
+
+  // Bring to Front (Foreground object cutout)
+  bar.appendChild(
+    _mkBtn(
+      "layers",
+      i18n.t("selectool.bringToFront"),
+      "selectool-bar-btn",
+      function () {
+        void toForeground();
       },
     ),
   );

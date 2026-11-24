@@ -18,7 +18,7 @@ import {
 const _lastClickAt: Record<string, number> = {};
 let _multiDragStarts: Map<Konva.Node, { x: number; y: number }> | null = null;
 let _dragLeaderStart: { x: number; y: number } | null = null;
-import { makeNode } from "./node-factory";
+import { makeNode, makeImageLayerNode } from "./node-factory";
 import {
   syncTransformerSelection,
   onNodeTransformEnd,
@@ -50,13 +50,18 @@ export function renderLayerTextNodes(): void {
     .reverse()
     .forEach(function (lay) {
       if (!lay.visible) return;
-      // OCR/translation of dialogue layers only appears after inpainting —
-      // before that the canvas shows the untouched original + boxes.
-      if (lay.type === "text-dialogue" && page.inpaintMasks.length === 0)
-        return;
-      const text = lay.translation || lay.source || "";
-      if (!text) return;
-      const node = makeNode(lay, text);
+      let node: Konva.Group;
+      if (lay.type === "image") {
+        node = makeImageLayerNode(lay);
+      } else {
+        // OCR/translation of dialogue layers only appears after inpainting —
+        // before that the canvas shows the untouched original + boxes.
+        if (lay.type === "text-dialogue" && page.inpaintMasks.length === 0)
+          return;
+        const text = lay.translation || lay.source || "";
+        if (!text) return;
+        node = makeNode(lay, text);
+      }
       node.on("click tap", function (e) {
         e.cancelBubble = true;
         if (isEditing()) return;
@@ -72,12 +77,14 @@ export function renderLayerTextNodes(): void {
           return;
         const now = Date.now();
         if (now - (_lastClickAt[lay.id] || 0) < 350) {
-          // Double-click → edit in place (switching to the text tool first).
           delete _lastClickAt[lay.id];
-          if (state.activeTool !== "text") tools.setActive("text");
-          startEdit(lay.id);
-          // Also expand the sidebar editor for this layer.
-          canvas.expandLayer(lay.id);
+          if (lay.type !== "image") {
+            // Double-click → edit in place (switching to the text tool first).
+            if (state.activeTool !== "text") tools.setActive("text");
+            startEdit(lay.id);
+            // Also expand the sidebar editor for this layer.
+            canvas.expandLayer(lay.id);
+          }
           return;
         }
         _lastClickAt[lay.id] = now;

@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Adaptive paint cursor.** Brush circle and crosshair cursors now automatically invert against the canvas so they remain clearly visible on white pages.
+- **Movable text format bar.** Draggable, flippable, and auto-hides while typing.
+- **Text behind objects.** Cut out foreground objects from selections so text layers can sit behind artwork.
+- **Selection auto-scroll.** Automatically pans the viewport when dragging lasso or rectangle selections near canvas edges.
+
+### Changed
+
+- **Visible update installation progress.** App updates now show a visible progress bar during installation and provide in-app status feedback.
+
+### Fixed
+
+- **False text rotation.** Fixed over-aggressive slant detection tilting straight dialogue bubbles.
+- **Update installer freeze on Windows.** Fixed update installations stalling or failing due to background process file locks.
+
 ## [0.6.0] - 23-11-2026
 
 ### Added

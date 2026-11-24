@@ -147,6 +147,10 @@ export interface PageLayer {
   fitStatus?: "ok" | "overflow-tolerated" | "forced-minimum";
   /** Character-level style overrides (multi-color, multi-font) */
   spans?: TextStyleSpan[];
+  /** Cutout/image canvas for foreground occlusion layers */
+  imageCanvas?: HTMLCanvasElement;
+  imagePath?: string;
+  name?: string;
 }
 
 export interface InpaintMask {

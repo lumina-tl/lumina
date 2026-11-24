@@ -2256,6 +2256,11 @@ body.resizing-row {
   height: 12px;
 }
 
+/* ── Canvas container isolation for blend modes ── */
+#canvas-container {
+  isolation: isolate;
+}
+
 /* ── Paint cursor (Photoshop-style: crosshair + tool icon + brush circle) ──
  * Container is absolutely positioned at the pointer; children render the
  * crosshair lines, the brush-size circle, and the tool icon. The OS cursor
@@ -2267,35 +2272,40 @@ body.resizing-row {
   display: none;
   transform: translate(-50%, -50%);
 }
+.pc-reticle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  mix-blend-mode: difference;
+}
 .pc-cross-h,
 .pc-cross-v {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 0 1px rgba(0, 0, 0, 0.9);
+  left: 0;
+  top: 0;
+  background: #ffffff;
 }
 .pc-cross-h {
   width: 16px;
-  height: 1px;
+  height: 1.5px;
   transform: translate(-50%, -50%);
 }
 .pc-cross-v {
-  width: 1px;
+  width: 1.5px;
   height: 16px;
   transform: translate(-50%, -50%);
 }
 .pc-circle {
   position: absolute;
-  left: 50%;
-  top: 50%;
+  left: 0;
+  top: 0;
   transform: translate(-50%, -50%);
-  border: 1.5px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+  border: 1.5px solid #ffffff;
   border-radius: 50%;
 }
 .pc-circle.pc-eraser {
-  border-color: rgba(255, 80, 80, 0.9);
+  border-style: dashed;
 }
 .pc-icon {
   position: absolute;
@@ -2802,6 +2812,36 @@ body.resizing-row {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
   pointer-events: auto;
   user-select: none;
+  transition: opacity 0.2s ease;
+}
+.text-format-bar.text-format-dim {
+  opacity: 0.25;
+}
+.text-format-bar.text-format-dim:hover {
+  opacity: 1 !important;
+}
+.text-format-bar.text-format-typing {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.text-format-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  padding: 2px 2px;
+  color: #71717a;
+  border-radius: 4px;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+.text-format-drag-handle:hover {
+  color: #e4e4e7;
+  background: rgba(255, 255, 255, 0.08);
+}
+.text-format-drag-handle:active {
+  cursor: grabbing;
 }
 .text-format-btn {
   display: inline-flex;

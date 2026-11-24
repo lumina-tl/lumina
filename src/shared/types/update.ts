@@ -8,7 +8,7 @@ export interface CheckUpdateResult {
 }
 
 export interface UpdateProgress {
-  state: "downloading" | "downloaded" | "error";
+  state: "downloading" | "downloaded" | "installing" | "error";
   percent?: number;
   transferred?: number;
   total?: number;

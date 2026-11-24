@@ -162,6 +162,21 @@ export async function renderPageToCanvas(
   try {
     for (const lay of [...page.layers].reverse()) {
       if (!lay.visible) continue;
+      if (lay.type === "image") {
+        if (lay.imageCanvas) {
+          layer.add(
+            new Konva.Image({
+              image: lay.imageCanvas,
+              x: lay.bbox.x,
+              y: lay.bbox.y,
+              width: lay.bbox.w,
+              height: lay.bbox.h,
+              opacity: lay.opacity ?? 1,
+            }),
+          );
+        }
+        continue;
+      }
       // Dialogue text only renders after inpainting — same rule as the editor.
       if (lay.type === "text-dialogue" && page.inpaintMasks.length === 0) {
         continue;

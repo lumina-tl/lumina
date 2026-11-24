@@ -23,9 +23,11 @@ function cursorEl(): HTMLDivElement | null {
   _cursor = document.createElement("div");
   _cursor.id = "paint-cursor";
   _cursor.innerHTML =
+    '<div class="pc-reticle">' +
     '<div class="pc-cross-h"></div>' +
     '<div class="pc-cross-v"></div>' +
     '<div class="pc-circle"></div>' +
+    '</div>' +
     '<div class="pc-icon"><i data-lucide="brush"></i></div>';
   container.appendChild(_cursor);
   return _cursor;

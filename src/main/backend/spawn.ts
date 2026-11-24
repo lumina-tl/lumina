@@ -1,5 +1,5 @@
 /** Backend spawn — launch, health-check, stop Python. */
-import { spawn, ChildProcess } from "child_process";
+import { spawn, exec, ChildProcess } from "child_process";
 import { app } from "electron";
 import fs from "fs";
 import http from "http";
@@ -164,11 +164,66 @@ export function spawnBackend(): Promise<void> {
   });
 }
 
-export function stopBackend(): void {
-  if (pythonProcess) {
-    pythonProcess.kill();
-    pythonProcess = null;
-    log.info("Python backend stopped");
+export function isBackendRunning(): boolean {
+  return pythonProcess !== null && pythonProcess.exitCode === null;
+}
+
+export async function stopBackend(): Promise<void> {
+  if (!pythonProcess) {
+    clearSessionCache();
+    return;
   }
+  const proc = pythonProcess;
+  pythonProcess = null;
+
+  await new Promise<void>((resolve) => {
+    let done = false;
+    const finish = () => {
+      if (!done) {
+        done = true;
+        resolve();
+      }
+    };
+
+    if (proc.exitCode !== null) {
+      finish();
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      log.warn("Python backend shutdown timed out, proceeding");
+      finish();
+    }, 3000);
+
+    proc.once("exit", () => {
+      clearTimeout(timer);
+      finish();
+    });
+
+    if (process.platform === "win32" && proc.pid) {
+      exec(`taskkill /pid ${proc.pid} /T /F`, (err) => {
+        if (err) {
+          try {
+            proc.kill();
+          } catch {
+            /* ignore */
+          }
+        }
+      });
+    } else {
+      proc.kill("SIGTERM");
+      setTimeout(() => {
+        if (proc.exitCode === null) {
+          try {
+            proc.kill("SIGKILL");
+          } catch {
+            /* ignore */
+          }
+        }
+      }, 1000);
+    }
+  });
+
+  log.info("Python backend stopped");
   clearSessionCache();
 }

@@ -9,6 +9,7 @@ import {
   clearSelections,
   hitTest,
   stageToImg,
+  imgToStage,
   shapesIntersect,
   subtractShape,
   unionOutline,
@@ -19,6 +20,11 @@ import {
 import { updatePreview, clearPreview, refreshOverlay } from "./render";
 import { syncContextBar, hideContextBar } from "./context-bar";
 import { hitTransformer } from "../../hit-transformer";
+import {
+  startAutoPan,
+  updateAutoPanPointer,
+  stopAutoPan,
+} from "../../auto-pan";
 
 type Modifier = "add" | "subtract" | null;
 
@@ -26,9 +32,10 @@ interface DragState {
   active: boolean;
   mode: "lasso" | "rect" | null;
   modifier: Modifier;
-  startX: number;
-  startY: number;
-  points: Array<{ x: number; y: number }>;
+  startImg: { x: number; y: number };
+  pointsImg: Array<{ x: number; y: number }>;
+  lastClientX: number;
+  lastClientY: number;
 }
 
 let _bound = false;
@@ -199,9 +206,10 @@ export function bindStageInteractions(): void {
       active: false,
       mode: null,
       modifier: null,
-      startX: 0,
-      startY: 0,
-      points: [],
+      startImg: { x: 0, y: 0 },
+      pointsImg: [],
+      lastClientX: 0,
+      lastClientY: 0,
     };
 
     stage.on("mousedown touchstart", function (e) {
@@ -226,13 +234,44 @@ export function bindStageInteractions(): void {
         hideContextBar();
       }
 
+      const clientX = e.evt.clientX ?? 0;
+      const clientY = e.evt.clientY ?? 0;
+      const startImg = stageToImg(pos.x, pos.y);
+
       drag.active = true;
       drag.mode = state.activeTool as "lasso" | "rect";
       drag.modifier = modifier;
-      drag.startX = pos.x;
-      drag.startY = pos.y;
-      drag.points = [{ x: pos.x, y: pos.y }];
-      updatePreview(drag.mode, drag.points, pos.x, pos.y);
+      drag.startImg = startImg;
+      drag.pointsImg = [startImg];
+      drag.lastClientX = clientX;
+      drag.lastClientY = clientY;
+      updatePreview(drag.mode, [pos], pos.x, pos.y);
+
+      startAutoPan({
+        onPan: () => {
+          if (!drag.active) return;
+          const stage = canvas.getStage();
+          if (!stage) return;
+          const rect = stage.container().getBoundingClientRect();
+          const sx = drag.lastClientX - rect.left;
+          const sy = drag.lastClientY - rect.top;
+          const currImg = stageToImg(sx, sy);
+
+          if (drag.mode === "lasso") {
+            const last = drag.pointsImg[drag.pointsImg.length - 1];
+            const dx = currImg.x - last.x;
+            const dy = currImg.y - last.y;
+            if (dx * dx + dy * dy >= 4) {
+              drag.pointsImg.push(currImg);
+            }
+            const stagePts = drag.pointsImg.map((p) => imgToStage(p.x, p.y));
+            updatePreview("lasso", stagePts, sx, sy);
+          } else if (drag.mode === "rect") {
+            const startStage = imgToStage(drag.startImg.x, drag.startImg.y);
+            updatePreview("rect", [startStage], sx, sy);
+          }
+        },
+      });
 
       const getXY = function (ev: MouseEvent | TouchEvent): {
         x: number;
@@ -247,21 +286,29 @@ export function bindStageInteractions(): void {
 
       const onMove = function (ev: MouseEvent | TouchEvent): void {
         if (!drag.active) return;
-        const rect = stage.container().getBoundingClientRect();
         const xy = getXY(ev);
+        drag.lastClientX = xy.x;
+        drag.lastClientY = xy.y;
+        updateAutoPanPointer(xy.x, xy.y);
+
+        const rect = stage.container().getBoundingClientRect();
         const sx = xy.x - rect.left;
         const sy = xy.y - rect.top;
+        const currImg = stageToImg(sx, sy);
+
         if (drag.mode === "lasso") {
-          const last = drag.points[drag.points.length - 1];
-          const dx = sx - last.x;
-          const dy = sy - last.y;
-          // Throttle sampling (~6px) so huge drags stay cheap
-          if (dx * dx + dy * dy >= 36) {
-            drag.points.push({ x: sx, y: sy });
+          const last = drag.pointsImg[drag.pointsImg.length - 1];
+          const dx = currImg.x - last.x;
+          const dy = currImg.y - last.y;
+          // Throttle sampling (~2px image space) so huge drags stay cheap
+          if (dx * dx + dy * dy >= 4) {
+            drag.pointsImg.push(currImg);
           }
-          updatePreview("lasso", drag.points, sx, sy);
+          const stagePts = drag.pointsImg.map((p) => imgToStage(p.x, p.y));
+          updatePreview("lasso", stagePts, sx, sy);
         } else {
-          updatePreview("rect", drag.points, sx, sy);
+          const startStage = imgToStage(drag.startImg.x, drag.startImg.y);
+          updatePreview("rect", [startStage], sx, sy);
         }
       };
 
@@ -272,12 +319,17 @@ export function bindStageInteractions(): void {
         window.removeEventListener("touchend", onUp);
         if (!drag.active) return;
         drag.active = false;
+        stopAutoPan();
         clearPreview();
         const rect = stage.container().getBoundingClientRect();
         const xy = getXY(ev);
         const px = xy.x - rect.left;
         const py = xy.y - rect.top;
-        const moved = Math.hypot(px - drag.startX, py - drag.startY);
+        const endImg = stageToImg(px, py);
+        const moved = Math.hypot(
+          endImg.x - drag.startImg.x,
+          endImg.y - drag.startImg.y,
+        );
 
         if (moved < 5) {
           // Click: activate selection under cursor; Alt+click removes it;
@@ -300,9 +352,9 @@ export function bindStageInteractions(): void {
 
         let shape: SelectionShape;
         if (drag.mode === "rect") {
-          const a = stageToImg(drag.startX, drag.startY);
-          const b = stageToImg(px, py);
-          if (Math.abs(b.x - a.x) < 6 || Math.abs(b.y - a.y) < 6) return;
+          const a = drag.startImg;
+          const b = endImg;
+          if (Math.abs(b.x - a.x) < 4 || Math.abs(b.y - a.y) < 4) return;
           shape = {
             kind: "rect",
             x: Math.min(a.x, b.x),
@@ -311,12 +363,8 @@ export function bindStageInteractions(): void {
             h: Math.abs(b.y - a.y),
           };
         } else {
-          // Close the polygon with the release point
-          const pts = drag.points.map(function (p) {
-            return stageToImg(p.x, p.y);
-          });
-          const end = stageToImg(px, py);
-          pts.push(end);
+          const pts = drag.pointsImg.slice();
+          pts.push(endImg);
           if (pts.length < 3) return;
           shape = { kind: "polygon", points: pts };
         }

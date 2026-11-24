@@ -17,6 +17,8 @@ import {
   updateFormatBar,
   updateFormatBarPosition,
   hideFormatBar,
+  notifyTyping,
+  setFormatBarDim,
 } from "./format-bar";
 import { resolveSpans, adjustSpansOnTextChange } from "./spans";
 import { typeSection } from "../../../sidebar/type-section";
@@ -326,6 +328,7 @@ export function startEdit(layerId: string): void {
     e.stopPropagation();
   });
   ta.addEventListener("keydown", function (e) {
+    notifyTyping();
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
       e.preventDefault();
       e.stopPropagation();
@@ -361,10 +364,17 @@ export function startEdit(layerId: string): void {
   };
 
   ta.addEventListener("input", function () {
+    notifyTyping();
     saveEditorSelection();
     const curLen = getEditorText(ta).length;
     lay.spans = adjustSpansOnTextChange(lay.spans, curLen);
     updateFormatBar(lay);
+  });
+  ta.addEventListener("mouseenter", function () {
+    setFormatBarDim(true);
+  });
+  ta.addEventListener("mouseleave", function () {
+    setFormatBarDim(false);
   });
   ta.addEventListener("select", onSelectionChanged);
   ta.addEventListener("mouseup", onSelectionChanged);

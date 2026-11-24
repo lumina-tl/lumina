@@ -35,7 +35,7 @@ import {
   setPendingOpenPath,
 } from "./core/window";
 import { clearExtractedCache, prepareCache } from "./backend/cache";
-import { spawnBackend, stopBackend } from "./backend/spawn";
+import { isBackendRunning, spawnBackend, stopBackend } from "./backend/spawn";
 import { registerApiHandlers } from "./backend/proxy";
 import { registerConfigHandlers } from "./system/config";
 import { registerSecretHandlers } from "./system/secrets";
@@ -105,21 +105,35 @@ app.whenReady().then(async () => {
 
   if (installerVariant() === "cuda" && !isCudaRuntimeReady()) {
     await ensureCudaRuntime();
-    stopBackend();
+    await stopBackend();
     await spawnBackend();
     send(getWindow(), IPC.checkModel);
   }
 });
 
+let isShuttingDown = false;
+
 app.on("window-all-closed", () => {
-  stopBackend();
   if (process.platform !== "darwin") {
     app.quit();
   }
 });
 
-app.on("before-quit", () => {
-  clearExtractedCache();
+app.on("before-quit", (e) => {
+  if (!isShuttingDown && isBackendRunning()) {
+    e.preventDefault();
+    isShuttingDown = true;
+    void (async () => {
+      try {
+        await stopBackend();
+        clearExtractedCache();
+      } finally {
+        app.quit();
+      }
+    })();
+  } else {
+    clearExtractedCache();
+  }
 });
 
 app.on("activate", () => {

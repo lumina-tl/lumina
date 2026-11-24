@@ -213,6 +213,25 @@ canvas._initKeyboard = function (): void {
       }
       return;
     }
+
+    // Ctrl+] (bring forward) / Ctrl+[ (send backward)
+    if ((e.ctrlKey || e.metaKey) && (e.key === "]" || e.key === "[")) {
+      const page = state.getActivePage();
+      if (!page || !page._selectedLayerId) return;
+      e.preventDefault();
+      const curIdx = page.layers.findIndex((l) => l.id === page._selectedLayerId);
+      if (curIdx < 0) return;
+      // In page.layers: index 0 is topmost (front), index N-1 is bottommost (back).
+      // Ctrl+] (forward) moves closer to index 0 (curIdx - 1)
+      // Ctrl+[ (backward) moves closer to index N-1 (curIdx + 2 for insertAt)
+      if (e.key === "]") {
+        if (curIdx > 0) canvas.moveLayerTo(page._selectedLayerId, curIdx - 1);
+      } else {
+        if (curIdx < page.layers.length - 1)
+          canvas.moveLayerTo(page._selectedLayerId, curIdx + 2);
+      }
+      return;
+    }
   });
 };
 

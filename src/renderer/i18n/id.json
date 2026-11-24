@@ -19,6 +19,8 @@
   "update.downloading": "Mengunduh update…",
   "update.downloaded": "Update v{{version}} selesai diunduh — klik tombol untuk memasang",
   "update.install": "Restart untuk memasang v{{version}}",
+  "update.installing": "Memasang pembaruan…",
+  "update.installingToast": "Memasang pembaruan… Lumina akan dimulai ulang otomatis.",
   "update.downloadError": "Gagal mengunduh update",
   "update.retry": "Update gagal — klik untuk mencoba lagi",
 
@@ -298,6 +300,7 @@
   "paint.reset": "Kembalikan ke bawaan",
   "toast.paintNeedMask": "Buat mask Cleanup dulu — klik Add mask di tab Mask",
   "toast.paintSaveFailed": "Gagal menyimpan goresan kuas",
+  "toast.foregroundCreated": "Objek berhasil ditaruh di depan teks",
   "masks.cleanup": "Cleanup",
   "masks.addMask": "Tambah mask",
   "masks.clear": "Bersihkan",
@@ -311,6 +314,7 @@
   "selectool.convertAll": "Deteksi semua",
   "selectool.cleanArea": "Bersihkan",
   "selectool.eraseArea": "Hapus mask",
+  "selectool.bringToFront": "Ke depan",
   "selectool.clear": "Batalkan seleksi",
 
   "pages.remove": "Hapus halaman",
@@ -323,6 +327,7 @@
   "layers.kindFree": "Teks bebas",
   "layers.kindCleanup": "Cleanup",
   "layers.kindImage": "Gambar",
+  "layers.foregroundObject": "Objek {{count}}",
   "layers.untitled": "Tanpa judul",
   "layers.source": "Sumber",
   "layers.translation": "Terjemahan",

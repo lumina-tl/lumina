@@ -19,6 +19,8 @@
   "update.downloading": "Downloading update…",
   "update.downloaded": "Update v{{version}} downloaded — click the button to install",
   "update.install": "Restart to install v{{version}}",
+  "update.installing": "Installing update…",
+  "update.installingToast": "Installing update… Lumina will restart automatically.",
   "update.downloadError": "Update download failed",
   "update.retry": "Update failed — click to retry",
 
@@ -298,6 +300,7 @@
   "paint.reset": "Reset to defaults",
   "toast.paintNeedMask": "Create a Cleanup mask first — Add mask in the Masks tab",
   "toast.paintSaveFailed": "Failed to save brush stroke",
+  "toast.foregroundCreated": "Object placed in front of text",
   "masks.cleanup": "Cleanup",
   "masks.addMask": "Add mask",
   "masks.clear": "Clear",
@@ -311,6 +314,7 @@
   "selectool.convertAll": "Detect all",
   "selectool.cleanArea": "Clean",
   "selectool.eraseArea": "Erase mask",
+  "selectool.bringToFront": "Bring to front",
   "selectool.clear": "Clear selection",
 
   "pages.remove": "Remove page",
@@ -323,6 +327,7 @@
   "layers.kindFree": "Free text",
   "layers.kindCleanup": "Cleanup",
   "layers.kindImage": "Image",
+  "layers.foregroundObject": "Object {{count}}",
   "layers.untitled": "Untitled",
   "layers.source": "Source",
   "layers.translation": "Translation",

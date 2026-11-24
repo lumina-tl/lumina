@@ -250,6 +250,18 @@ canvas.moveLayerTo = function (id, insertAt): void {
   if (!page || from < 0) return;
   const layer = page.layers[from];
 
+  if (layer.type === "image") {
+    const to = Math.max(0, Math.min(page.layers.length, insertAt));
+    if (to === from || to === from + 1) return;
+    page.layers.splice(from, 1);
+    const insert = from < to ? to - 1 : to;
+    page.layers.splice(insert, 0, layer);
+    canvas.render();
+    sidebar.render();
+    history.snapshot();
+    return;
+  }
+
   // Clamp the insertion point to the layer's type group — dialogue layers
   // must stay ahead of free-text layers (parallel detection index).
   let groupStart = -1;
@@ -281,4 +293,3 @@ canvas.moveLayerTo = function (id, insertAt): void {
   history.snapshot();
 };
 
-// ──

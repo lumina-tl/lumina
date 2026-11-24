@@ -165,6 +165,16 @@ function _bakeComposite(
   return { canvas: c, ds: 1 };
 }
 
+/** Get active composite canvas or page.image (native 1:1 raster). */
+export function getPageRasterSource(
+  page: ReturnType<typeof state.getActivePage>,
+): CanvasImageSource | null {
+  if (!page) return null;
+  const baked = _bakeComposite(page);
+  if (baked) return baked.canvas;
+  return page.image;
+}
+
 /** Blit a cleanup region into the baked composite (brush drag fast-path). */
 export function blitCleanupIntoComposite(
   page: ReturnType<typeof state.getActivePage>,

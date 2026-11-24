@@ -82,7 +82,13 @@
 - [x] multi collor support on text tool
 - [x] multi font support on text tool
 - [x] font market and recomendation
-- [ ] fix anglenet rotation
-- [ ] optimize update installation speed (terminate python backend before quitAndInstall to prevent file lock, handle before-quit cleanup, and provide visible installer progress)
-- [ ] text behind object/overlapping text feature
+- [x] fix anglenet rotation
+- [x] optimize update installation speed (terminate python backend before quitAndInstall to prevent file lock, handle before-quit cleanup, and provide visible installer progress)
+- [x] text behind object/overlapping text feature
+- [x] adaptive collor cursor
+- [x] auto hide/move text tool format bar
+- [ ] Pen Tool as a complement to the Lasso and Rectangle selection tools
+- [ ] Bug: Clean object in an area that has already been inpainted
+- [ ] fix sometimes the settings reset after an update
+- [ ] nightly release build
 - [ ] testing and hunt another bugs

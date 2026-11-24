@@ -20,6 +20,9 @@ const MAX_STACK = 50;
 
 /** In-memory cache of mask images across undo/redo to avoid reload failure or flicker. */
 const _maskImageCache = new Map<string, HTMLImageElement>();
+/** In-memory cache of image layer canvases across undo/redo. */
+const _layerImageCache = new Map<string, HTMLCanvasElement>();
+const _layerCanvasCache = new Map<string, HTMLCanvasElement>();
 
 interface HistoryEntry {
   stack: string[];
@@ -65,12 +68,29 @@ function _serializePage(p: Page): string {
       _maskImageCache.set(m.imagePath, m.image);
     }
   });
+  (p.layers || []).forEach((l) => {
+    if (l.type === "image" && l.imageCanvas instanceof HTMLCanvasElement) {
+      _layerCanvasCache.set(l.id, l.imageCanvas);
+      if (l.imagePath) {
+        _layerImageCache.set(l.imagePath, l.imageCanvas);
+      }
+    }
+  });
+
+  const serializedLayers = (p.layers || []).map((l) => {
+    if (l.type === "image" && l.imageCanvas) {
+      const copy = { ...l };
+      delete copy.imageCanvas;
+      return copy;
+    }
+    return l;
+  });
 
   return JSON.stringify({
     textDetections: p.textDetections,
     _selectedTextIdx: p._selectedTextIdx,
     _selectedTextIndices: p._selectedTextIndices,
-    layers: p.layers,
+    layers: serializedLayers,
     _selectedLayerId: p._selectedLayerId,
     _selectedLayerIds: p._selectedLayerIds,
     inpaintMasks: p.inpaintMasks.map((m) => ({
@@ -138,6 +158,32 @@ export function hydrateMaskImages(page: Page): void {
       /* patch file missing — mask stays hidden */
     };
     img.src = _fileUrl(m.imagePath);
+  });
+}
+
+/** Re-hydrate image layer canvases from imagePath after deserialization. */
+export function hydrateLayerImages(page: Page): void {
+  (page.layers || []).forEach((l) => {
+    if (l.type === "image" && l.imagePath) {
+      if (!l.imageCanvas && _layerImageCache.has(l.imagePath)) {
+        l.imageCanvas = _layerImageCache.get(l.imagePath);
+      }
+      if (l.imageCanvas) return;
+      const img = new Image();
+      img.onload = function () {
+        const c = document.createElement("canvas");
+        c.width = img.naturalWidth;
+        c.height = img.naturalHeight;
+        const ctx = c.getContext("2d");
+        ctx?.drawImage(img, 0, 0);
+        _layerImageCache.set(l.imagePath!, c);
+        l.imageCanvas = c;
+        if (state.getActivePage() === page) {
+          canvas.render();
+        }
+      };
+      img.src = _fileUrl(l.imagePath);
+    }
   });
 }
 
@@ -234,6 +280,15 @@ export const history = {
 
     const layers = (snap.layers as PageLayer[]) || [];
     page.layers = layers;
+    page.layers.forEach((l) => {
+      if (l.type === "image") {
+        if (_layerCanvasCache.has(l.id)) {
+          l.imageCanvas = _layerCanvasCache.get(l.id);
+        } else if (l.imagePath && _layerImageCache.has(l.imagePath)) {
+          l.imageCanvas = _layerImageCache.get(l.imagePath);
+        }
+      }
+    });
     const validLayerIds = new Set(layers.map((l) => l.id));
     const rawLayerIds =
       snap._selectedLayerIds ||
@@ -297,6 +352,7 @@ export const history = {
     }
     // Re-hydrate only masks whose images were dropped (new/changed paths).
     hydrateMaskImages(page);
+    hydrateLayerImages(page);
     if (!page.cleanupMask?.cleanupCanvas && page.cleanupMask?.imagePath)
       hydrateCleanupCanvas(page);
     // The composite bake is stale after undo (masks/cleanup changed) —

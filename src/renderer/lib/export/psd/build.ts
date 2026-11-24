@@ -161,9 +161,34 @@ function buildPageLayers(
     });
   }
 
-  // Text layers
+  // Text & image layers
   for (const lay of [...page.layers].reverse()) {
     if (!lay.visible) continue;
+    if (lay.type === "image") {
+      if (lay.imageCanvas) {
+        children.push({
+          name: lay.name || "Object",
+          top: offsetY + lay.bbox.y,
+          left: offsetX + lay.bbox.x,
+          bottom: offsetY + lay.bbox.y + lay.bbox.h,
+          right: offsetX + lay.bbox.x + lay.bbox.w,
+          opacity: lay.opacity ?? 1,
+          imageData: renderToImageData(
+            (ctx) =>
+              ctx.drawImage(
+                lay.imageCanvas!,
+                0,
+                0,
+                lay.bbox.w,
+                lay.bbox.h,
+              ),
+            lay.bbox.w,
+            lay.bbox.h,
+          ),
+        });
+      }
+      continue;
+    }
     if (lay.type === "text-dialogue" && page.inpaintMasks.length === 0)
       continue;
     const text = lay.translation || lay.source || "";

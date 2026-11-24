@@ -10,6 +10,31 @@ import { fontDisplayName } from "../../../utils/font-loader";
 import type { PageLayer } from "../../../../types";
 
 let _bar: HTMLDivElement | null = null;
+let _lastLayerId: string | null = null;
+let _customOffset: { dx: number; dy: number } | null = null;
+let _flipBottom = false;
+let _typingTimer: number | null = null;
+
+export function notifyTyping(): void {
+  if (!_bar || _bar.style.display === "none") return;
+  _bar.classList.add("text-format-typing");
+  if (_typingTimer !== null) {
+    window.clearTimeout(_typingTimer);
+  }
+  _typingTimer = window.setTimeout(() => {
+    _bar?.classList.remove("text-format-typing");
+    _typingTimer = null;
+  }, 750);
+}
+
+export function setFormatBarDim(dim: boolean): void {
+  if (!_bar || _bar.style.display === "none") return;
+  if (dim) {
+    _bar.classList.add("text-format-dim");
+  } else {
+    _bar.classList.remove("text-format-dim");
+  }
+}
 
 function _getBar(): HTMLDivElement {
   if (_bar) return _bar;
@@ -18,6 +43,13 @@ function _getBar(): HTMLDivElement {
   _bar = document.createElement("div");
   _bar.id = "text-format-bar";
   _bar.className = "text-format-bar";
+  _bar.addEventListener("mouseenter", () => {
+    if (_typingTimer !== null) {
+      window.clearTimeout(_typingTimer);
+      _typingTimer = null;
+    }
+    _bar?.classList.remove("text-format-typing", "text-format-dim");
+  });
   container.appendChild(_bar);
   return _bar;
 }
@@ -51,8 +83,77 @@ export function showFormatBar(layerId: string): void {
   const layer = page.layers.find((l) => l.id === layerId);
   if (!layer) return;
 
+  if (_lastLayerId !== layerId) {
+    _customOffset = null;
+    _flipBottom = false;
+    _lastLayerId = layerId;
+  }
+
   bar.innerHTML = "";
   const typo = layer.typography;
+
+  // 0. Drag handle & flip button
+  const dragHandle = document.createElement("div");
+  dragHandle.className = "text-format-drag-handle";
+  dragHandle.title = "Drag to reposition";
+  dragHandle.innerHTML = `<i data-lucide="grip-vertical" class="w-3.5 h-3.5"></i>`;
+  dragHandle.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const container = document.getElementById("canvas-container");
+    if (!container) return;
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const initialLeft = bar.offsetLeft;
+    const initialTop = bar.offsetTop;
+    const barW = bar.offsetWidth || 280;
+    const barH = bar.offsetHeight || 32;
+    const maxLeft = Math.max(8, container.clientWidth - barW - 8);
+    const maxTop = Math.max(8, container.clientHeight - barH - 8);
+
+    const onMouseMove = (ev: MouseEvent) => {
+      const curLeft = Math.max(
+        8,
+        Math.min(maxLeft, initialLeft + (ev.clientX - startX)),
+      );
+      const curTop = Math.max(
+        8,
+        Math.min(maxTop, initialTop + (ev.clientY - startY)),
+      );
+      bar.style.left = `${curLeft}px`;
+      bar.style.top = `${curTop}px`;
+
+      const id = getEditingLayerId();
+      const pActive = state.getActivePage();
+      const targetLay = pActive?.layers.find((l) => l.id === id);
+      if (targetLay) {
+        const p = imgToStage(targetLay.bbox.x, targetLay.bbox.y);
+        _customOffset = { dx: curLeft - p.x, dy: curTop - p.y };
+      }
+    };
+
+    const onMouseUp = () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  });
+  bar.appendChild(dragHandle);
+
+  const flipBtn = _mkBtn(
+    "arrow-down-up",
+    "",
+    () => {
+      _customOffset = null;
+      _flipBottom = !_flipBottom;
+      updateFormatBarPosition();
+    },
+    "Flip position (top / bottom)",
+  );
+  bar.appendChild(flipBtn);
+  bar.appendChild(_mkDivider());
 
   // 1. Font selector button
   const fontBtn = document.createElement("button");
@@ -266,12 +367,6 @@ export function updateFormatBarPosition(): void {
   const barW = _bar.offsetWidth || 280;
   const barH = _bar.offsetHeight || 32;
 
-  let left = p.x + lw / 2 - barW / 2;
-  let top = p.y - barH - 8;
-  if (top < 8) {
-    top = p.y + lh + 8;
-  }
-
   const container = document.getElementById("canvas-container");
   const maxLeft = Math.max(
     8,
@@ -281,6 +376,23 @@ export function updateFormatBarPosition(): void {
     8,
     (container?.clientHeight ?? window.innerHeight) - barH - 8,
   );
+
+  let left: number;
+  let top: number;
+
+  if (_customOffset) {
+    left = p.x + _customOffset.dx;
+    top = p.y + _customOffset.dy;
+  } else {
+    left = p.x + lw / 2 - barW / 2;
+    if (_flipBottom) {
+      top = p.y + lh + 8;
+      if (top > maxTop) top = p.y - barH - 8;
+    } else {
+      top = p.y - barH - 8;
+      if (top < 8) top = p.y + lh + 8;
+    }
+  }
 
   left = Math.max(8, Math.min(left, maxLeft));
   top = Math.max(8, Math.min(top, maxTop));
@@ -292,5 +404,10 @@ export function updateFormatBarPosition(): void {
 export function hideFormatBar(): void {
   if (_bar) {
     _bar.style.display = "none";
+    _bar.classList.remove("text-format-typing", "text-format-dim");
+  }
+  if (_typingTimer !== null) {
+    window.clearTimeout(_typingTimer);
+    _typingTimer = null;
   }
 }

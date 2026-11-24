@@ -211,3 +211,64 @@ export function makeNode(layer: PageLayer, text: string): Konva.Group {
 
   return group;
 }
+
+export function makeImageLayerNode(layer: PageLayer): Konva.Group {
+  const sr = canvas.getScaleRatio();
+  const p = imgToStage(layer.bbox.x, layer.bbox.y);
+  const lw = Math.max(1, layer.bbox.w * sr);
+  const lh = Math.max(1, layer.bbox.h * sr);
+
+  const group = new Konva.Group({
+    name: "layer-text",
+    layerId: layer.id,
+    x: p.x,
+    y: p.y,
+    rotation: layer.typography?.rotation || 0,
+    opacity: layer.opacity ?? 1,
+  });
+
+  const imgSource = layer.imageCanvas as unknown;
+  if (
+    imgSource instanceof HTMLCanvasElement ||
+    imgSource instanceof HTMLImageElement
+  ) {
+    const kImg = new Konva.Image({
+      name: "layer-image-content",
+      image: imgSource as HTMLCanvasElement,
+      x: 0,
+      y: 0,
+      width: lw,
+      height: lh,
+      listening: true,
+    });
+    group.add(kImg);
+  }
+
+  // Hover outline indicator
+  const outline = new Konva.Rect({
+    name: "layer-image-outline",
+    x: 0,
+    y: 0,
+    width: lw,
+    height: lh,
+    stroke: "#00bfff",
+    strokeWidth: 1.5,
+    dash: [4, 4],
+    visible: false,
+    listening: false,
+  });
+  group.add(outline);
+
+  group.on("mouseenter", () => {
+    if (state.activeTool === "select") {
+      outline.visible(true);
+      canvas.getLayer()?.batchDraw();
+    }
+  });
+  group.on("mouseleave", () => {
+    outline.visible(false);
+    canvas.getLayer()?.batchDraw();
+  });
+
+  return group;
+}

@@ -76,6 +76,9 @@ function syncEditorTabs(
 }
 
 function layerName(layer: PageLayer): string {
+  if (layer.type === "image") {
+    return layer.name || i18n.t("layers.kindImage");
+  }
   const text = layer.translation || layer.source || "";
   const trimmed = text.trim();
   if (!trimmed) return i18n.t("layers.untitled");
@@ -169,7 +172,9 @@ function layerRowHTML(page: Page, layer: PageLayer, idx: number): string {
     '<span class="layer-index">' +
     (idx + 1) +
     "</span>" +
-    '<i data-lucide="type" class="layer-icon"></i>' +
+    '<i data-lucide="' +
+    (layer.type === "image" ? "layers" : "type") +
+    '" class="layer-icon"></i>' +
     '<div class="layer-name-wrap">' +
     '<span class="layer-name">' +
     name +
@@ -401,7 +406,14 @@ export function wireEvents(): void {
         const target = page.layers.find(function (l) {
           return l.id === targetId;
         });
-        if (!layer || !target || dragType !== target.type) return;
+        if (
+          !layer ||
+          !target ||
+          (layer.type !== "image" &&
+            target.type !== "image" &&
+            dragType !== target.type)
+        )
+          return;
         e.preventDefault();
         if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
         const rect = el.getBoundingClientRect();
@@ -426,7 +438,14 @@ export function wireEvents(): void {
         const target = page.layers.find(function (l) {
           return l.id === targetId;
         });
-        if (!layer || !target || dragType !== target.type) return;
+        if (
+          !layer ||
+          !target ||
+          (layer.type !== "image" &&
+            target.type !== "image" &&
+            dragType !== target.type)
+        )
+          return;
         const rows = Array.from(
           document.querySelectorAll<HTMLElement>(".layer-row[data-layer-id]"),
         );

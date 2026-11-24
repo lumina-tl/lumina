@@ -2,7 +2,7 @@
 import { state } from "../state";
 import * as i18n from "../i18n";
 import { ui } from "../ui";
-import { history, hydrateMaskImages } from "../history";
+import { history, hydrateMaskImages, hydrateLayerImages } from "../history";
 import { hydrateCleanupCanvas } from "../canvas/tools/paint/shared";
 import { pendingCommit } from "../canvas/tools/paint/commit";
 import { canvas } from "../canvas/index";
@@ -355,6 +355,7 @@ export const project = {
     // Masks are stored as PNG paths — decode them now so the first render
     // shows the cleaned patches instead of raw text over the original image.
     pages.forEach((p) => hydrateMaskImages(p));
+    pages.forEach((p) => hydrateLayerImages(p));
     pages.forEach((p) => hydrateCleanupCanvas(p));
     // Fill every strip thumbnail cheaply (decode at thumb size only — the
     // full-res bitmap is never materialized for a preview). Progressive;
