@@ -78,6 +78,7 @@ const api: LuminaAPI = {
   showSaveDialog: (opts) => invoke(IPC.showSaveDialog, opts),
   writePsdFile: (payload) => invoke(IPC.writePsdFile, payload),
   writeTempPng: (payload) => invoke(IPC.writeTempPng, payload),
+  getAppInfo: () => invoke(IPC.appInfo),
   checkForUpdates: () => invoke(IPC.checkForUpdates),
   downloadUpdate: () => invoke(IPC.downloadUpdate),
   installUpdate: () => invoke(IPC.installUpdate),

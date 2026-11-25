@@ -104,6 +104,11 @@
   "settings.ocrNormHint": "Normalisasi kapitalisasi teks hasil OCR. Hanya berlaku untuk hasil OCR baru.",
   "settings.whatsNew": "Catatan Rilis & Changelog",
   "settings.viewChangelog": "Lihat Yang Baru",
+  "settings.updateChannel": "Channel update",
+  "settings.updateChannelStable": "Stable",
+  "settings.updateChannelNightly": "Nightly",
+  "settings.updateChannelHint": "Stable menerima rilis teruji. Nightly mendapat fitur baru dan perbaikan bug lebih cepat dari setiap commit di main.",
+  "settings.updateChannelDevHint": "Channel update dinonaktifkan pada mode development.",
 
   "landing.title": "Editor Terjemahan Manga",
   "landing.subtitle": "Impor halaman untuk mulai",

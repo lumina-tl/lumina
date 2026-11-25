@@ -7,15 +7,51 @@ import { handle, send } from "../core/ipc";
 import { withDownloadMutex } from "../core/mutex";
 import { clearExtractedCache } from "../backend/cache";
 import { stopBackend } from "../backend/spawn";
+import { installerVariant } from "../models/runtime/variant";
+import { readConfig } from "./config";
 
 const { autoUpdater } = updaterPkg;
 
 const UPDATE_URL = "https://github.com/lumina-tl/lumina/releases";
+const NIGHTLY_FEED_URL =
+  "https://github.com/lumina-tl/lumina/releases/download/nightly";
+
+type UpdateChannel = "stable" | "nightly";
 
 let win: BrowserWindow | null = null;
 let checking = false;
 let downloading = false;
 let downloadedVersion: string | null = null;
+let lastCheckedChannel: UpdateChannel | null = null;
+
+function getUpdateChannel(): UpdateChannel {
+  const saved = readConfig().settings["lumina-update-channel"];
+  if (saved === "nightly" || saved === "stable") return saved;
+  return app.getVersion().includes("-nightly.") ? "nightly" : "stable";
+}
+
+function configureFeed(channel: UpdateChannel): void {
+  const variant = installerVariant() === "cuda" ? "cuda" : "dml";
+  const isNightlyBuild = app.getVersion().includes("-nightly.");
+  if (channel === "nightly") {
+    autoUpdater.allowPrerelease = true;
+    autoUpdater.allowDowngrade = true;
+    autoUpdater.setFeedURL({
+      provider: "generic",
+      url: NIGHTLY_FEED_URL,
+      channel: variant,
+    });
+  } else {
+    autoUpdater.allowPrerelease = false;
+    autoUpdater.allowDowngrade = isNightlyBuild;
+    autoUpdater.setFeedURL({
+      provider: "github",
+      owner: "lumina-tl",
+      repo: "lumina",
+      channel: variant,
+    });
+  }
+}
 
 autoUpdater.autoDownload = false;
 autoUpdater.autoInstallOnAppQuit = false;
@@ -79,8 +115,16 @@ function checkOnce(): Promise<CheckUpdateResult> {
 
 export function registerUpdaterHandlers(target: BrowserWindow | null): void {
   win = target;
+  handle(IPC.appInfo, () => ({
+    version: app.getVersion(),
+    isPackaged: app.isPackaged,
+  }));
   handle(IPC.checkForUpdates, async () => {
     if (!app.isPackaged) return { available: false, error: "dev" };
+    const channel = getUpdateChannel();
+    if (lastCheckedChannel && lastCheckedChannel !== channel) {
+      downloadedVersion = null;
+    }
     if (downloadedVersion) {
       return {
         available: true,
@@ -91,6 +135,8 @@ export function registerUpdaterHandlers(target: BrowserWindow | null): void {
     }
     if (checking) return { available: false };
     checking = true;
+    lastCheckedChannel = channel;
+    configureFeed(channel);
     const res = await checkOnce();
     checking = false;
     return res;

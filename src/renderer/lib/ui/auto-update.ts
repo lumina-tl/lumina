@@ -11,6 +11,12 @@ type UpdateState =
   | "installing"
   | "error";
 
+let _checkUpdates: (() => void) | null = null;
+
+export function checkUpdatesNow(): void {
+  _checkUpdates?.();
+}
+
 export function initAutoUpdate(): void {
   const btnUpdate = document.getElementById("btn-update");
   const updateIcon = btnUpdate?.querySelector("i[data-lucide]");
@@ -87,19 +93,24 @@ export function initAutoUpdate(): void {
     }
   });
 
-  window.lumina
-    .checkForUpdates()
-    .then(function (res) {
-      if (!res.available) {
+  function runCheck(): void {
+    window.lumina
+      .checkForUpdates()
+      .then(function (res) {
+        if (!res.available) {
+          setUpdateButton("checking", "");
+          return;
+        }
+        setUpdateButton(
+          "available",
+          i18n.t("update.available", { version: res.latest || "" }),
+        );
+      })
+      .catch(function () {
         setUpdateButton("checking", "");
-        return;
-      }
-      setUpdateButton(
-        "available",
-        i18n.t("update.available", { version: res.latest || "" }),
-      );
-    })
-    .catch(function () {
-      setUpdateButton("checking", "");
-    });
+      });
+  }
+
+  _checkUpdates = runCheck;
+  runCheck();
 }

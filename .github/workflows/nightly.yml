@@ -1,0 +1,155 @@
+name: Nightly
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: nightly-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Compute nightly version
+        id: version
+        run: |
+          BASE=$(node -p "require('./package.json').version.split('-')[0]")
+          DATE=$(date -u +%Y%m%d)
+          echo "version=${BASE}-nightly.${DATE}.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+
+  build-windows:
+    needs: prepare
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Set nightly version
+        run: npm version "${{ needs.prepare.outputs.version }}" --no-git-tag-version --allow-same-version
+
+      - name: Build & bundle installer (DML)
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: npm run dist:dml
+
+      - name: Build & bundle installer (CUDA)
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: npm run dist:cuda
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-win
+          path: |
+            dist/dml/Lumina-Setup-DML-*.exe
+            dist/cuda/Lumina-Setup-CUDA-*.exe
+            dist/dml/dml.yml
+            dist/dml/*.blockmap
+            dist/cuda/cuda.yml
+            dist/cuda/*.blockmap
+          if-no-files-found: error
+
+  build-linux:
+    needs: prepare
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Set nightly version
+        run: npm version "${{ needs.prepare.outputs.version }}" --no-git-tag-version --allow-same-version
+
+      - name: Build & bundle Linux AppImage (CPU)
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: npm run dist:linux
+
+      - name: Build & bundle Linux AppImage (CUDA)
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: npm run dist:linux:cuda
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-linux
+          path: |
+            dist/linux-cpu/*.AppImage
+            dist/linux-cuda/*.AppImage
+          if-no-files-found: error
+
+  publish:
+    needs: [prepare, build-windows, build-linux]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release files
+        run: |
+          mkdir -p dist-release
+          find artifacts -type f -exec cp {} dist-release/ \;
+          ls -la dist-release/
+
+      - name: Update nightly release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          NOTES="Automated nightly build \`${{ needs.prepare.outputs.version }}\` from \`main\` (${{ github.sha }})."
+          if gh release view nightly --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            OLD_ASSETS=$(gh release view nightly --repo "${{ github.repository }}" --json assets --jq '.assets[].name')
+            for asset in $OLD_ASSETS; do
+              gh release delete-asset nightly "$asset" --repo "${{ github.repository }}" --yes || true
+            done
+            gh release edit nightly \
+              --repo "${{ github.repository }}" \
+              --prerelease \
+              --title "Lumina Nightly" \
+              --notes "$NOTES"
+            gh release upload nightly dist-release/* \
+              --repo "${{ github.repository }}" \
+              --clobber
+          else
+            gh release create nightly dist-release/* \
+              --repo "${{ github.repository }}" \
+              --prerelease \
+              --title "Lumina Nightly" \
+              --notes "$NOTES"
+          fi

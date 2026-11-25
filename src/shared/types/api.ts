@@ -89,6 +89,7 @@ export interface LuminaAPI {
   showSaveDialog(opts?: ShowSaveDialogOptions): Promise<ShowSaveDialogResult>;
   writePsdFile(payload: WritePsdFilePayload): Promise<void>;
   writeTempPng(payload: TempPngWritePayload): Promise<TempPngWriteResult>;
+  getAppInfo(): Promise<{ version: string; isPackaged: boolean }>;
   checkForUpdates(): Promise<CheckUpdateResult>;
   downloadUpdate(): Promise<void>;
   installUpdate(): Promise<void>;

@@ -104,6 +104,11 @@
   "settings.ocrNormHint": "Normalize the case of text recognized by OCR. Applies to new OCR results only.",
   "settings.whatsNew": "Release Notes & Changelog",
   "settings.viewChangelog": "View What's New",
+  "settings.updateChannel": "Update channel",
+  "settings.updateChannelStable": "Stable",
+  "settings.updateChannelNightly": "Nightly",
+  "settings.updateChannelHint": "Stable receives tested releases. Nightly delivers new features and bug fixes faster from every commit on main.",
+  "settings.updateChannelDevHint": "Update channel is disabled in development mode.",
 
   "landing.title": "Manga Translation Editor",
   "landing.subtitle": "Import a page to begin",

@@ -72,6 +72,7 @@ export const IPC = {
   writeTempPng: "write-temp-png",
 
   // Updates
+  appInfo: "app-info",
   checkForUpdates: "check-for-updates",
   downloadUpdate: "download-update",
   installUpdate: "install-update",

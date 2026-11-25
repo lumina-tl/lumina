@@ -667,6 +667,11 @@ body.resizing-settings * {
   border-color: #e94560;
   box-shadow: 0 0 0 2px rgba(233, 69, 96, 0.2);
 }
+.field-select:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 select option,
 .field-select option {
   background-color: #18181c;

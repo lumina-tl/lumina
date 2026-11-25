@@ -9,8 +9,10 @@ import {
   setOcrNormalizeMode,
 } from "../pipeline/text-norm";
 import { openChangelogModal } from "../ui/changelog-modal";
+import { checkUpdatesNow } from "../ui/auto-update";
 import { fontMarketModal } from "../font-market/modal";
 import { createIcons } from "../ui/icons";
+import * as storage from "../storage";
 
 export const generalTab = {
   build(pane: HTMLElement): void {
@@ -220,6 +222,73 @@ export const generalTab = {
 
     pane.appendChild(fontMarketSection);
     createIcons({ root: fontMarketBtn });
+
+    // ── Update Channel ──
+    const updateSection = document.createElement("div");
+    updateSection.className = "settings-section";
+
+    const updateRow = document.createElement("div");
+    updateRow.className = "field-row items-center justify-between mb-3";
+
+    const updateLabelWrap = document.createElement("div");
+    updateLabelWrap.className = "flex items-center gap-1.5";
+
+    const updateLabel = document.createElement("span");
+    updateLabel.className = "text-[0.78rem] text-text-primary";
+    updateLabel.dataset.i18n = "settings.updateChannel";
+    updateLabel.textContent = i18n.t("settings.updateChannel");
+
+    const updateDevBadge = document.createElement("span");
+    updateDevBadge.className =
+      "text-[0.62rem] text-text-dim px-1.5 py-0.5 rounded bg-white/5 border border-white/10 hidden";
+    updateDevBadge.textContent = "Dev";
+
+    updateLabelWrap.appendChild(updateLabel);
+    updateLabelWrap.appendChild(updateDevBadge);
+
+    const updateSel = document.createElement("select");
+    updateSel.id = "settings-update-channel";
+    updateSel.className = "field-select";
+    const optStable = document.createElement("option");
+    optStable.value = "stable";
+    optStable.dataset.i18n = "settings.updateChannelStable";
+    optStable.textContent = i18n.t("settings.updateChannelStable");
+    const optNightly = document.createElement("option");
+    optNightly.value = "nightly";
+    optNightly.dataset.i18n = "settings.updateChannelNightly";
+    optNightly.textContent = i18n.t("settings.updateChannelNightly");
+    updateSel.appendChild(optStable);
+    updateSel.appendChild(optNightly);
+
+    updateRow.appendChild(updateLabelWrap);
+    updateRow.appendChild(updateSel);
+    updateSection.appendChild(updateRow);
+
+    const updateHint = document.createElement("p");
+    updateHint.className = "text-[0.68rem] text-text-muted leading-relaxed";
+    updateHint.dataset.i18n = "settings.updateChannelHint";
+    updateHint.textContent = i18n.t("settings.updateChannelHint");
+    updateSection.appendChild(updateHint);
+    pane.appendChild(updateSection);
+
+    const savedChannel = storage.getItem("lumina-update-channel");
+    updateSel.value = savedChannel === "nightly" ? "nightly" : "stable";
+
+    void window.lumina.getAppInfo().then((info) => {
+      if (!savedChannel && info.version.includes("-nightly.")) {
+        updateSel.value = "nightly";
+      }
+      if (!info.isPackaged) {
+        updateSel.disabled = true;
+        updateSel.title = i18n.t("settings.updateChannelDevHint");
+        updateDevBadge.classList.remove("hidden");
+      }
+    });
+
+    updateSel.addEventListener("change", function () {
+      storage.setItem("lumina-update-channel", this.value);
+      checkUpdatesNow();
+    });
 
     // ── What's New & Developer Notes ──
     const changelogSection = document.createElement("div");
