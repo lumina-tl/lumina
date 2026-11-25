@@ -1,6 +1,7 @@
 /** Cursor management — hover + transformer anchor cursors. */
 import { state } from "../state";
 import { canvas } from "./index";
+import { updateCursor, hideCursor, isCustomCursorTool } from "./tools/paint/cursor";
 
 /** Re-assert correct cursor on every mousemove (fixes stale Konva cursors). */
 let _cursorBound = false;
@@ -9,18 +10,10 @@ export function bindHoverCursor(): void {
   _cursorBound = true;
 
   const toolCursor = function (): string {
-    if (state.activeTool === "lasso" || state.activeTool === "rect")
-      return "crosshair";
     if (state.activeTool === "text") return "text";
-    // Paint tools hide the OS cursor — #paint-cursor renders crosshair /
-    // icon / brush circle instead.
-    if (
-      state.activeTool === "brush" ||
-      state.activeTool === "eraser" ||
-      state.activeTool === "bucket" ||
-      state.activeTool === "eyedropper"
-    )
-      return "none";
+    // Paint, selection, and pen tools hide the OS cursor — #paint-cursor
+    // renders an inverted crosshair / brush circle instead.
+    if (isCustomCursorTool()) return "none";
     return "default";
   };
 
@@ -58,7 +51,10 @@ export function bindHoverCursor(): void {
     }
     stage.on("mousemove", function (e) {
       // Panning owns the cursor
-      if (container.style.cursor === "grabbing") return;
+      if (container.style.cursor === "grabbing") {
+        hideCursor();
+        return;
+      }
       const target = e.target;
       // Over a transformer anchor → set the matching resize cursor ourselves
       // so it keeps tracking even after Konva left a stale one behind.
@@ -71,6 +67,7 @@ export function bindHoverCursor(): void {
         // strip the suffix before looking up the CSS cursor.
         const name = target.name().replace(/ ?_anchor$/, "");
         if (anchorCursor[name]) {
+          hideCursor();
           setCursor(anchorCursor[name]);
           return;
         }
@@ -84,9 +81,18 @@ export function bindHoverCursor(): void {
         }
       }
       setCursor(cursor);
+      if (
+        state.activeTool === "lasso" ||
+        state.activeTool === "rect" ||
+        state.activeTool === "pen"
+      ) {
+        const rect = container.getBoundingClientRect();
+        updateCursor(e.evt.clientX - rect.left, e.evt.clientY - rect.top);
+      }
     });
     // Mouse leaving the canvas entirely → drop any stale resize cursor.
     stage.content.addEventListener("mouseleave", function () {
+      hideCursor();
       if (stage.content) stage.content.style.cursor = "";
     });
   };

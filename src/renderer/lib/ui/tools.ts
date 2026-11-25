@@ -77,9 +77,9 @@ export const tools = {
     // #paint-cursor div renders crosshair/icon/circle instead).
     const container = document.getElementById("canvas-container");
     const cursors: Record<string, string> = {
-      lasso: "crosshair",
-      rect: "crosshair",
-      pen: "crosshair",
+      lasso: "none",
+      rect: "none",
+      pen: "none",
       select: "default",
       text: "text",
       brush: "none",

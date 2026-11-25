@@ -2298,15 +2298,14 @@ body.resizing-row {
  * is hidden while a paint tool is active (paintool sets cursor:none). */
 #paint-cursor {
   position: absolute;
-  z-index: 50;
   pointer-events: none;
   display: none;
-  transform: translate(-50%, -50%);
 }
 .pc-reticle {
   position: absolute;
   left: 0;
   top: 0;
+  z-index: 50;
   pointer-events: none;
   mix-blend-mode: difference;
 }
@@ -2340,6 +2339,7 @@ body.resizing-row {
 }
 .pc-icon {
   position: absolute;
+  z-index: 50;
   width: 20px;
   height: 20px;
   display: flex;

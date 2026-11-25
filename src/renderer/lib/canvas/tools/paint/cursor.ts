@@ -84,18 +84,31 @@ export function hideSampleChip(): void {
   if (_chip) _chip.style.display = "none";
 }
 
+const CROSSHAIR_TOOLS = new Set(["lasso", "rect", "pen"]);
+
+export function isCustomCursorTool(tool: string = state.activeTool): boolean {
+  return (
+    tool === "brush" ||
+    tool === "eraser" ||
+    tool === "bucket" ||
+    tool === "eyedropper" ||
+    CROSSHAIR_TOOLS.has(tool)
+  );
+}
+
 export function updateCursor(sx: number, sy: number, altKey = false): void {
   _lastX = sx;
   _lastY = sy;
   const el = cursorEl();
   if (!el) return;
   const tool = state.activeTool;
-  if (!isPaintTool()) {
+  if (!isCustomCursorTool(tool)) {
     el.style.display = "none";
     return;
   }
+  const isCrosshairTool = CROSSHAIR_TOOLS.has(tool);
   // Alt held from any paint tool = momentary eyedropper look.
-  const effective = altKey && tool !== "eyedropper" ? "eyedropper" : tool;
+  const effective = !isCrosshairTool && altKey && tool !== "eyedropper" ? "eyedropper" : tool;
   const isStroke = effective === "brush" || effective === "eraser";
   const sr = canvas.getScaleRatio();
   const size = Math.max(2, paintSettings().size * sr);
@@ -104,8 +117,8 @@ export function updateCursor(sx: number, sy: number, altKey = false): void {
   el.style.left = sx + "px";
   el.style.top = sy + "px";
 
-  // Crosshair lines: only for bucket/eyedropper (brush/eraser use the circle).
-  const showLines = effective === "bucket" || effective === "eyedropper";
+  // Crosshair lines: bucket/eyedropper and selection/pen crosshair tools.
+  const showLines = isCrosshairTool || effective === "bucket" || effective === "eyedropper";
   const h = el.querySelector<HTMLElement>(".pc-cross-h");
   const v = el.querySelector<HTMLElement>(".pc-cross-v");
   if (h) h.style.display = showLines ? "block" : "none";
@@ -122,18 +135,22 @@ export function updateCursor(sx: number, sy: number, altKey = false): void {
     }
   }
 
-  // Tool icon: at the circle's bottom-right for stroke tools, offset from
-  // the crosshair center for bucket/eyedropper.
+  // Tool icon: paint tools only (selection/pen use a clean inverted crosshair).
   const icon = el.querySelector<HTMLElement>(".pc-icon");
   if (icon) {
-    const name = TOOL_ICONS[effective] || "brush";
-    if (icon.getAttribute("data-icon-name") !== name) {
-      icon.setAttribute("data-icon-name", name);
-      icon.innerHTML = '<i data-lucide="' + name + '"></i>';
-      createIcons({ root: icon });
+    if (isCrosshairTool) {
+      icon.style.display = "none";
+    } else {
+      icon.style.display = "flex";
+      const name = TOOL_ICONS[effective] || "brush";
+      if (icon.getAttribute("data-icon-name") !== name) {
+        icon.setAttribute("data-icon-name", name);
+        icon.innerHTML = '<i data-lucide="' + name + '"></i>';
+        createIcons({ root: icon });
+      }
+      const off = isStroke ? Math.max(8, size * 0.55) : 8;
+      icon.style.left = off + "px";
+      icon.style.top = off + "px";
     }
-    const off = isStroke ? Math.max(8, size * 0.55) : 8;
-    icon.style.left = off + "px";
-    icon.style.top = off + "px";
   }
 }

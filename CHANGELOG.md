@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Settings reset on update.** Fixed app settings resetting to defaults after updates.
 - **Manual clean over inpainted areas.** Fixed "Clean area" sampling the original image instead of existing inpaint/cleanup layers.
 - **Selection persistence on Select tool.** Fixed active selections not clearing when clicking on the canvas or objects with the Select tool.
+- **Tool cursor color inversion.** Fixed paint, selection, and pen tool cursors not inverting against bright/white canvas backgrounds.
 
 ## [0.6.0] - 23-11-2026
 

@@ -92,4 +92,5 @@
 - [x] fix sometimes the settings reset after an update
 - [x] nightly release build and update channel
 - [x] lock and unlock object
+- [x] fix tools cursor color not inverted
 - [ ] testing and hunt another bugs

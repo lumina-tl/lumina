@@ -9,6 +9,7 @@ import { sampleComposite } from "./sampler";
 import {
   updateCursor,
   hideCursor,
+  isCustomCursorTool,
   refreshCursor,
   showSampleChip,
   hideSampleChip,
@@ -206,11 +207,10 @@ canvas.onToolChange = function (tool: string): void {
   // Switching tools cancels any pending momentary-eyedropper highlight.
   clearAlt();
   hideSampleChip();
-  if (!isPaintTool()) {
+  if (!isCustomCursorTool(tool as never)) {
     hideCursor();
-    // Leaving a paint tool — reset the OS cursor on BOTH the container and
-    // stage.content (paintool's mousemove only runs while a paint tool is
-    // active, so neither gets restored on its own).
+    // Leaving a custom-cursor tool — reset the OS cursor on BOTH the container
+    // and stage.content so any stale inline `none` is cleared.
     const container = document.getElementById("canvas-container");
     const stage = canvas.getStage();
     if (container) container.style.cursor = "";
