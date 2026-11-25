@@ -2,7 +2,7 @@
 
 import Konva from "konva";
 import { canvas } from "../canvas/index";
-import { makeNode } from "../canvas/tools/text/node-factory";
+import { makeNode, makeShapeLayerNode } from "../canvas/tools/text/node-factory";
 import { ensureCleanupCanvas } from "../canvas/tools/paint/shared";
 import * as pageImages from "../project/page-images";
 import type { Page } from "../../types";
@@ -175,6 +175,10 @@ export async function renderPageToCanvas(
             }),
           );
         }
+        continue;
+      }
+      if (lay.type === "shape") {
+        layer.add(makeShapeLayerNode(lay));
         continue;
       }
       // Dialogue text only renders after inpainting — same rule as the editor.

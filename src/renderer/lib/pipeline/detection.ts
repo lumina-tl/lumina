@@ -76,8 +76,8 @@ export const detection = {
 
       // Sync text detections into the unified layer model (dialogue layers).
       // Free-text layers created by the user are preserved.
-      const freeLayers = page.layers.filter(function (l) {
-        return l.type === "text-free";
+      const manualLayers = page.layers.filter(function (l) {
+        return l.type !== "text-dialogue";
       });
       const dialogueLayers: PageLayer[] = sortedTexts.map(function (d, i) {
         return {
@@ -98,7 +98,7 @@ export const detection = {
           opacity: 1,
         };
       });
-      page.layers = [...dialogueLayers, ...freeLayers];
+      page.layers = [...dialogueLayers, ...manualLayers];
       page._selectedLayerId = null;
       page._expandedLayerId = null;
 

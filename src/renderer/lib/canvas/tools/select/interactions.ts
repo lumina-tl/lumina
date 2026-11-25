@@ -170,6 +170,15 @@ function subtractFromSelections(shape: SelectionShape): void {
   history.snapshot({ dirty: false });
 }
 
+export function commitSelectionShape(
+  shape: SelectionShape,
+  modifier: Modifier = null,
+): void {
+  if (modifier === "add") addOrMerge(shape);
+  else if (modifier === "subtract") subtractFromSelections(shape);
+  else addSelection(shape);
+}
+
 /** Alt+click: delete just that selection. */
 function removeSelection(id: string): void {
   const idx = selections.findIndex(function (s) {
@@ -213,6 +222,12 @@ export function bindStageInteractions(): void {
     };
 
     stage.on("mousedown touchstart", function (e) {
+      if (state.activeTool === "select" && e.evt.button === 0 && selections.length > 0) {
+        clearSelections();
+        refreshOverlay();
+        hideContextBar();
+        history.snapshot({ dirty: false });
+      }
       if (!isSelectTool()) return;
       if (e.evt.button !== 0) return;
       if (!isDrawableTarget(e.target, stage)) return;

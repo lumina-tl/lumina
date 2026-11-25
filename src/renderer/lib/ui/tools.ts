@@ -11,6 +11,7 @@ interface ToolItem {
     | "select"
     | "lasso"
     | "rect"
+    | "pen"
     | "text"
     | "brush"
     | "eraser"
@@ -25,6 +26,7 @@ export const tools = {
     { id: "select", icon: "mouse-pointer-2", titleKey: "tools.select" },
     { id: "lasso", icon: "lasso", titleKey: "tools.lasso" },
     { id: "rect", icon: "square-dashed", titleKey: "tools.rect" },
+    { id: "pen", icon: "pen-tool", titleKey: "tools.pen" },
     { id: "text", icon: "type", titleKey: "tools.text" },
     { id: "brush", icon: "brush", titleKey: "tools.brush" },
     { id: "eraser", icon: "eraser", titleKey: "tools.eraser" },
@@ -77,6 +79,7 @@ export const tools = {
     const cursors: Record<string, string> = {
       lasso: "crosshair",
       rect: "crosshair",
+      pen: "crosshair",
       select: "default",
       text: "text",
       brush: "none",

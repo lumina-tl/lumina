@@ -58,7 +58,7 @@ export function bindSelectTool(): void {
 const _origOnToolChange = canvas.onToolChange;
 canvas.onToolChange = function (tool: string): void {
   _origOnToolChange(tool);
-  if (tool === "lasso" || tool === "rect") syncContextBar();
+  if (tool === "lasso" || tool === "rect" || tool === "pen") syncContextBar();
   else hideContextBar();
 };
 

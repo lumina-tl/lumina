@@ -25,6 +25,7 @@ import { initScrollbars } from "./lib/canvas/scrollbar";
 import { bindHoverCursor } from "./lib/canvas/cursor";
 import { bindTextTool } from "./lib/canvas/tools/text";
 import { bindSelectTool } from "./lib/canvas/tools/select";
+import { bindPenTool } from "./lib/canvas/tools/pen";
 import { bindPaintTool } from "./lib/canvas/tools/paint";
 import { initPaintOptions } from "./lib/canvas/tools/paint/options";
 import { loadSystemFonts } from "./lib/utils/font-loader";
@@ -272,6 +273,7 @@ i18n.init().then(function () {
   bindHoverCursor();
   bindTextTool();
   bindSelectTool();
+  bindPenTool();
   bindPaintTool();
   initPaintOptions();
   sidebar.render();

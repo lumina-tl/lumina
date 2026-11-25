@@ -5,6 +5,7 @@ import { canvas } from "../../index";
 import { sidebar } from "../../../sidebar";
 import { history } from "../../../history";
 import { layerTextNodes, stageToImg } from "./shared";
+import { isEditingShapePath } from "../pen/direct-select";
 
 let _textTransformers: Konva.Transformer[] = [];
 
@@ -82,10 +83,13 @@ export function syncTransformerSelection(): void {
     state.activeTool === "eyedropper";
 
   if (nodes.length > 0) {
+    const trNodes = nodes.filter(
+      (n) => !isEditingShapePath(n.getAttr("layerId") as string),
+    );
     if (paint) {
       nodes.forEach((n) => n.draggable(false));
     } else {
-      nodes.forEach((node) => {
+      trNodes.forEach((node) => {
         node.draggable(true);
         node.listening(true);
         const tr = createTextTransformer(node);
@@ -125,6 +129,11 @@ export function commitNodesTransform(nodes: Konva.Group[]): void {
     const localW = rect ? (rect.width() * sx) / sr : lay.bbox.w;
     const localH = rect ? (rect.height() * sy) / sr : lay.bbox.h;
 
+    const oldX = lay.bbox.x;
+    const oldY = lay.bbox.y;
+    const oldW = Math.max(1, lay.bbox.w);
+    const oldH = Math.max(1, lay.bbox.h);
+
     const p = stageToImg(node.x(), node.y());
     lay.bbox.x = p.x;
     lay.bbox.y = p.y;
@@ -132,6 +141,21 @@ export function commitNodesTransform(nodes: Konva.Group[]): void {
     lay.bbox.h = Math.max(8, Math.round(localH));
     lay.bbox.rotation = rot;
     lay.typography.rotation = rot;
+
+    if (lay.type === "shape" && lay.pathNodes) {
+      const rx = pureRotate ? 1 : lay.bbox.w / oldW;
+      const ry = pureRotate ? 1 : lay.bbox.h / oldH;
+      const mapX = (v: number) => Math.round(lay.bbox.x + (v - oldX) * rx);
+      const mapY = (v: number) => Math.round(lay.bbox.y + (v - oldY) * ry);
+      lay.pathNodes.forEach((pt) => {
+        pt.x = mapX(pt.x);
+        pt.y = mapY(pt.y);
+        if (pt.inX !== undefined) pt.inX = mapX(pt.inX);
+        if (pt.inY !== undefined) pt.inY = mapY(pt.inY);
+        if (pt.outX !== undefined) pt.outX = mapX(pt.outX);
+        if (pt.outY !== undefined) pt.outY = mapY(pt.outY);
+      });
+    }
 
     if (state.activeTool === "select" && !pureRotate) {
       if (lay.typography.fontSize !== null) {

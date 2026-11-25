@@ -18,6 +18,7 @@ import {
   resetStageBinding as resetPaintStage,
   bindPaintTool,
 } from "./tools/paint/index";
+import { bindPenStage, resetPenStage } from "./tools/pen";
 import { applyTextSelection } from "./detection/selection";
 import { bindRubberband, resetRubberbandBinding } from "./rubberband";
 import { sidebar } from "../sidebar";
@@ -50,6 +51,7 @@ export function destroyStage(): void {
   // Tool listeners were on the destroyed stage — allow re-bind on next create.
   resetSelectStage();
   resetTextStage();
+  resetPenStage();
   resetPaintStage();
   resetRubberbandBinding();
 }
@@ -286,6 +288,7 @@ function _render(): void {
   bindPanWhenStageReady();
   bindSelectStage();
   bindTextStage();
+  bindPenStage();
   bindPaintTool();
   bindRubberband();
 

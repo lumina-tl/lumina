@@ -3500,7 +3500,8 @@ body.resizing-row {
   -webkit-app-region: no-drag;
 }
 /* When tool options bar is active in header, float dynamic island just below header to avoid overlapping */
-#paint-options:not(.hidden) ~ #dynamic-island {
+#paint-options:not(.hidden) ~ #dynamic-island,
+#pen-options:not(.hidden) ~ #dynamic-island {
   top: 38px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
 }

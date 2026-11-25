@@ -7,6 +7,7 @@ import type { Page } from "../../types";
 import { layerListHTML, wireEvents } from "./layer-list";
 import { maskListHTML, wireMaskEvents } from "./mask-list";
 import { typeSection } from "./type-section";
+import { shapeSection } from "./shape-section";
 import { esc } from "./_esc";
 
 const TYPE_MIN_HEIGHT = 72;
@@ -20,6 +21,8 @@ function loadTypeHeight(): number | null {
 
 let _typeHeight: number | null = loadTypeHeight();
 let _activeTab: "layers" | "masks" = "layers";
+let _inspectorTab: "type" | "shape" = "type";
+let _lastSelectedLayerId: string | null = null;
 // Per-tab scroll of the list — sidebar.render() rebuilds the list DOM, which
 // would otherwise reset the scroll to top on every selection/toggle.
 let _tabScroll: Record<"layers" | "masks", number> = { layers: 0, masks: 0 };
@@ -114,28 +117,91 @@ export const sidebar = {
     const total = page ? (page.layers || []).length : 0;
     const maskCount = page ? (page.inpaintMasks || []).length : 0;
 
-    // Type section (hidden when no text layer selected; header click collapses)
+    // Auto-switch Type | Shape inspector when selected layer changes
+    const curSelId = page?._selectedLayerId ?? null;
+    if (curSelId !== _lastSelectedLayerId) {
+      _lastSelectedLayerId = curSelId;
+      const selLay = curSelId
+        ? page?.layers.find((l) => l.id === curSelId)
+        : null;
+      if (selLay?.type === "shape") _inspectorTab = "shape";
+      else if (
+        selLay?.type === "text-dialogue" ||
+        selLay?.type === "text-free"
+      )
+        _inspectorTab = "type";
+    }
+
+    // Inspector section (Type | Shape tabs + collapse toggle)
     const typeHost = document.createElement("div");
     scroll.appendChild(typeHost);
     typeSection.build(typeHost);
     typeSection.refresh();
-    if (_typeHeight && !typeSection.isCollapsed()) {
-      // Clamp to the current sidebar height (same budget as the splitter
-      // drag: tabs 32px + splitter 6px + ~10px for the list). The stored
-      // height can be stale after the page strip appears (workspace shrinks
-      // 68px) or the window resizes — without this the layer list gets
-      // pushed out of #sidebar and clipped by its overflow-hidden.
-      const max = scroll.clientHeight - 48;
-      const h = Math.max(TYPE_MIN_HEIGHT, Math.min(_typeHeight, max));
-      typeHost.style.maxHeight = "none";
-      typeHost.style.height = h + "px";
-    }
+
+    const shapeBody = document.createElement("div");
+    shapeSection.build(shapeBody);
+    typeHost.appendChild(shapeBody);
+
+    const typeBody = typeHost.querySelector<HTMLElement>("#type-body");
+    if (typeBody) typeBody.classList.toggle("hidden", _inspectorTab !== "type");
+    shapeBody.classList.toggle("hidden", _inspectorTab !== "shape");
+
     const typeHeader = typeHost.querySelector<HTMLElement>(".type-header");
     if (typeHeader) {
-      typeHeader.addEventListener("click", function () {
-        typeSection.toggleCollapsed();
-        sidebar.render();
-      });
+      const collapsed = typeSection.isCollapsed();
+      typeHeader.style.padding = "0 6px 0 0";
+      typeHeader.innerHTML =
+        '<div class="flex items-center flex-1 min-w-0">' +
+        '<button type="button" class="sidebar-tab' +
+        (_inspectorTab === "type" ? " active" : "") +
+        '" data-inspector="type" style="padding:5px 8px">' +
+        '<i data-lucide="type"></i><span>' +
+        esc(i18n.t("type.title")) +
+        "</span></button>" +
+        '<button type="button" class="sidebar-tab' +
+        (_inspectorTab === "shape" ? " active" : "") +
+        '" data-inspector="shape" style="padding:5px 8px">' +
+        '<i data-lucide="pen-tool"></i><span>' +
+        esc(i18n.t("layers.kindShape")) +
+        "</span></button>" +
+        "</div>" +
+        '<button type="button" class="type-collapse-btn" title="' +
+        esc(i18n.t(collapsed ? "type.expand" : "type.collapse")) +
+        '"><i data-lucide="' +
+        (collapsed ? "chevron-down" : "chevron-up") +
+        '"></i></button>';
+
+      typeHeader
+        .querySelectorAll<HTMLButtonElement>("[data-inspector]")
+        .forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const next = btn.getAttribute("data-inspector") as "type" | "shape";
+            if (typeSection.isCollapsed()) typeSection.toggleCollapsed();
+            _inspectorTab = next;
+            sidebar.render();
+          });
+        });
+
+      const collapseBtn = typeHeader.querySelector<HTMLButtonElement>(
+        ".type-collapse-btn",
+      );
+      if (collapseBtn) {
+        collapseBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          typeSection.toggleCollapsed();
+          sidebar.render();
+        });
+      }
+    }
+
+    if (_typeHeight && !typeSection.isCollapsed()) {
+      // Clamp to the current sidebar height; use maxHeight so shorter tabs
+      // (like Shape) shrink-wrap and let Layers | Masks slide up.
+      const max = scroll.clientHeight - 48;
+      const h = Math.max(TYPE_MIN_HEIGHT, Math.min(_typeHeight, max));
+      typeHost.style.maxHeight = h + "px";
+      typeHost.style.height = _inspectorTab === "type" ? h + "px" : "auto";
     }
 
     // Photoshop-style height splitter between Type and tabs/list

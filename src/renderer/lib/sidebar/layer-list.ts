@@ -12,6 +12,7 @@ const KIND_KEYS: Record<PageLayer["type"], string> = {
   "text-free": "layers.kindFree",
   cleanup: "layers.kindCleanup",
   image: "layers.kindImage",
+  shape: "layers.kindShape",
 };
 
 // Active editor tab per selected layer id ("source" | "translation"), kept
@@ -78,6 +79,9 @@ function syncEditorTabs(
 function layerName(layer: PageLayer): string {
   if (layer.type === "image") {
     return layer.name || i18n.t("layers.kindImage");
+  }
+  if (layer.type === "shape") {
+    return layer.name || i18n.t("layers.kindShape");
   }
   const text = layer.translation || layer.source || "";
   const trimmed = text.trim();
@@ -173,7 +177,11 @@ function layerRowHTML(page: Page, layer: PageLayer, idx: number): string {
     (idx + 1) +
     "</span>" +
     '<i data-lucide="' +
-    (layer.type === "image" ? "layers" : "type") +
+    (layer.type === "image"
+      ? "layers"
+      : layer.type === "shape"
+        ? "pen-tool"
+        : "type") +
     '" class="layer-icon"></i>' +
     '<div class="layer-name-wrap">' +
     '<span class="layer-name">' +
@@ -410,7 +418,9 @@ export function wireEvents(): void {
           !layer ||
           !target ||
           (layer.type !== "image" &&
+            layer.type !== "shape" &&
             target.type !== "image" &&
+            target.type !== "shape" &&
             dragType !== target.type)
         )
           return;
@@ -442,7 +452,9 @@ export function wireEvents(): void {
           !layer ||
           !target ||
           (layer.type !== "image" &&
+            layer.type !== "shape" &&
             target.type !== "image" &&
+            target.type !== "shape" &&
             dragType !== target.type)
         )
           return;

@@ -87,8 +87,8 @@
 - [x] text behind object/overlapping text feature
 - [x] adaptive collor cursor
 - [x] auto hide/move text tool format bar
-- [ ] Pen Tool as a complement to the Lasso and Rectangle selection tools
+- [x] Pen Tool as a complement to the Lasso and Rectangle selection tools
 - [x] Bug: Clean object in an area that has already been inpainted
 - [x] fix sometimes the settings reset after an update
-- [ ] nightly release build
+- [ ] nightly release build and update channel
 - [ ] testing and hunt another bugs

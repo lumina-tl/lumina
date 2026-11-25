@@ -64,7 +64,27 @@ export interface TextDetection extends BaseDetection {
  * text-free layers. Rendered over the original page image (mask layers sit
  * between background and text).
  */
-export type LayerType = "text-dialogue" | "text-free" | "cleanup" | "image";
+export type LayerType =
+  | "text-dialogue"
+  | "text-free"
+  | "cleanup"
+  | "image"
+  | "shape";
+
+export interface PathNode {
+  x: number;
+  y: number;
+  inX?: number;
+  inY?: number;
+  outX?: number;
+  outY?: number;
+}
+
+export interface ShapeStyle {
+  fill: string | null;
+  stroke: string | null;
+  strokeWidth: number;
+}
 
 export interface Typography {
   fontFamily: string | null; // null = default
@@ -153,6 +173,10 @@ export interface PageLayer {
   imageCanvas?: HTMLCanvasElement;
   imagePath?: string;
   name?: string;
+  /** Vector path nodes & style for shape layers */
+  pathNodes?: PathNode[];
+  pathClosed?: boolean;
+  shapeStyle?: ShapeStyle;
 }
 
 export interface InpaintMask {
@@ -223,6 +247,7 @@ export type ToolId =
   | "select"
   | "lasso"
   | "rect"
+  | "pen"
   | "text"
   | "brush"
   | "eraser"

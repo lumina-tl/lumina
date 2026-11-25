@@ -6,6 +6,11 @@ import { sidebar } from "../../sidebar";
 import { history } from "../../history";
 import { textIdxForLayerId, applyTextSelection } from "../detection/selection";
 import { reflowVerticalLayerBbox } from "../tools/text/vertical-reflow";
+import {
+  getEditingShapeId,
+  isEditingShapePath,
+  stopShapePathEdit,
+} from "../tools/pen/direct-select";
 
 function _findLayer(
   page: { layers: Array<{ id: string }> } | null,
@@ -30,6 +35,7 @@ canvas.selectLayer = function (
     page._expandedLayerId = null;
     page._selectedTextIdx = null;
     page._selectedTextIndices = [];
+    if (isEditingShapePath()) stopShapePathEdit();
     canvas.render();
     applyTextSelection(null);
     if (sidebar && sidebar.render) sidebar.render();
@@ -64,6 +70,9 @@ canvas.selectLayer = function (
 
   page._selectedLayerIds = ids;
   page._selectedLayerId = ids.length > 0 ? ids[ids.length - 1] : null;
+  if (isEditingShapePath() && page._selectedLayerId !== getEditingShapeId()) {
+    stopShapePathEdit();
+  }
   if (!ids.includes(page._expandedLayerId || "")) {
     page._expandedLayerId = null;
   }
@@ -250,7 +259,7 @@ canvas.moveLayerTo = function (id, insertAt): void {
   if (!page || from < 0) return;
   const layer = page.layers[from];
 
-  if (layer.type === "image") {
+  if (layer.type === "image" || layer.type === "shape") {
     const to = Math.max(0, Math.min(page.layers.length, insertAt));
     if (to === from || to === from + 1) return;
     page.layers.splice(from, 1);

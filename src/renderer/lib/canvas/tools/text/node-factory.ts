@@ -7,6 +7,7 @@ import { imgToStage } from "./shared";
 import { fitTextToBox, selectPreset, wordWrap } from "./font-fit";
 import { resolveSpans } from "./spans";
 import { reflowVerticalLayerBbox } from "./vertical-reflow";
+import { nodesToSvgPath } from "../pen/path-math";
 
 function makeRichTextGlyphsNode(
   layer: PageLayer,
@@ -269,6 +270,60 @@ export function makeImageLayerNode(layer: PageLayer): Konva.Group {
     outline.visible(false);
     canvas.getLayer()?.batchDraw();
   });
+
+  return group;
+}
+
+export function makeShapeLayerNode(layer: PageLayer): Konva.Group {
+  const sr = canvas.getScaleRatio();
+  const p = imgToStage(layer.bbox.x, layer.bbox.y);
+  const lw = Math.max(1, layer.bbox.w * sr);
+  const lh = Math.max(1, layer.bbox.h * sr);
+  const style = layer.shapeStyle;
+
+  const group = new Konva.Group({
+    name: "layer-text",
+    layerId: layer.id,
+    x: p.x,
+    y: p.y,
+    rotation: layer.typography?.rotation || 0,
+    opacity: layer.opacity ?? 1,
+  });
+
+  group.add(
+    new Konva.Rect({
+      name: "layer-text-box",
+      x: 0,
+      y: 0,
+      width: lw,
+      height: lh,
+      fill: "transparent",
+      listening: true,
+    }),
+  );
+
+  const pathData = nodesToSvgPath(
+    layer.pathNodes || [],
+    layer.pathClosed !== false,
+    layer.bbox.x,
+    layer.bbox.y,
+  );
+  if (pathData) {
+    group.add(
+      new Konva.Path({
+        name: "layer-shape-path",
+        data: pathData,
+        scaleX: sr,
+        scaleY: sr,
+        fill: style?.fill || undefined,
+        stroke: style?.stroke || undefined,
+        strokeWidth: style?.stroke ? (style.strokeWidth ?? 2) : 0,
+        lineJoin: "round",
+        lineCap: "round",
+        listening: true,
+      }),
+    );
+  }
 
   return group;
 }

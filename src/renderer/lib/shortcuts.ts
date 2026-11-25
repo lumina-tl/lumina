@@ -18,6 +18,7 @@ export type ActionId =
   | "toolSelect"
   | "toolLasso"
   | "toolRect"
+  | "toolPen"
   | "toolText"
   | "toolBrush"
   | "toolEraser"
@@ -41,6 +42,7 @@ export const shortcuts = {
     toolSelect: "V",
     toolLasso: "L",
     toolRect: "R",
+    toolPen: "P",
     toolText: "T",
     toolBrush: "B",
     toolEraser: "E",
@@ -154,6 +156,9 @@ export const shortcuts = {
         },
         toolRect: function () {
           tools.setActive("rect");
+        },
+        toolPen: function () {
+          tools.setActive("pen");
         },
         toolText: function () {
           tools.setActive("text");

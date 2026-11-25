@@ -18,7 +18,8 @@ import {
 const _lastClickAt: Record<string, number> = {};
 let _multiDragStarts: Map<Konva.Node, { x: number; y: number }> | null = null;
 let _dragLeaderStart: { x: number; y: number } | null = null;
-import { makeNode, makeImageLayerNode } from "./node-factory";
+import { makeNode, makeImageLayerNode, makeShapeLayerNode } from "./node-factory";
+import { startShapePathEdit } from "../pen/direct-select";
 import {
   syncTransformerSelection,
   onNodeTransformEnd,
@@ -53,6 +54,8 @@ export function renderLayerTextNodes(): void {
       let node: Konva.Group;
       if (lay.type === "image") {
         node = makeImageLayerNode(lay);
+      } else if (lay.type === "shape") {
+        node = makeShapeLayerNode(lay);
       } else {
         // OCR/translation of dialogue layers only appears after inpainting —
         // before that the canvas shows the untouched original + boxes.
@@ -78,7 +81,9 @@ export function renderLayerTextNodes(): void {
         const now = Date.now();
         if (now - (_lastClickAt[lay.id] || 0) < 350) {
           delete _lastClickAt[lay.id];
-          if (lay.type !== "image") {
+          if (lay.type === "shape") {
+            startShapePathEdit(lay.id);
+          } else if (lay.type !== "image") {
             // Double-click → edit in place (switching to the text tool first).
             if (state.activeTool !== "text") tools.setActive("text");
             startEdit(lay.id);
@@ -151,6 +156,18 @@ export function renderLayerTextNodes(): void {
               return l.id === (n.getAttr("layerId") as string);
             });
             if (target) {
+              const dx = img.x - target.bbox.x;
+              const dy = img.y - target.bbox.y;
+              if (target.type === "shape" && target.pathNodes && (dx || dy)) {
+                target.pathNodes.forEach((pt) => {
+                  pt.x += dx;
+                  pt.y += dy;
+                  if (pt.inX !== undefined) pt.inX += dx;
+                  if (pt.inY !== undefined) pt.inY += dy;
+                  if (pt.outX !== undefined) pt.outX += dx;
+                  if (pt.outY !== undefined) pt.outY += dy;
+                });
+              }
               target.bbox.x = img.x;
               target.bbox.y = img.y;
             }
@@ -165,6 +182,18 @@ export function renderLayerTextNodes(): void {
             return l.id === (node.getAttr("layerId") as string);
           });
           if (target) {
+            const dx = img.x - target.bbox.x;
+            const dy = img.y - target.bbox.y;
+            if (target.type === "shape" && target.pathNodes && (dx || dy)) {
+              target.pathNodes.forEach((pt) => {
+                pt.x += dx;
+                pt.y += dy;
+                if (pt.inX !== undefined) pt.inX += dx;
+                if (pt.inY !== undefined) pt.inY += dy;
+                if (pt.outX !== undefined) pt.outX += dx;
+                if (pt.outY !== undefined) pt.outY += dy;
+              });
+            }
             target.bbox.x = img.x;
             target.bbox.y = img.y;
             history.snapshot();

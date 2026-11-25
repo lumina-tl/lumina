@@ -5,6 +5,7 @@ import { ensureCleanupCanvas } from "../../canvas/tools/paint/shared";
 import { ensureMaskImages, ensureCleanupForExport } from "../render";
 import * as pageImages from "../../project/page-images";
 import { mapLayerToPsdText } from "./text-map";
+import { nodesToSvgPath } from "../../canvas/tools/pen/path-math";
 
 /** Render to offscreen canvas and return PixelData for ag-psd. */
 function renderToImageData(
@@ -184,6 +185,48 @@ function buildPageLayers(
               ),
             lay.bbox.w,
             lay.bbox.h,
+          ),
+        });
+      }
+      continue;
+    }
+    if (lay.type === "shape") {
+      const pathData = nodesToSvgPath(
+        lay.pathNodes || [],
+        lay.pathClosed !== false,
+        lay.bbox.x,
+        lay.bbox.y,
+      );
+      if (pathData) {
+        const st = lay.shapeStyle;
+        const pad = st?.stroke ? Math.ceil(st.strokeWidth || 2) : 0;
+        const w = Math.max(1, Math.round(lay.bbox.w + pad * 2));
+        const h = Math.max(1, Math.round(lay.bbox.h + pad * 2));
+        children.push({
+          name: lay.name || "Shape",
+          top: offsetY + lay.bbox.y - pad,
+          left: offsetX + lay.bbox.x - pad,
+          bottom: offsetY + lay.bbox.y - pad + h,
+          right: offsetX + lay.bbox.x - pad + w,
+          opacity: lay.opacity ?? 1,
+          imageData: renderToImageData(
+            (ctx) => {
+              ctx.translate(pad, pad);
+              const p2d = new Path2D(pathData);
+              if (st?.fill) {
+                ctx.fillStyle = st.fill;
+                ctx.fill(p2d);
+              }
+              if (st?.stroke) {
+                ctx.strokeStyle = st.stroke;
+                ctx.lineWidth = st.strokeWidth ?? 2;
+                ctx.lineJoin = "round";
+                ctx.lineCap = "round";
+                ctx.stroke(p2d);
+              }
+            },
+            w,
+            h,
           ),
         });
       }
