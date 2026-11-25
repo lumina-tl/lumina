@@ -2,6 +2,7 @@
  * Lumina What's New & Developer Notes Modal Dialog
  * Displays latest changelog from CHANGELOG.md alongside developer announcements.
  */
+import * as storage from "../storage";
 import changelogRaw from "../../../../CHANGELOG.md";
 import pkg from "../../../../package.json";
 import * as i18n from "../i18n";
@@ -105,7 +106,7 @@ export function closeChangelog(): void {
     el.remove();
   }, 160);
   _overlay = null;
-  localStorage.setItem(LAST_SEEN_KEY, pkg.version);
+  storage.setItem(LAST_SEEN_KEY, pkg.version);
 }
 
 function renderBadge(type: string): string {
@@ -325,7 +326,7 @@ export function openChangelogModal(initialTab: "changelog" | "notices" = "change
 
 /** Check version on app startup and auto-open modal if new */
 export function checkAutoOpenChangelog(): void {
-  const seen = localStorage.getItem(LAST_SEEN_KEY);
+  const seen = storage.getItem(LAST_SEEN_KEY);
   if (!seen || seen !== pkg.version) {
     // Small delay so initial canvas and UI finish mounting first
     setTimeout(() => {

@@ -1,4 +1,5 @@
 /** Typography inspector — fixed-height section at top of sidebar. */
+import * as storage from "../storage";
 import { state } from "../state";
 import * as i18n from "../i18n";
 import { canvas } from "../canvas/index";
@@ -23,7 +24,7 @@ const FONT_SIZE_PRESETS = [
 const WEIGHTS = [400, 500, 600, 700, 800, 900];
 
 const TYPE_COLLAPSED_KEY = "lumina-type-collapsed";
-let _collapsed = localStorage.getItem(TYPE_COLLAPSED_KEY) === "1";
+let _collapsed = storage.getItem(TYPE_COLLAPSED_KEY) === "1";
 
 /** Global type defaults — new layers inherit these (Photoshop-style) */
 let _globalType: Typography = loadGlobalTypography();
@@ -34,7 +35,7 @@ const MAX_RECENT_FONTS = 5;
 /** Recently used fonts (internal names, newest first) */
 function loadRecentFonts(): string[] {
   try {
-    const raw = localStorage.getItem(RECENT_FONTS_KEY);
+    const raw = storage.getItem(RECENT_FONTS_KEY);
     const arr = raw ? (JSON.parse(raw) as unknown) : [];
     if (!Array.isArray(arr)) return [];
     return arr.filter(function (v): v is string {
@@ -46,7 +47,7 @@ function loadRecentFonts(): string[] {
 }
 
 function saveRecentFonts(list: string[]): void {
-  localStorage.setItem(
+  storage.setItem(
     RECENT_FONTS_KEY,
     JSON.stringify(list.slice(0, MAX_RECENT_FONTS)),
   );
@@ -101,7 +102,7 @@ const PICKER_SIZE_KEY = "lumina:fontPickerSize";
 let _pickerPos: { x: number; y: number } | null = null;
 let _pickerSize: { w: number; h: number } | null = null;
 {
-  const rawPos = localStorage.getItem(PICKER_POS_KEY);
+  const rawPos = storage.getItem(PICKER_POS_KEY);
   if (rawPos) {
     try {
       const p = JSON.parse(rawPos) as { x?: unknown; y?: unknown };
@@ -111,7 +112,7 @@ let _pickerSize: { w: number; h: number } | null = null;
       /* ignore */
     }
   }
-  const rawSize = localStorage.getItem(PICKER_SIZE_KEY);
+  const rawSize = storage.getItem(PICKER_SIZE_KEY);
   if (rawSize) {
     try {
       const s = JSON.parse(rawSize) as { w?: unknown; h?: unknown };
@@ -156,7 +157,7 @@ export const typeSection = {
 
   toggleCollapsed(): void {
     _collapsed = !_collapsed;
-    localStorage.setItem(TYPE_COLLAPSED_KEY, _collapsed ? "1" : "0");
+    storage.setItem(TYPE_COLLAPSED_KEY, _collapsed ? "1" : "0");
   },
 
   /** Build DOM once; visibility toggled on each sidebar render */
@@ -384,7 +385,7 @@ export const typeSection = {
       if (panel.hidden) return; // display:none reports 0×0
       const r = entries[entries.length - 1].contentRect;
       _pickerSize = { w: Math.round(r.width), h: Math.round(r.height) };
-      localStorage.setItem(PICKER_SIZE_KEY, JSON.stringify(_pickerSize));
+      storage.setItem(PICKER_SIZE_KEY, JSON.stringify(_pickerSize));
     });
     ro.observe(panel);
     const head = document.createElement("div");
@@ -586,7 +587,7 @@ export const typeSection = {
           x: parseFloat(panel.style.left) || 0,
           y: parseFloat(panel.style.top) || 0,
         };
-        localStorage.setItem(PICKER_POS_KEY, JSON.stringify(_pickerPos));
+        storage.setItem(PICKER_POS_KEY, JSON.stringify(_pickerPos));
       };
       document.addEventListener("mousemove", onMove);
       document.addEventListener("mouseup", onUp);

@@ -1,3 +1,5 @@
+import * as storage from "./lib/storage";
+
 /* ── Lumina Shared Types ── */
 
 // IPC contract types — single source of truth in src/shared/bridge.ts
@@ -100,7 +102,7 @@ const GLOBAL_TYPE_KEY = "lumina-global-type";
 
 export function loadGlobalTypography(): Typography {
   try {
-    const raw = localStorage.getItem(GLOBAL_TYPE_KEY);
+    const raw = storage.getItem(GLOBAL_TYPE_KEY);
     if (raw) {
       const t = Object.assign(defaultTypography(), JSON.parse(raw));
       t.fontSize = null; // session-only — always start with auto-fit
@@ -116,7 +118,7 @@ export function saveGlobalTypography(t: Typography): void {
   try {
     // fontSize is session-only — exclude from persistence so it resets to auto on restart.
     const copy = Object.assign({}, t, { fontSize: null });
-    localStorage.setItem(GLOBAL_TYPE_KEY, JSON.stringify(copy));
+    storage.setItem(GLOBAL_TYPE_KEY, JSON.stringify(copy));
   } catch {
     /* storage full/blocked — non-fatal */
   }

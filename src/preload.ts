@@ -56,6 +56,11 @@ const api: LuminaAPI = {
   getModelsPath: () => invoke(IPC.modelsPathGet),
   setModelsPath: (value) => invoke(IPC.modelsPathSet, value),
   chooseModelsPath: () => invoke(IPC.modelsPathChoose),
+  getSettingsSync: () =>
+    ipcRenderer.sendSync(IPC.settingsGetAllSync) as Record<string, string>,
+  setSetting: (key, value) => invoke(IPC.settingsSet, key, value),
+  deleteSetting: (key) => invoke(IPC.settingsDelete, key),
+  setSettingsBatch: (entries) => invoke(IPC.settingsSetBatch, entries),
   saveProject: (payload) => invoke(IPC.saveProject, payload),
   openProject: (path) => invoke(IPC.openProject, path ?? undefined),
   getPendingOpenPath: () => invoke(IPC.pendingOpenPath),

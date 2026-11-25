@@ -1,8 +1,9 @@
 /** Lumina i18n — localization loaded from JSON via IPC */
+import * as storage from "./storage";
 
 type TranslationData = Record<string, Record<string, string>>;
 
-let _lang: string = localStorage.getItem("lumina-lang") || "en";
+let _lang: string = storage.getItem("lumina-lang") || "en";
 let _data: TranslationData = {};
 
 function _interpolate(str: string, params?: Record<string, unknown>): string {
@@ -26,7 +27,7 @@ export function lang(): string {
 export function setLang(code: string): void {
   if (code === _lang) return;
   _lang = code;
-  localStorage.setItem("lumina-lang", code);
+  storage.setItem("lumina-lang", code);
   document.documentElement.lang = code;
   _renderAll();
 }

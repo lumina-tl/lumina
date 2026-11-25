@@ -1,4 +1,5 @@
 /** Font Market modal — Feed Gallery layout with instant CSS Webfont Subsetting. */
+import * as storage from "../storage";
 import * as i18n from "../i18n";
 import { state } from "../state";
 import { canvas } from "../canvas/index";
@@ -73,7 +74,7 @@ let _currentSearchSeq = 0;
 
 function loadRect(): ModalRect | null {
   try {
-    const raw = localStorage.getItem(WINDOW_KEY);
+    const raw = storage.getItem(WINDOW_KEY);
     if (!raw) return null;
     const r = JSON.parse(raw) as ModalRect;
     if (
@@ -94,7 +95,7 @@ function saveRect(): void {
   const modal = document.getElementById("font-market-modal");
   if (!modal) return;
   try {
-    localStorage.setItem(WINDOW_KEY, JSON.stringify(currentRect(modal)));
+    storage.setItem(WINDOW_KEY, JSON.stringify(currentRect(modal)));
   } catch {
     /* storage unavailable */
   }

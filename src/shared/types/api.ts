@@ -72,6 +72,10 @@ export interface LuminaAPI {
   getModelsPath(): Promise<ModelsPathState>;
   setModelsPath(value: string): Promise<ModelsPathState>;
   chooseModelsPath(): Promise<string | null>;
+  getSettingsSync(): Record<string, string>;
+  setSetting(key: string, value: string): Promise<void>;
+  deleteSetting(key: string): Promise<void>;
+  setSettingsBatch(entries: Record<string, string>): Promise<void>;
   saveProject(payload: ProjectSavePayload): Promise<ProjectSaveResult>;
   openProject(path?: string): Promise<OpenProjectResult | null>;
   getPendingOpenPath(): Promise<string | null>;

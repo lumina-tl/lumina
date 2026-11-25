@@ -8,7 +8,7 @@ import * as i18n from "../i18n";
 import { ui } from "../ui";
 import { history } from "../history";
 import { canvas } from "../canvas/index";
-import { invalidateComposite } from "../canvas/render";
+import { invalidateComposite, getPageRasterSource } from "../canvas/render";
 import { sidebar } from "../sidebar";
 import { models } from "../models";
 import { log } from "../logger";
@@ -35,11 +35,32 @@ function loadImage(p: string): Promise<HTMLImageElement> {
   });
 }
 
+async function resolveCompositeImagePath(page: Page): Promise<string> {
+  const hasMasks =
+    page.inpaintMasks.some((m) => m.visible !== false && m.opacity > 0) ||
+    Boolean(page.cleanupMask && page.cleanupMask.visible !== false);
+  if (!hasMasks) return page.filePath;
+  const src = getPageRasterSource(page);
+  if (!(src instanceof HTMLCanvasElement)) return page.filePath;
+  const blob: Blob | null = await new Promise((res) =>
+    src.toBlob(res, "image/png"),
+  );
+  if (!blob) return page.filePath;
+  const buf = await blob.arrayBuffer();
+  const saved = await window.lumina.writeTempPng({
+    data: new Uint8Array(buf),
+    subdir: "inpaint-src",
+    name: `${page.fileName}.png`,
+  });
+  return saved.path;
+}
+
 async function createMasks(
   page: Page,
   model: string,
   boxes: BBox[] = page.textDetections.map((d) => d.bbox),
   onProgress?: (p: { current: number; total: number }) => void,
+  opts?: { imagePath?: string; maskPath?: string | null },
 ): Promise<InpaintMask[]> {
   const result = await window.lumina.apiPostStream<{
     patches?: Array<{ bbox: BBox; imagePath: string }>;
@@ -48,8 +69,8 @@ async function createMasks(
   }>(
     "/inpaint/stream",
     {
-      imagePath: page.filePath,
-      maskPath: page.maskPath ?? null,
+      imagePath: opts?.imagePath ?? page.filePath,
+      maskPath: opts?.maskPath !== undefined ? opts.maskPath : (page.maskPath ?? null),
       boxes,
       model,
     },
@@ -192,12 +213,19 @@ export const inpaint = {
     );
     try {
       const model = models.selectedModel("inpaint") || "lama_manga";
-      const masks = await createMasks(page, model, validBoxes, (p) => {
-        ui.updateToast(
-          loadingToast,
-          i18n.t("toast.inpaintProgress", { current: p.current, total: p.total }),
-        );
-      });
+      const imagePath = await resolveCompositeImagePath(page);
+      const masks = await createMasks(
+        page,
+        model,
+        validBoxes,
+        (p) => {
+          ui.updateToast(
+            loadingToast,
+            i18n.t("toast.inpaintProgress", { current: p.current, total: p.total }),
+          );
+        },
+        { imagePath, maskPath: null },
+      );
       page.inpaintMasks.push(...masks);
       if (masks.length)
         page._selectedMaskId = masks[masks.length - 1].id;

@@ -1,4 +1,5 @@
 /** Model manager public API — composes state, selection, buttons, progress. */
+import * as storage from "../storage";
 import * as i18n from "../i18n";
 import { describe } from "./descriptions";
 import type { DeviceInfo, DownloadProgress, ModelInfo } from "../../types";
@@ -62,7 +63,7 @@ export const models = {
 
   /** Toggle GPU acceleration (live — no restart needed). */
   async setUseGpu(v: boolean): Promise<DeviceInfo | null> {
-    localStorage.setItem(USE_GPU_KEY, v ? "1" : "0");
+    storage.setItem(USE_GPU_KEY, v ? "1" : "0");
     try {
       s.device = await window.lumina.setUseGpu(v);
     } catch {

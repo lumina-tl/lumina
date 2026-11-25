@@ -1,4 +1,5 @@
 /** Periodically persist session to current .lmi (skips during pipeline/download). */
+import * as storage from "../storage";
 import { state } from "../state";
 import { isDirty, getSavePath } from "./dirty";
 import { models } from "../models";
@@ -20,7 +21,7 @@ export function defaultConfig(): AutoSaveConfig {
 export function load(): AutoSaveConfig {
   const cfg = defaultConfig();
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = storage.getItem(STORAGE_KEY);
     if (raw) {
       const p = JSON.parse(raw) as Partial<AutoSaveConfig>;
       cfg.enabled = typeof p.enabled === "boolean" ? p.enabled : cfg.enabled;
@@ -36,7 +37,7 @@ export function load(): AutoSaveConfig {
 }
 
 function save(cfg: AutoSaveConfig): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
+  storage.setItem(STORAGE_KEY, JSON.stringify(cfg));
 }
 
 /** Persist the config and restart the timer (called from Settings). */

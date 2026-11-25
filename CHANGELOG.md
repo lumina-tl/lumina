@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **False text rotation.** Fixed over-aggressive slant detection tilting straight dialogue bubbles.
 - **Update installer freeze on Windows.** Fixed update installations stalling or failing due to background process file locks.
+- **Settings reset on update.** Fixed app settings resetting to defaults after updates.
+- **Manual clean over inpainted areas.** Fixed "Clean area" sampling the original image instead of existing inpaint/cleanup layers.
 
 ## [0.6.0] - 23-11-2026
 

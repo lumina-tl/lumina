@@ -1,4 +1,5 @@
 /** Paint shared state — brush settings, cleanup lifecycle, coord mapping. */
+import * as storage from "../../../storage";
 import { state } from "../../../state";
 import { canvas } from "../../index";
 import { markSourcesDirty } from "../../render";
@@ -30,7 +31,7 @@ function defaultSettings(): PaintSettings {
 
 let _settings: PaintSettings = (function () {
   try {
-    const raw = localStorage.getItem(PAINT_KEY);
+    const raw = storage.getItem(PAINT_KEY);
     if (raw) return Object.assign(defaultSettings(), JSON.parse(raw));
   } catch {
     /* corrupted — fall through */
@@ -44,7 +45,7 @@ export function paintSettings(): PaintSettings {
 
 function persist(): void {
   try {
-    localStorage.setItem(PAINT_KEY, JSON.stringify(_settings));
+    storage.setItem(PAINT_KEY, JSON.stringify(_settings));
   } catch {
     /* storage blocked — non-fatal */
   }

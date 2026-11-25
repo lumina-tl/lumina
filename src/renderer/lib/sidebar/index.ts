@@ -1,4 +1,5 @@
 /** Lumina Sidebar (entry) — koharu-style Type + Layers|Masks panels */
+import * as storage from "../storage";
 import { state } from "../state";
 import * as i18n from "../i18n";
 import { createIcons } from "../ui/icons";
@@ -12,7 +13,7 @@ const TYPE_MIN_HEIGHT = 72;
 const TYPE_STORAGE_KEY = "lumina-type-height";
 
 function loadTypeHeight(): number | null {
-  const raw = localStorage.getItem(TYPE_STORAGE_KEY);
+  const raw = storage.getItem(TYPE_STORAGE_KEY);
   const v = raw ? parseInt(raw, 10) : NaN;
   return Number.isFinite(v) && v > 0 ? v : null;
 }
@@ -48,7 +49,7 @@ function wireSplitter(
       document.removeEventListener("mousemove", onMove);
       document.removeEventListener("mouseup", onUp);
       _typeHeight = typeHost.offsetHeight;
-      localStorage.setItem(TYPE_STORAGE_KEY, String(_typeHeight));
+      storage.setItem(TYPE_STORAGE_KEY, String(_typeHeight));
     };
     document.addEventListener("mousemove", onMove);
     document.addEventListener("mouseup", onUp);

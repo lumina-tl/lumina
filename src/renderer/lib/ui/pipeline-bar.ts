@@ -2,6 +2,7 @@
  * Floating, draggable pipeline bar over the canvas with expandable model selectors,
  * auto-hide/dimming, minimize toggle, and run-all sequence.
  */
+import * as storage from "../storage";
 import * as i18n from "../i18n";
 import { models } from "../models";
 import {
@@ -41,7 +42,7 @@ function _esc(s: string): string {
 /** Save position to localStorage */
 function _savePos(x: number, y: number): void {
   try {
-    localStorage.setItem(POS_STORAGE_KEY, JSON.stringify({ x, y }));
+    storage.setItem(POS_STORAGE_KEY, JSON.stringify({ x, y }));
   } catch {
     /* ignore */
   }
@@ -50,7 +51,7 @@ function _savePos(x: number, y: number): void {
 /** Load position from localStorage */
 function _loadPos(): { x: number; y: number } | null {
   try {
-    const raw = localStorage.getItem(POS_STORAGE_KEY);
+    const raw = storage.getItem(POS_STORAGE_KEY);
     if (raw) return JSON.parse(raw);
   } catch {
     /* ignore */
@@ -154,7 +155,7 @@ function _setMinimized(min: boolean): void {
   const restoreBtn = document.getElementById("btn-pipeline-restore");
 
   if (min) {
-    localStorage.setItem(MINIMIZED_STORAGE_KEY, "1");
+    storage.setItem(MINIMIZED_STORAGE_KEY, "1");
     _bar.classList.add("minimized-state");
     restoreBtn?.classList.remove("hidden");
     if (restoreBtn) createIcons({ root: restoreBtn });
@@ -166,7 +167,7 @@ function _setMinimized(min: boolean): void {
       _bar?.classList.add("hidden");
     }, 220);
   } else {
-    localStorage.setItem(MINIMIZED_STORAGE_KEY, "0");
+    storage.setItem(MINIMIZED_STORAGE_KEY, "0");
     restoreBtn?.classList.add("hidden");
 
     _bar.classList.remove("hidden");
@@ -498,7 +499,7 @@ export const pipelineBar = {
     }
 
     // Restore minimized state
-    const isMin = localStorage.getItem(MINIMIZED_STORAGE_KEY) === "1";
+    const isMin = storage.getItem(MINIMIZED_STORAGE_KEY) === "1";
     if (isMin) {
       _setMinimized(true);
     }
@@ -584,7 +585,7 @@ export const pipelineBar = {
   /** Show pipeline bar or restore button when canvas/image is active */
   show(): void {
     if (!_bar) return;
-    const isMin = localStorage.getItem(MINIMIZED_STORAGE_KEY) === "1";
+    const isMin = storage.getItem(MINIMIZED_STORAGE_KEY) === "1";
     const restoreBtn = document.getElementById("btn-pipeline-restore");
     if (isMin) {
       _bar.classList.add("hidden");

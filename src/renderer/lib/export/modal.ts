@@ -1,5 +1,6 @@
 /** Export modal window: build, wire up, close, and export. */
 
+import * as storage from "../storage";
 import { createIcons } from "../ui/icons";
 import * as i18n from "../i18n";
 import { ui } from "../ui";
@@ -26,7 +27,7 @@ import {
 
 function loadExportRect(): ModalRect | null {
   try {
-    const raw = localStorage.getItem(WINDOW_KEY);
+    const raw = storage.getItem(WINDOW_KEY);
     if (!raw) return null;
     const r = JSON.parse(raw) as ModalRect;
     if (
@@ -47,7 +48,7 @@ function saveExportRect(): void {
   const modal = document.getElementById("export-modal");
   if (!modal) return;
   try {
-    localStorage.setItem(WINDOW_KEY, JSON.stringify(currentRect(modal)));
+    storage.setItem(WINDOW_KEY, JSON.stringify(currentRect(modal)));
   } catch {
     /* storage unavailable — ignore */
   }

@@ -1,4 +1,5 @@
 /** Lumina Shortcuts — Keybinding Manager */
+import * as storage from "./storage";
 import * as i18n from "./i18n";
 import { history } from "./history";
 import { tools } from "./ui/tools";
@@ -56,7 +57,7 @@ export const shortcuts = {
   init(): void {
     try {
       this._custom = JSON.parse(
-        localStorage.getItem("lumina-shortcuts") || "{}",
+        storage.getItem("lumina-shortcuts") || "{}",
       );
     } catch (e) {
       this._custom = {};
@@ -78,13 +79,13 @@ export const shortcuts = {
     } else {
       this._custom[action] = combo;
     }
-    localStorage.setItem("lumina-shortcuts", JSON.stringify(this._custom));
+    storage.setItem("lumina-shortcuts", JSON.stringify(this._custom));
     this.updateHeaderTitles();
   },
 
   resetAll(): void {
     this._custom = {};
-    localStorage.removeItem("lumina-shortcuts");
+    storage.removeItem("lumina-shortcuts");
     this.updateHeaderTitles();
   },
 

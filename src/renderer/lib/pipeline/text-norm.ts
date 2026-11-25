@@ -5,6 +5,8 @@
  * in the layer editor are never passed through this.
  */
 
+import * as storage from "../storage";
+
 export type OcrNormalizeMode = "none" | "lowercase" | "uppercase";
 
 const STORAGE_KEY = "lumina-ocr-normalize";
@@ -12,7 +14,7 @@ const STORAGE_KEY = "lumina-ocr-normalize";
 /** Get the current OCR text normalization mode. */
 export function getOcrNormalizeMode(): OcrNormalizeMode {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = storage.getItem(STORAGE_KEY);
     if (raw === "lowercase" || raw === "uppercase") return raw;
   } catch {}
   return "none";
@@ -21,7 +23,7 @@ export function getOcrNormalizeMode(): OcrNormalizeMode {
 /** Set the OCR text normalization mode. */
 export function setOcrNormalizeMode(mode: OcrNormalizeMode): void {
   try {
-    localStorage.setItem(STORAGE_KEY, mode);
+    storage.setItem(STORAGE_KEY, mode);
   } catch {}
 }
 

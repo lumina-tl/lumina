@@ -1,4 +1,5 @@
 /** Lumina Pipeline — Facade */
+import * as storage from "../storage";
 import { detection } from "./detection";
 import { ocr } from "./ocr";
 import { translate } from "./translate";
@@ -23,7 +24,7 @@ const PRESET_KEY = "lumina-pipeline-preset";
 /** Load saved preset (default: full). */
 export function loadPreset(): PresetId {
   try {
-    const raw = localStorage.getItem(PRESET_KEY);
+    const raw = storage.getItem(PRESET_KEY);
     if (raw === "clean") return "clean";
   } catch {
     /* ignore */
@@ -34,7 +35,7 @@ export function loadPreset(): PresetId {
 /** Persist preset selection. */
 export function savePreset(id: PresetId): void {
   try {
-    localStorage.setItem(PRESET_KEY, id);
+    storage.setItem(PRESET_KEY, id);
   } catch {
     /* ignore */
   }

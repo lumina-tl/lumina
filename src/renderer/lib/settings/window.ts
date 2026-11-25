@@ -1,3 +1,5 @@
+import * as storage from "../storage";
+
 /* ── Settings modal: floating window (drag via titlebar, resize via corner grip) ──
  * Position/size persisted in localStorage so the window reopens where it was left.
  */
@@ -16,7 +18,7 @@ interface WindowRect {
 
 function loadRect(): WindowRect | null {
   try {
-    const raw = localStorage.getItem(STORE_KEY);
+    const raw = storage.getItem(STORE_KEY);
     if (!raw) return null;
     const r = JSON.parse(raw) as WindowRect;
     if (
@@ -35,7 +37,7 @@ function loadRect(): WindowRect | null {
 
 function saveRect(r: WindowRect): void {
   try {
-    localStorage.setItem(STORE_KEY, JSON.stringify(r));
+    storage.setItem(STORE_KEY, JSON.stringify(r));
   } catch {
     /* storage unavailable — ignore */
   }

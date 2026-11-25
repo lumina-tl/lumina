@@ -40,6 +40,12 @@ export const IPC = {
   modelsPathSet: "models-path-set",
   modelsPathChoose: "models-path-choose",
 
+  // App settings
+  settingsGetAllSync: "settings-get-all-sync",
+  settingsSet: "settings-set",
+  settingsDelete: "settings-delete",
+  settingsSetBatch: "settings-set-batch",
+
   // Project
   saveProject: "save-project",
   openProject: "open-project",

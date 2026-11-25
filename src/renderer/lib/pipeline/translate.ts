@@ -2,6 +2,7 @@
  * Non-secret config persisted in localStorage; API keys stored encrypted
  * via safeStorage vault (main/storage.ts) and injected per-request.
  */
+import * as storage from "../storage";
 import { state } from "../state";
 import * as i18n from "../i18n";
 import { ui } from "../ui";
@@ -63,7 +64,7 @@ export const translateSettings = {
   load(): TranslateConfig {
     let cfg: TranslateConfig = defaultConfig();
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = storage.getItem(STORAGE_KEY);
       if (raw) cfg = { ...cfg, ...(JSON.parse(raw) as StoredConfig) };
     } catch {
       /* keep defaults */
@@ -88,7 +89,7 @@ export const translateSettings = {
       grokModel: cfg.grokModel,
       geminiModel: cfg.geminiModel,
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+    storage.setItem(STORAGE_KEY, JSON.stringify(stored));
     if (window.lumina.setSecret) {
       // Each provider keeps its own key — empty fields never wipe the vault
       if (cfg.llmApiKey) window.lumina.setSecret("llmApiKey", cfg.llmApiKey);
