@@ -345,6 +345,7 @@
   "layers.source": "Source",
   "layers.translation": "Translation",
   "layers.toggleVisible": "Toggle visibility",
+  "layers.toggleLock": "Lock / Unlock layer",
   "layers.mask": "Mask",
   "layers.maskCount": "{{count}} patches",
   "layers.background": "Background",

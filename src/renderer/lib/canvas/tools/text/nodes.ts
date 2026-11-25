@@ -66,6 +66,10 @@ export function renderLayerTextNodes(): void {
         if (!text) return;
         node = makeNode(lay, text);
       }
+      if (lay.locked) {
+        node.listening(false);
+        node.draggable(false);
+      }
       node.on("click tap", function (e) {
         e.cancelBubble = true;
         if (isEditing()) return;

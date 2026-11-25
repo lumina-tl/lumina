@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Pen tool with vector shapes.** Added Bezier Pen tool (`P`) for creating selections or editable vector shape layers with fill, stroke, and direct anchor/handle editing.
 - **Individual model unloading.** Added a remove button on each active model tag in the resource monitor to unload models one at a time.
 - **Nightly update channel.** Added a Stable/Nightly update channel selector in General settings and automated nightly builds on every `main` commit.
+- **Layer locking.** Added a lock/unlock toggle on each layer to prevent accidental selection, movement, editing, or deletion.
 
 ### Changed
 

@@ -188,11 +188,26 @@ canvas.toggleBackgroundVisible = function (): void {
   history.snapshot();
 };
 
+canvas.toggleLayerLocked = function (id): void {
+  const page = state.getActivePage();
+  const i = _findLayer(page, id);
+  if (!page || i < 0) return;
+  const layer = page.layers[i];
+  layer.locked = !layer.locked;
+  if (layer.locked && isEditingShapePath(id)) {
+    stopShapePathEdit();
+  }
+  canvas.render();
+  sidebar.render();
+  history.snapshot();
+};
+
 canvas.deleteLayer = function (id): void {
   const page = state.getActivePage();
   const i = _findLayer(page, id);
   if (!page || i < 0) return;
   const layer = page.layers[i];
+  if (layer.locked) return;
   const detIdx = textIdxForLayerId(page, id);
   page.layers.splice(i, 1);
   // Mirror deletion into the parallel detection model
@@ -222,7 +237,13 @@ canvas.deleteMultipleLayers = function (ids): void {
   const page = state.getActivePage();
   if (!page || !ids.length) return;
 
-  const toDelete = new Set(ids);
+  const toDelete = new Set(
+    ids.filter((id) => {
+      const l = page.layers.find((x) => x.id === id);
+      return l && !l.locked;
+    }),
+  );
+  if (toDelete.size === 0) return;
   // Find all detection indices to remove
   const detIndicesToRemove: number[] = [];
   page.layers.forEach((l) => {

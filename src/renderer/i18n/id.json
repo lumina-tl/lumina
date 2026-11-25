@@ -345,6 +345,7 @@
   "layers.source": "Sumber",
   "layers.translation": "Terjemahan",
   "layers.toggleVisible": "Tampilkan/sembunyikan",
+  "layers.toggleLock": "Kunci / Buka kunci layer",
   "layers.mask": "Masker",
   "layers.maskCount": "{{count}} tambalan",
   "layers.background": "Latar Belakang",

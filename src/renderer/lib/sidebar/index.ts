@@ -146,6 +146,19 @@ export const sidebar = {
     if (typeBody) typeBody.classList.toggle("hidden", _inspectorTab !== "type");
     shapeBody.classList.toggle("hidden", _inspectorTab !== "shape");
 
+    const selLocked = !!(
+      page?._selectedLayerId &&
+      page.layers.find((l) => l.id === page._selectedLayerId)?.locked
+    );
+    if (selLocked) {
+      if (typeBody) {
+        typeBody.style.opacity = "0.45";
+        typeBody.style.pointerEvents = "none";
+      }
+      shapeBody.style.opacity = "0.45";
+      shapeBody.style.pointerEvents = "none";
+    }
+
     const typeHeader = typeHost.querySelector<HTMLElement>(".type-header");
     if (typeHeader) {
       const collapsed = typeSection.isCollapsed();

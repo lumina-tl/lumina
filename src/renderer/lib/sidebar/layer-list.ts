@@ -169,6 +169,7 @@ function layerRowHTML(page: Page, layer: PageLayer, idx: number): string {
   let html =
     '<div class="layer-row' +
     (selected ? " selected" : "") +
+    (layer.locked ? " locked" : "") +
     '" data-layer-id="' +
     esc(layer.id) +
     '" draggable="true">' +
@@ -199,8 +200,17 @@ function layerRowHTML(page: Page, layer: PageLayer, idx: number): string {
       : "") +
     '<button class="det-btn det-btn-danger" data-action="delete" draggable="false" title="' +
     esc(i18n.t("sidebar.delete")) +
-    '"><i data-lucide="x"></i></button>' +
+    '"' +
+    (layer.locked ? " disabled" : "") +
+    '><i data-lucide="x"></i></button>' +
     "</div>" +
+    '<button class="layer-lock" data-action="toggle-lock" draggable="false" title="' +
+    esc(i18n.t("layers.toggleLock")) +
+    '">' +
+    (layer.locked
+      ? '<i data-lucide="lock"></i>'
+      : '<i data-lucide="lock-open"></i>') +
+    "</button>" +
     '<button class="layer-eye" data-action="toggle-visible" draggable="false" title="' +
     esc(i18n.t("layers.toggleVisible")) +
     '">' +
@@ -228,7 +238,9 @@ function layerRowHTML(page: Page, layer: PageLayer, idx: number): string {
       (tab === "translation" ? " layer-editor-translation" : "") +
       '" data-field="' +
       tab +
-      '" rows="4" draggable="false" placeholder="' +
+      '" rows="4" draggable="false"' +
+      (layer.locked ? " disabled" : "") +
+      ' placeholder="' +
       esc(
         i18n.t(
           tab === "source"
@@ -266,7 +278,14 @@ export function wireEvents(): void {
 
       const id = el.getAttribute("data-layer-id") as string;
       const btn = target.closest(".det-btn") as HTMLButtonElement | null;
+      const lock = target.closest(".layer-lock") as HTMLButtonElement | null;
       const eye = target.closest(".layer-eye") as HTMLButtonElement | null;
+
+      if (lock) {
+        e.stopPropagation();
+        canvas.toggleLayerLocked(id);
+        return;
+      }
 
       if (eye) {
         e.stopPropagation();

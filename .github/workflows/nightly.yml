@@ -117,6 +117,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -128,11 +134,20 @@ jobs:
           find artifacts -type f -exec cp {} dist-release/ \;
           ls -la dist-release/
 
+      - name: Build nightly notes
+        run: |
+          {
+            echo "Automated nightly build \`${{ needs.prepare.outputs.version }}\` from \`main\` (${{ github.sha }})."
+            if node scripts/extract-release-notes.mjs "Unreleased" .unreleased.md 2>/dev/null; then
+              echo ""
+              cat .unreleased.md
+            fi
+          } > .nightly-notes.md
+
       - name: Update nightly release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          NOTES="Automated nightly build \`${{ needs.prepare.outputs.version }}\` from \`main\` (${{ github.sha }})."
           if gh release view nightly --repo "${{ github.repository }}" >/dev/null 2>&1; then
             OLD_ASSETS=$(gh release view nightly --repo "${{ github.repository }}" --json assets --jq '.assets[].name')
             for asset in $OLD_ASSETS; do
@@ -142,7 +157,7 @@ jobs:
               --repo "${{ github.repository }}" \
               --prerelease \
               --title "Lumina Nightly" \
-              --notes "$NOTES"
+              --notes-file .nightly-notes.md
             gh release upload nightly dist-release/* \
               --repo "${{ github.repository }}" \
               --clobber
@@ -151,5 +166,5 @@ jobs:
               --repo "${{ github.repository }}" \
               --prerelease \
               --title "Lumina Nightly" \
-              --notes "$NOTES"
+              --notes-file .nightly-notes.md
           fi

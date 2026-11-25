@@ -40,6 +40,7 @@ export interface CanvasAPI {
   expandLayer(id: string | null): void;
   setLayerText(id: string, field: "source" | "translation", text: string): void;
   toggleLayerVisible(id: string): void;
+  toggleLayerLocked(id: string): void;
   deleteLayer(id: string): void;
   deleteMultipleLayers(ids: string[]): void;
   /** Insert layer `id` before `insertAt` (clamped to its type group) */
@@ -123,6 +124,7 @@ export const canvas: CanvasAPI = {
   expandLayer() {},
   setLayerText() {},
   toggleLayerVisible() {},
+  toggleLayerLocked() {},
   deleteLayer() {},
   deleteMultipleLayers() {},
   moveLayerTo() {},
@@ -202,9 +204,15 @@ canvas._initKeyboard = function (): void {
 
       const layerIds =
         page._selectedLayerIds && page._selectedLayerIds.length > 0
-          ? [...page._selectedLayerIds]
+          ? page._selectedLayerIds.filter((id) => {
+              const l = page.layers.find((x) => x.id === id);
+              return l && !l.locked;
+            })
           : page._selectedLayerId
-            ? [page._selectedLayerId]
+            ? (() => {
+                const l = page.layers.find((x) => x.id === page._selectedLayerId);
+                return l && !l.locked ? [page._selectedLayerId] : [];
+              })()
             : [];
       if (layerIds.length > 0) {
         e.preventDefault();

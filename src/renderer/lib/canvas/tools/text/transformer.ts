@@ -81,13 +81,18 @@ export function syncTransformerSelection(): void {
 
   layerTextNodes.forEach((n) => {
     const lid = n.getAttr("layerId") as string;
-    n.draggable(canDrag && !isEditingShapePath(lid));
+    const lay = page.layers.find((l) => l.id === lid);
+    const locked = !!lay?.locked;
+    n.listening(!locked);
+    n.draggable(canDrag && !locked && !isEditingShapePath(lid));
   });
 
   if (nodes.length > 0) {
-    const trNodes = nodes.filter(
-      (n) => !isEditingShapePath(n.getAttr("layerId") as string),
-    );
+    const trNodes = nodes.filter((n) => {
+      const lid = n.getAttr("layerId") as string;
+      const lay = page.layers.find((l) => l.id === lid);
+      return !lay?.locked && !isEditingShapePath(lid);
+    });
     if (!canDrag && state.activeTool !== "lasso" && state.activeTool !== "rect") {
       nodes.forEach((n) => n.draggable(false));
     } else {

@@ -164,6 +164,7 @@ export interface PageLayer {
   translation?: string;
   typography: Typography;
   visible: boolean;
+  locked?: boolean;
   opacity: number; // 0-1
   /** Result of the last auto-fit — drives the "needs review" badge */
   fitStatus?: "ok" | "overflow-tolerated" | "forced-minimum";

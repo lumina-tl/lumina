@@ -91,4 +91,5 @@
 - [x] Bug: Clean object in an area that has already been inpainted
 - [x] fix sometimes the settings reset after an update
 - [x] nightly release build and update channel
+- [x] lock and unlock object
 - [ ] testing and hunt another bugs
