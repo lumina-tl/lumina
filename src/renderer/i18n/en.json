@@ -138,7 +138,9 @@
   "resources.activeModels": "Active Models",
   "resources.noModels": "No models loaded (idle)",
   "resources.unloadAll": "Unload Models",
+  "resources.unloadOne": "Unload {name}",
   "resources.modelsUnloaded": "All models unloaded from memory",
+  "resources.modelUnloaded": "{name} unloaded from memory",
 
   "zoom.zoomIn": "Zoom In",
   "zoom.zoomOut": "Zoom Out",

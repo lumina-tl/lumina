@@ -9,7 +9,7 @@ import threading
 from pathlib import Path
 from typing import Any, Callable
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Body, FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 import uvicorn
 
@@ -33,6 +33,7 @@ from schemas import (
     InpaintRequest,
     InpaintResponse,
     SystemResourcesResponse,
+    UnloadModelsRequest,
 )
 
 from utils.logger import log
@@ -609,27 +610,40 @@ def model_delete(req: ModelDeleteRequest):
     return {"status": "deleted", "modelId": req.modelId}
 
 
-def _get_loaded_model_names() -> list[str]:
-    loaded: list[str] = []
+def _is_model_loaded(m: Any) -> bool:
+    return any(
+        getattr(m, attr, None) is not None
+        for attr in ("_session", "_enc", "_vis")
+    )
+
+
+def _get_loaded_models() -> list[dict[str, str]]:
+    loaded: list[dict[str, str]] = []
     try:
         from services import detect as detect_service
-        for m in detect_service.MODELS.values():
-            if getattr(m, "_session", None) is not None:
-                loaded.append(m.name or getattr(m, "model_id", "detect"))
+        for model_id, m in detect_service.MODELS.items():
+            if _is_model_loaded(m):
+                loaded.append({"id": model_id, "name": m.name or model_id})
     except Exception:
         pass
     try:
         from services import ocr as ocr_service
-        for m in ocr_service.MODELS.values():
-            if getattr(m, "_session", None) is not None or getattr(m, "_enc", None) is not None:
-                loaded.append(m.name or getattr(m, "model_id", "ocr"))
+        for model_id, m in ocr_service.MODELS.items():
+            if _is_model_loaded(m):
+                loaded.append({"id": model_id, "name": m.name or model_id})
     except Exception:
         pass
     try:
         from services import inpaint as inpaint_service
-        for m in inpaint_service.MODELS.values():
-            if getattr(m, "_session", None) is not None:
-                loaded.append(m.name or getattr(m, "model_id", "inpaint"))
+        for model_id, m in inpaint_service.MODELS.items():
+            if _is_model_loaded(m):
+                loaded.append({"id": model_id, "name": m.name or model_id})
+    except Exception:
+        pass
+    try:
+        from services import anglenet
+        if getattr(anglenet, "_session", None) is not None:
+            loaded.append({"id": "anglenet", "name": "AngleNet"})
     except Exception:
         pass
     return loaded
@@ -640,17 +654,55 @@ def _get_loaded_model_names() -> list[str]:
 def system_resources():
     """Snapshot of system CPU, RAM, VRAM, and currently loaded models."""
     metrics = get_system_metrics()
-    loaded = _get_loaded_model_names()
+    items = _get_loaded_models()
     metrics["models"] = {
-        "count": len(loaded),
-        "loaded": loaded,
+        "count": len(items),
+        "loaded": [item["name"] for item in items],
+        "items": items,
     }
     return SystemResourcesResponse.model_validate(metrics)
 
 
 @app.post("/system/unload-models")
-def system_unload_models():
-    """Unload all model sessions from VRAM and RAM."""
+def system_unload_models(req: UnloadModelsRequest = Body(default_factory=UnloadModelsRequest)):
+    """Unload one or all model sessions from VRAM and RAM."""
+    import gc
+
+    if req.modelId:
+        from services import anglenet
+        from services import detect as detect_service
+        from services import inpaint as inpaint_service
+        from services import ocr as ocr_service
+
+        model_id = req.modelId
+        kind: str | None = None
+        unload: Callable[[], None] | None = None
+        models_map: dict[str, Any] | None = None
+
+        if model_id in detect_service.MODELS:
+            kind = "detect"
+            models_map = detect_service.MODELS
+            unload = models_map[model_id].unload
+        elif model_id in ocr_service.MODELS:
+            kind = "ocr"
+            models_map = ocr_service.MODELS
+            unload = models_map[model_id].unload
+        elif model_id in inpaint_service.MODELS:
+            kind = "inpaint"
+            models_map = inpaint_service.MODELS
+            unload = models_map[model_id].unload
+        elif model_id == "anglenet":
+            unload = anglenet.unload
+
+        if unload is None:
+            raise HTTPException(status_code=404, detail="Unknown model")
+
+        unload()
+        if kind and models_map and not any(_is_model_loaded(m) for m in models_map.values()):
+            _tracker.remove(kind)
+        gc.collect()
+        return {"unloaded": 1, "modelId": model_id, "status": "ok"}
+
     count = 0
     try:
         from services import detect as detect_service
@@ -676,6 +728,7 @@ def system_unload_models():
     except Exception:
         pass
     _tracker.clear()
+    gc.collect()
     return {"unloaded": count, "status": "ok"}
 
 

@@ -4172,12 +4172,37 @@ body.resizing-row {
   overflow-y: auto;
 }
 .status-res-model-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 0.6rem;
-  padding: 1px 6px;
+  padding: 1px 4px 1px 6px;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--color-text-primary);
+}
+.status-res-model-unload {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+.status-res-model-unload:hover {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.15);
+}
+.status-res-model-unload svg {
+  width: 10px;
+  height: 10px;
 }
 .status-res-models-empty {
   font-size: 0.62rem;

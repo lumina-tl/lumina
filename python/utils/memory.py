@@ -527,6 +527,11 @@ class ModelTracker:
         with self._lock:
             self._access.clear()
 
+    def remove(self, kind: str) -> None:
+        """Remove one model kind from tracking."""
+        with self._lock:
+            self._access.pop(kind, None)
+
     def loaded_kinds(self) -> list[str]:
         """Return list of currently tracked model kinds."""
         with self._lock:

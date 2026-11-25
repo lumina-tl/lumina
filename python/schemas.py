@@ -152,9 +152,19 @@ class MemoryMetrics(BaseModel):
     device: str | None = None
 
 
+class LoadedModelItem(BaseModel):
+    id: str
+    name: str
+
+
 class LoadedModelsMetrics(BaseModel):
     count: int = 0
     loaded: list[str] = []
+    items: list[LoadedModelItem] = []
+
+
+class UnloadModelsRequest(BaseModel):
+    modelId: str | None = None
 
 
 class SystemResourcesResponse(BaseModel):

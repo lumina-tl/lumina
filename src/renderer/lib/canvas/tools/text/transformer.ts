@@ -76,21 +76,23 @@ export function syncTransformerSelection(): void {
       return !!n;
     });
 
-  const paint =
-    state.activeTool === "brush" ||
-    state.activeTool === "eraser" ||
-    state.activeTool === "bucket" ||
-    state.activeTool === "eyedropper";
+  const canDrag =
+    state.activeTool === "select" || state.activeTool === "text";
+
+  layerTextNodes.forEach((n) => {
+    const lid = n.getAttr("layerId") as string;
+    n.draggable(canDrag && !isEditingShapePath(lid));
+  });
 
   if (nodes.length > 0) {
     const trNodes = nodes.filter(
       (n) => !isEditingShapePath(n.getAttr("layerId") as string),
     );
-    if (paint) {
+    if (!canDrag && state.activeTool !== "lasso" && state.activeTool !== "rect") {
       nodes.forEach((n) => n.draggable(false));
     } else {
       trNodes.forEach((node) => {
-        node.draggable(true);
+        if (canDrag) node.draggable(true);
         node.listening(true);
         const tr = createTextTransformer(node);
         konvaLayer.add(tr);

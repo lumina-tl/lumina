@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Text behind objects.** Cut out foreground objects from selections so text layers can sit behind artwork.
 - **Selection auto-scroll.** Automatically pans the viewport when dragging lasso or rectangle selections near canvas edges.
 - **Pen tool with vector shapes.** Added Bezier Pen tool (`P`) for creating selections or editable vector shape layers with fill, stroke, and direct anchor/handle editing.
+- **Individual model unloading.** Added a remove button on each active model tag in the resource monitor to unload models one at a time.
 
 ### Changed
 

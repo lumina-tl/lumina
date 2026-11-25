@@ -17,9 +17,15 @@ interface MemoryMetrics {
   device?: string | null;
 }
 
+interface LoadedModelItem {
+  id: string;
+  name: string;
+}
+
 interface LoadedModelsMetrics {
   count: number;
   loaded: string[];
+  items?: LoadedModelItem[];
 }
 
 export interface SystemResources {
@@ -33,6 +39,14 @@ let _pollTimer: ReturnType<typeof setInterval> | null = null;
 let _isPopoverOpen = false;
 let _latestData: SystemResources | null = null;
 let _isPolling = false;
+
+function _escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 
 function _getBarClass(percent: number): string {
   if (percent >= 85) return "danger";
@@ -68,7 +82,10 @@ function _renderPopover(data: SystemResources | null): void {
   const vramPct = hasVram ? Math.round(data.vram!.percent) : 0;
 
   const modelsCount = data.models.count;
-  const modelsList = data.models.loaded;
+  const modelItems: LoadedModelItem[] =
+    data.models.items && data.models.items.length > 0
+      ? data.models.items
+      : data.models.loaded.map((name) => ({ id: "", name }));
 
   popover.innerHTML = `
     <div class="status-res-popover-head">
@@ -132,8 +149,15 @@ function _renderPopover(data: SystemResources | null): void {
       <div class="status-res-models-list">
         ${
           modelsCount > 0
-            ? modelsList
-                .map((m) => `<span class="status-res-model-tag">${m}</span>`)
+            ? modelItems
+                .map((m) => {
+                  const safeName = _escapeHtml(m.name);
+                  const safeId = _escapeHtml(m.id);
+                  const unloadBtn = m.id
+                    ? `<button class="status-res-model-unload" data-model-id="${safeId}" data-model-name="${safeName}" title="${_escapeHtml(i18n.t("resources.unloadOne", { name: m.name }))}"><i data-lucide="x"></i></button>`
+                    : "";
+                  return `<span class="status-res-model-tag"><span>${safeName}</span>${unloadBtn}</span>`;
+                })
                 .join("")
             : `<span class="status-res-models-empty">${i18n.t("resources.noModels")}</span>`
         }
@@ -150,6 +174,17 @@ function _renderPopover(data: SystemResources | null): void {
   document.getElementById("btn-unload-models")?.addEventListener("click", (e) => {
     e.stopPropagation();
     void resourceMonitor.unloadModels();
+  });
+
+  popover.querySelectorAll<HTMLButtonElement>(".status-res-model-unload").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const modelId = btn.dataset.modelId;
+      const modelName = btn.dataset.modelName || modelId || "";
+      if (modelId) {
+        void resourceMonitor.unloadModel(modelId, modelName);
+      }
+    });
   });
 }
 
@@ -329,6 +364,20 @@ export const resourceMonitor = {
     try {
       await window.lumina.apiPost("/system/unload-models", {});
       ui.toast(i18n.t("resources.modelsUnloaded"), "success", 2500);
+      await this.poll();
+    } catch (err) {
+      ui.toast(String(err), "error");
+    }
+  },
+
+  async unloadModel(modelId: string, modelName: string): Promise<void> {
+    try {
+      await window.lumina.apiPost("/system/unload-models", { modelId });
+      ui.toast(
+        i18n.t("resources.modelUnloaded", { name: modelName || modelId }),
+        "success",
+        2500,
+      );
       await this.poll();
     } catch (err) {
       ui.toast(String(err), "error");

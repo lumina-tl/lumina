@@ -20,6 +20,7 @@ let _multiDragStarts: Map<Konva.Node, { x: number; y: number }> | null = null;
 let _dragLeaderStart: { x: number; y: number } | null = null;
 import { makeNode, makeImageLayerNode, makeShapeLayerNode } from "./node-factory";
 import { startShapePathEdit } from "../pen/direct-select";
+import { textIdxForLayerId, applyTextSelection } from "../../detection/selection";
 import {
   syncTransformerSelection,
   onNodeTransformEnd,
@@ -111,7 +112,19 @@ export function renderLayerTextNodes(): void {
               ? [page._selectedLayerId]
               : [];
         if (!selIds.includes(lay.id)) {
-          canvas.selectLayer(lay.id);
+          // Select without canvas.selectLayer() so canvas.render() doesn't
+          // destroy this Konva.Group mid-drag.
+          if (page) {
+            page._selectedLayerIds = [lay.id];
+            page._selectedLayerId = lay.id;
+            page._expandedLayerId = null;
+            const dIdx = textIdxForLayerId(page, lay.id);
+            page._selectedTextIndices = dIdx !== null ? [dIdx] : [];
+            page._selectedTextIdx = dIdx;
+            applyTextSelection(dIdx);
+          }
+          syncTransformerSelection();
+          sidebar.render();
         }
         const activeSelIds = page?._selectedLayerIds || [lay.id];
         const selectedNodes = activeSelIds

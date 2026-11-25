@@ -138,7 +138,9 @@
   "resources.activeModels": "Model Aktif",
   "resources.noModels": "Tidak ada model di memori (idle)",
   "resources.unloadAll": "Lepas Model",
+  "resources.unloadOne": "Lepas {name}",
   "resources.modelsUnloaded": "Semua model berhasil dilepas dari memori",
+  "resources.modelUnloaded": "{name} berhasil dilepas dari memori",
 
   "zoom.zoomIn": "Perbesar (Ctrl+=)",
   "zoom.zoomOut": "Perkecil (Ctrl+-)",
