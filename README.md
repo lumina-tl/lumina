@@ -1,5 +1,7 @@
 # Lumina — Illuminate every story
 
+**Languages:** [English](README.md) | [Español](README.es.md)
+
 Lumina is a free, open-source desktop app for translating manga, manhwa, and manhua. It automates the full pipeline — text detection, OCR, translation, inpainting, and typesetting — while keeping every step editable. All models run locally on ONNX Runtime; translation is the only step that calls external AI APIs.
 
 See the [documentation website](https://lumina.navierr.dev/) for guides and details.
@@ -177,7 +179,7 @@ Translation is the only step that calls an external AI API — everything else (
 
 Lumina uses ONNX Runtime with GPU support where available.
 
-- **One execution provider per environment.** The DirectML and CUDA wheels cannot coexist in a single Python environment. The DirectML installer is the shareable, universal Windows build for compatible NVIDIA, AMD, and Intel GPUs, with CPU fallback; the NVIDIA-only CUDA installer is an optional performance build (see [Installers](#installers)).
+- **One execution provider per environment.** The DirectML and CUDA wheels cannot coexist in a single Python environment. Two installers ship, one per provider: the universal DirectML installer and the NVIDIA-only CUDA installer (see [Installers](#installers)).
 - **`LUMINA_EP` environment variable** overrides the runtime preference: `auto` (CUDA → DirectML → CPU, falling back per wheel), `cuda` (CUDA, falling back to CPU — never DirectML), `dml`, or `cpu`.
 - **Per-model preferences** are baked into each model's configuration. Some models cannot run on certain providers: `lama` is CPU-only (GPU acceleration is ignored when enabled), `lama_manga` and `paddleocr_vl` never use DirectML (CUDA when available, otherwise CPU), and some OCR models keep their autoregressive decoder on CPU regardless of the chosen provider.
 
