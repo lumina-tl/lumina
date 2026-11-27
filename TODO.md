@@ -93,4 +93,11 @@
 - [x] nightly release build and update channel
 - [x] lock and unlock object
 - [x] fix tools cursor color not inverted
+- [ ] better rotation anchor
+- [x] exclude readme and other for nightly build
+- [ ] before after toggle
+- [ ] project thumbnail in landing page
+- [ ] add line mode in pen tool
+- [ ] change texttool default cursor with inverted one
+- [ ] copying objects between pages
 - [ ] testing and hunt another bugs
