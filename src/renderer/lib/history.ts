@@ -165,10 +165,13 @@ export function hydrateMaskImages(page: Page): void {
 export function hydrateLayerImages(page: Page): void {
   (page.layers || []).forEach((l) => {
     if (l.type === "image" && l.imagePath) {
+      if (!(l.imageCanvas instanceof HTMLCanvasElement)) {
+        delete l.imageCanvas;
+      }
       if (!l.imageCanvas && _layerImageCache.has(l.imagePath)) {
         l.imageCanvas = _layerImageCache.get(l.imagePath);
       }
-      if (l.imageCanvas) return;
+      if (l.imageCanvas instanceof HTMLCanvasElement) return;
       const img = new Image();
       img.onload = function () {
         const c = document.createElement("canvas");

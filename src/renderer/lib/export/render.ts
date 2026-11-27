@@ -39,6 +39,29 @@ export async function ensureMaskImages(page: Page): Promise<void> {
   }
 }
 
+/** Saved projects don't carry decoded image-layer canvases — reload from imagePath. */
+export async function ensureLayerImages(page: Page): Promise<void> {
+  for (const lay of page.layers) {
+    if (lay.type !== "image") continue;
+    if (lay.imageCanvas instanceof HTMLCanvasElement) continue;
+    delete lay.imageCanvas;
+    if (!lay.imagePath) continue;
+    try {
+      const img = await loadImage(lay.imagePath);
+      const c = document.createElement("canvas");
+      c.width = img.naturalWidth;
+      c.height = img.naturalHeight;
+      const ctx = c.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        lay.imageCanvas = c;
+      }
+    } catch {
+      lay.imageCanvas = undefined;
+    }
+  }
+}
+
 /** Hydrate cleanup canvas from PNG before compositing for export. */
 export function ensureCleanupForExport(page: Page): Promise<void> {
   const mask = page.cleanupMask;
@@ -87,9 +110,10 @@ export function estSize(page: Page): string {
 export async function renderPageToCanvas(
   page: Page,
 ): Promise<HTMLCanvasElement> {
-  // Ensure inpaint mask images + cleanup layer canvas are loaded before
-  // compositing (saved projects don't carry decoded images; LRU can evict).
+  // Ensure inpaint mask images, image-layer canvases, + cleanup layer canvas are
+  // loaded before compositing (saved projects don't carry decoded images; LRU can evict).
   await ensureMaskImages(page);
+  await ensureLayerImages(page);
   await ensureCleanupForExport(page);
   // The page bitmap may be unloaded (LRU) — decode it for export.
   if (!page.image) await pageImages.ensurePageImage(page);
@@ -163,10 +187,14 @@ export async function renderPageToCanvas(
     for (const lay of [...page.layers].reverse()) {
       if (!lay.visible) continue;
       if (lay.type === "image") {
-        if (lay.imageCanvas) {
+        const imgSource = lay.imageCanvas as unknown;
+        if (
+          imgSource instanceof HTMLCanvasElement ||
+          imgSource instanceof HTMLImageElement
+        ) {
           layer.add(
             new Konva.Image({
-              image: lay.imageCanvas,
+              image: imgSource,
               x: lay.bbox.x,
               y: lay.bbox.y,
               width: lay.bbox.w,

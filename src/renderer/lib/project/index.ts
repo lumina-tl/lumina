@@ -78,7 +78,14 @@ function buildPayload(savePath: string | null): ProjectSavePayload {
         naturalWidth: p.naturalWidth,
         naturalHeight: p.naturalHeight,
         textDetections: p.textDetections,
-        layers: p.layers,
+        layers: p.layers.map((l) => {
+          if (l.type === "image" && "imageCanvas" in l) {
+            const copy = { ...l };
+            delete copy.imageCanvas;
+            return copy;
+          }
+          return l;
+        }),
         inpaintMasks: p.inpaintMasks.map((m) => ({
           id: m.id,
           bbox: m.bbox,
@@ -326,7 +333,18 @@ export const project = {
           ? pd.naturalHeight
           : (dims?.h ?? pd.naturalHeight),
         textDetections: pd.textDetections as Page["textDetections"],
-        layers: pd.layers as Page["layers"],
+        layers: (pd.layers as Page["layers"]).map((l) => {
+          if (
+            l.type === "image" &&
+            "imageCanvas" in l &&
+            !(l.imageCanvas instanceof HTMLCanvasElement)
+          ) {
+            const copy = { ...l };
+            delete copy.imageCanvas;
+            return copy;
+          }
+          return l;
+        }),
         inpaintMasks: pd.inpaintMasks.map((m) => ({ ...m })),
         cleanupMask: pd.cleanupMask ? { ...pd.cleanupMask } : null,
         backgroundVisible: pd.backgroundVisible,

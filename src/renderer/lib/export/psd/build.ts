@@ -2,7 +2,11 @@
 import type { Psd, Layer } from "ag-psd";
 import type { Page } from "../../../types";
 import { ensureCleanupCanvas } from "../../canvas/tools/paint/shared";
-import { ensureMaskImages, ensureCleanupForExport } from "../render";
+import {
+  ensureMaskImages,
+  ensureLayerImages,
+  ensureCleanupForExport,
+} from "../render";
 import * as pageImages from "../../project/page-images";
 import { mapLayerToPsdText } from "./text-map";
 import { nodesToSvgPath } from "../../canvas/tools/pen/path-math";
@@ -68,6 +72,7 @@ export async function buildPsdDocument(
 
     // Ensure assets are decoded/loaded before reading pixels
     await ensureMaskImages(p);
+    await ensureLayerImages(p);
     await ensureCleanupForExport(p);
     if (!p.image) await pageImages.ensurePageImage(p);
 
@@ -166,7 +171,11 @@ function buildPageLayers(
   for (const lay of [...page.layers].reverse()) {
     if (!lay.visible) continue;
     if (lay.type === "image") {
-      if (lay.imageCanvas) {
+      const imgSource = lay.imageCanvas as unknown;
+      if (
+        imgSource instanceof HTMLCanvasElement ||
+        imgSource instanceof HTMLImageElement
+      ) {
         children.push({
           name: lay.name || "Object",
           top: offsetY + lay.bbox.y,
@@ -177,7 +186,7 @@ function buildPageLayers(
           imageData: renderToImageData(
             (ctx) =>
               ctx.drawImage(
-                lay.imageCanvas!,
+                imgSource,
                 0,
                 0,
                 lay.bbox.w,
