@@ -40,6 +40,7 @@ export interface ProjectSettingsData {
 
 export interface ProjectSavePayload {
   savePath: string | null;
+  thumbnail?: Uint8Array;
   project: {
     activePageIdx: number | null;
     settings: ProjectSettingsData | null;

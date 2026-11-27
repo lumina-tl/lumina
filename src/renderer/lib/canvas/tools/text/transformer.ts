@@ -25,8 +25,7 @@ export function resetTransformer(): void {
 function createTextTransformer(node: Konva.Group): Konva.Transformer {
   const tr = new Konva.Transformer({
     nodes: [node],
-    rotateEnabled: true,
-    rotateAnchorOffset: 24,
+    rotateEnabled: false,
     keepRatio: false,
     enabledAnchors: [
       "top-left",

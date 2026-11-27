@@ -2,6 +2,12 @@
 import { state } from "../state";
 import { canvas } from "./index";
 import { updateCursor, hideCursor, isCustomCursorTool } from "./tools/paint/cursor";
+import {
+  ROTATE_CURSOR,
+  findRotateZoneTransformer,
+  isOverResizeAnchor,
+  isRotating,
+} from "./tools/text/rotate-zone";
 
 /** Re-assert correct cursor on every mousemove (fixes stale Konva cursors). */
 let _cursorBound = false;
@@ -71,6 +77,17 @@ export function bindHoverCursor(): void {
           setCursor(anchorCursor[name]);
           return;
         }
+      }
+      const pointerPos = stage.getPointerPosition();
+      if (
+        isRotating() ||
+        (!isOverResizeAnchor(target) &&
+          pointerPos &&
+          findRotateZoneTransformer(pointerPos))
+      ) {
+        hideCursor();
+        setCursor(ROTATE_CURSOR);
+        return;
       }
       let cursor = toolCursor();
       // Hovering interactive content → move affordance

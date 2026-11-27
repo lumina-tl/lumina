@@ -17,7 +17,7 @@ import {
 import { CACHE_DIR } from "../backend/cache";
 import { handle, windowFromEvent } from "../core/ipc";
 import { log } from "../core/logger";
-import { recordRecent } from "./recents";
+import { recordRecent, saveProjectThumb } from "./recents";
 import { zipRead, zipWrite } from "./zip";
 
 function ext(name: string): string {
@@ -124,11 +124,20 @@ async function handleSave(
     }
   });
 
+  const thumbBuf = payload.thumbnail ? Buffer.from(payload.thumbnail) : null;
+  if (thumbBuf && thumbBuf.length > 0) {
+    entries.push({ name: "thumbnail.jpg", data: thumbBuf });
+  }
+
   fs.writeFileSync(savePath, zipWrite(entries));
   log.info(
     `Project saved: ${savePath} (${pages.length} page(s), ${entries.length} file(s))`,
   );
-  recordRecent("project", savePath);
+  const thumbPath =
+    thumbBuf && thumbBuf.length > 0
+      ? saveProjectThumb(savePath, thumbBuf)
+      : undefined;
+  recordRecent("project", savePath, thumbPath);
   return { path: savePath, canceled: false };
 }
 
@@ -159,7 +168,7 @@ async function handleOpen(
   fs.mkdirSync(path.join(extractDir, "patches"), { recursive: true });
   fs.mkdirSync(path.join(extractDir, "cleanup"), { recursive: true });
   for (const [name, data] of entries) {
-    if (name === "project.json") continue;
+    if (name === "project.json" || name === "thumbnail.jpg") continue;
     const dest = path.join(extractDir, name);
     const rel = path.relative(extractDir, dest);
     if (rel.startsWith("..") || path.isAbsolute(rel)) {
@@ -193,8 +202,14 @@ async function handleOpen(
     };
   });
 
+  const thumbEntry = entries.get("thumbnail.jpg");
+  const thumbPath =
+    thumbEntry && thumbEntry.length > 0
+      ? saveProjectThumb(zipPath, thumbEntry)
+      : undefined;
+
   log.info(`Project opened: ${zipPath} (${pages.length} page(s))`);
-  recordRecent("project", zipPath);
+  recordRecent("project", zipPath, thumbPath);
   return {
     projectPath: zipPath,
     activePageIdx: proj.activePageIdx,

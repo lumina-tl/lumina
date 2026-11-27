@@ -4,6 +4,7 @@ import { canvas } from "../../index";
 import { stageToImg, cleanedViewReady } from "./shared";
 import { createAndEdit } from "./create";
 import { hitTransformer } from "../../hit-transformer";
+import { isInRotateZone } from "./rotate-zone";
 
 interface DragState {
   startX: number;
@@ -130,6 +131,7 @@ export function bindStageInteractions(): void {
 
       const pos = stage.getPointerPosition();
       if (!pos) return;
+      if (isInRotateZone(pos, e.target)) return;
       e.cancelBubble = true;
 
       drag.startX = pos.x;

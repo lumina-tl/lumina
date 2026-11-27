@@ -1,4 +1,5 @@
 /** Recents — recent projects/images store. */
+import crypto from "crypto";
 import { app } from "electron";
 import fs from "fs";
 import path from "path";
@@ -38,22 +39,47 @@ function writeAll(data: RecentsStore): void {
   fs.renameSync(tmp, file);
 }
 
-function pushEntry(list: RecentEntry[], kind: RecentKind, p: string): void {
+export function saveProjectThumb(projectPath: string, data: Buffer): string {
+  const dir = path.join(app.getPath("userData"), "project-thumbs");
+  fs.mkdirSync(dir, { recursive: true });
+  const hash = crypto.createHash("sha1").update(projectPath).digest("hex");
+  const dest = path.join(dir, `${hash}.jpg`);
+  fs.writeFileSync(dest, data);
+  return dest;
+}
+
+function pushEntry(
+  list: RecentEntry[],
+  kind: RecentKind,
+  p: string,
+  thumbPath?: string,
+): void {
+  const prev = list.find((e) => e.path === p);
+  const resolvedThumb =
+    thumbPath ||
+    (prev?.thumbPath && fs.existsSync(prev.thumbPath)
+      ? prev.thumbPath
+      : undefined);
   const entry: RecentEntry = {
     kind,
     path: p,
     name: path.basename(p),
     ts: Date.now(),
+    ...(resolvedThumb ? { thumbPath: resolvedThumb } : {}),
   };
   const rest = list.filter((e) => e.path !== p);
   list.length = 0;
   list.push(entry, ...rest.slice(0, MAX_PER_KIND - 1));
 }
 
-export function recordRecent(kind: RecentKind, p: string): void {
+export function recordRecent(
+  kind: RecentKind,
+  p: string,
+  thumbPath?: string,
+): void {
   if (!p) return;
   const data = readAll();
-  pushEntry(data[kind === "project" ? "projects" : "images"], kind, p);
+  pushEntry(data[kind === "project" ? "projects" : "images"], kind, p, thumbPath);
   writeAll(data);
 }
 
@@ -61,16 +87,33 @@ function listRecents(): RecentsData {
   const data = readAll();
   const exists = (e: RecentEntry) => fs.existsSync(e.path);
   return {
-    projects: data.projects.filter(exists),
+    projects: data.projects.filter(exists).map((e) =>
+      e.thumbPath && !fs.existsSync(e.thumbPath)
+        ? { ...e, thumbPath: undefined }
+        : e,
+    ),
     images: data.images.filter(exists),
   };
 }
 
 export function removeRecent(p: string): void {
   const data = readAll();
+  const removedThumbs = data.projects
+    .filter((e) => e.path === p && e.thumbPath)
+    .map((e) => e.thumbPath as string);
   data.projects = data.projects.filter((e) => e.path !== p);
   data.images = data.images.filter((e) => e.path !== p);
   writeAll(data);
+  for (const t of removedThumbs) {
+    const stillUsed = data.projects.some((e) => e.thumbPath === t);
+    if (!stillUsed) {
+      try {
+        fs.unlinkSync(t);
+      } catch {
+        /* ignore missing */
+      }
+    }
+  }
 }
 
 export function registerRecentHandlers(): void {

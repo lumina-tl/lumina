@@ -17,10 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Individual model unloading.** Added a remove button on each active model tag in the resource monitor to unload models one at a time.
 - **Nightly update channel.** Added a Stable/Nightly update channel selector in General settings and automated nightly builds on every `main` commit.
 - **Layer locking.** Added a lock/unlock toggle on each layer to prevent accidental selection, movement, editing, or deletion.
+- **Project thumbnails on landing page.** Recent `.lmi` projects now display a viewport snapshot thumbnail captured on save.
 
 ### Changed
 
 - **Visible update installation progress.** App updates now show a visible progress bar during installation and provide in-app status feedback.
+- **Photoshop-style object rotation.** Replaced the dedicated rotation anchor handle with a rotation zone around the outside of selected bounding boxes (with Shift-snap to 15° increments).
 
 ### Fixed
 

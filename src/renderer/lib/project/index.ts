@@ -55,7 +55,62 @@ function _probeImage(
   });
 }
 
-function buildPayload(savePath: string | null): ProjectSavePayload {
+const THUMB_MAX_W = 360;
+
+async function captureViewportThumbnail(): Promise<Uint8Array | undefined> {
+  const stage = canvas.getStage();
+  const mainLayer = canvas.getLayer();
+  if (!stage || !mainLayer) return undefined;
+  const sw = stage.width();
+  const sh = stage.height();
+  if (sw <= 0 || sh <= 0) return undefined;
+
+  const hiddenLayers: Array<{ show: () => void }> = [];
+  for (const l of stage.getLayers()) {
+    if (l !== mainLayer && l.visible()) {
+      l.visible(false);
+      hiddenLayers.push({ show: () => l.visible(true) });
+    }
+  }
+  const hiddenTransformers: Array<{ show: () => void }> = [];
+  for (const child of mainLayer.getChildren()) {
+    if (child.getClassName() === "Transformer" && child.visible()) {
+      child.visible(false);
+      hiddenTransformers.push({ show: () => child.visible(true) });
+    }
+  }
+
+  let snap: HTMLCanvasElement;
+  try {
+    snap = stage.toCanvas();
+  } finally {
+    hiddenTransformers.forEach((h) => h.show());
+    hiddenLayers.forEach((h) => h.show());
+  }
+
+  const scale = Math.min(1, THUMB_MAX_W / Math.max(1, snap.width));
+  const dw = Math.max(1, Math.round(snap.width * scale));
+  const dh = Math.max(1, Math.round(snap.height * scale));
+  const out = document.createElement("canvas");
+  out.width = dw;
+  out.height = dh;
+  const ctx = out.getContext("2d");
+  if (!ctx) return undefined;
+  ctx.fillStyle = "#16161e";
+  ctx.fillRect(0, 0, dw, dh);
+  ctx.drawImage(snap, 0, 0, dw, dh);
+
+  const blob: Blob | null = await new Promise((res) =>
+    out.toBlob(res, "image/jpeg", 0.82),
+  );
+  if (!blob) return undefined;
+  return new Uint8Array(await blob.arrayBuffer());
+}
+
+function buildPayload(
+  savePath: string | null,
+  thumbnail?: Uint8Array,
+): ProjectSavePayload {
   const cfg = translateSettings.load();
   const settings: ProjectSettingsData = {
     provider: cfg.provider,
@@ -69,6 +124,7 @@ function buildPayload(savePath: string | null): ProjectSavePayload {
   };
   return {
     savePath,
+    thumbnail,
     project: {
       activePageIdx: state.activePageIdx,
       settings,
@@ -191,7 +247,10 @@ export const project = {
       // LMI path → existing flow
       if (!savePath.toLowerCase().endsWith(".lmi")) savePath += ".lmi";
       setSavePath(savePath);
-      const res = await window.lumina.saveProject(buildPayload(savePath));
+      const thumbnail = await captureViewportThumbnail();
+      const res = await window.lumina.saveProject(
+        buildPayload(savePath, thumbnail),
+      );
       if (res.canceled || !res.path) return false;
       setSavePath(res.path);
       clearDirty();
@@ -263,7 +322,10 @@ export const project = {
       let lmiPath = savePath;
       if (!lmiPath.toLowerCase().endsWith(".lmi")) lmiPath += ".lmi";
       setSavePath(lmiPath);
-      const res = await window.lumina.saveProject(buildPayload(lmiPath));
+      const thumbnail = await captureViewportThumbnail();
+      const res = await window.lumina.saveProject(
+        buildPayload(lmiPath, thumbnail),
+      );
       if (res.canceled || !res.path) {
         if (prev) setSavePath(prev);
         return false;

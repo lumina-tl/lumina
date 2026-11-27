@@ -6,6 +6,7 @@ export interface RecentEntry {
   path: string;
   name: string;
   ts: number;
+  thumbPath?: string;
 }
 
 export interface RecentsData {

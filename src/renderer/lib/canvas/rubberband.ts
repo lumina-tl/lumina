@@ -4,6 +4,7 @@ import { state } from "../state";
 import { canvas } from "./index";
 import { isSpacePressed } from "./viewport";
 import { hitTransformer } from "./hit-transformer";
+import { isInRotateZone } from "./tools/text/rotate-zone";
 
 let _bound = false;
 let _rubberbandRect: Konva.Rect | null = null;
@@ -62,6 +63,7 @@ export function bindRubberband(): void {
 
     const pos = stage.getPointerPosition();
     if (!pos) return;
+    if (isInRotateZone(pos, e.target)) return;
 
     _startX = pos.x;
     _startY = pos.y;

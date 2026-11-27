@@ -35,7 +35,7 @@ const MAX_PER_GROUP = 4;
 
 function _grid(
   kind: "project" | "image",
-  list: { path: string; name: string }[],
+  list: { path: string; name: string; ts: number; thumbPath?: string }[],
 ): string {
   if (list.length === 0) {
     return (
@@ -56,7 +56,13 @@ function _grid(
           ? '<div class="landing-thumb" style="background-image:url(\'' +
             _fileUrl(e.path) +
             "')\"></div>"
-          : '<div class="landing-thumb landing-thumb-project"><i data-lucide="folder"></i></div>';
+          : e.thumbPath
+            ? '<div class="landing-thumb" style="background-image:url(\'' +
+              _fileUrl(e.thumbPath) +
+              "?t=" +
+              e.ts +
+              "')\"></div>"
+            : '<div class="landing-thumb landing-thumb-project"><i data-lucide="folder"></i></div>';
       return (
         '<div class="landing-grid-item" data-kind="' +
         kind +

@@ -21,6 +21,10 @@ import {
 import { bindPenStage, resetPenStage } from "./tools/pen";
 import { applyTextSelection } from "./detection/selection";
 import { bindRubberband, resetRubberbandBinding } from "./rubberband";
+import {
+  bindRotateZone,
+  resetRotateZoneBinding,
+} from "./tools/text/rotate-zone";
 import { sidebar } from "../sidebar";
 import { history } from "../history";
 let _stage: Konva.Stage | null = null;
@@ -54,6 +58,7 @@ export function destroyStage(): void {
   resetPenStage();
   resetPaintStage();
   resetRubberbandBinding();
+  resetRotateZoneBinding();
 }
 
 export function scheduleRender(): void {
@@ -291,6 +296,7 @@ function _render(): void {
   bindPenStage();
   bindPaintTool();
   bindRubberband();
+  bindRotateZone();
 
   _stage.setSize({ width: w, height: h });
   _destroyLayerChildren();
