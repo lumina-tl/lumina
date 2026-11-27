@@ -134,6 +134,7 @@ canvas.setLayerText = function (id, field, text): void {
   const layer = page.layers[i];
   if (field === "source") {
     layer.source = text;
+    page._pipelineTranslationDone = false;
   } else {
     layer.translation = text;
     reflowVerticalLayerBbox(layer, page);

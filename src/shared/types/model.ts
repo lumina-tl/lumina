@@ -14,6 +14,7 @@ export interface ModelInfo {
 export interface ModelCheck {
   cached: boolean;
   models: ModelInfo[];
+  error?: string;
 }
 
 export interface DownloadProgress {

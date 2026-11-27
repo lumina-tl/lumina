@@ -110,7 +110,21 @@ function _syncBboxFromGroup(
 function _syncTextBboxFromGroup(idx: number): void {
   const page = state.getActivePage();
   if (!page) return;
+  const det = page.textDetections[idx];
+  if (!det) return;
+  const previous = { ...det.bbox };
   _syncBboxFromGroup(groupRegistry.textGroups(), page.textDetections, idx);
+  if (
+    det.bbox.x !== previous.x ||
+    det.bbox.y !== previous.y ||
+    det.bbox.w !== previous.w ||
+    det.bbox.h !== previous.h
+  ) {
+    page._cleanOnlyProcessed = false;
+    page._pipelineOcrDone = false;
+    page._pipelineTranslationDone = false;
+    page._pipelineInpaintDone = false;
+  }
 }
 
 /** Bake any on-stage detection transforms into the model before OCR/inpaint. */

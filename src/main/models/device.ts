@@ -33,8 +33,8 @@ export function registerDeviceHandlers(): void {
   handle(IPC.checkModel, async () => {
     try {
       return await apiGet("/model/check");
-    } catch {
-      return { cached: false };
+    } catch (err) {
+      return { cached: false, models: [], error: String(err) };
     }
   });
 }

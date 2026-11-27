@@ -18,7 +18,6 @@ export const IPC = {
   downloadModel: "download-model",
   deleteModel: "delete-model",
   cancelDownload: "cancel-download",
-  deleteModel: "delete-model",
   modelDownloadProgress: "model-download-progress",
 
   // Fonts / i18n

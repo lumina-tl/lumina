@@ -172,24 +172,10 @@ function layerRowHTML(page: Page, layer: PageLayer, idx: number): string {
   if (selected && expanded && isText) {
     html +=
       '<div class="layer-editor">' +
-      '<div class="layer-editor-tabs">' +
-      editorTabButton("source", tab, hasSrc && tab !== "source") +
-      editorTabButton("translation", tab, hasTr && tab !== "translation") +
-      "</div>" +
-      '<textarea class="layer-editor-textarea' +
-      (tab === "translation" ? " layer-editor-translation" : "") +
-      '" data-field="' +
-      tab +
-      '" rows="4" draggable="false"' +
+      '<textarea class="layer-editor-textarea" data-field="translation" rows="4" draggable="false"' +
       (layer.locked ? " disabled" : "") +
       ' placeholder="' +
-      esc(
-        i18n.t(
-          tab === "source"
-            ? "layers.sourcePlaceholder"
-            : "layers.translationPlaceholder",
-        ),
-      ) +
+      esc(i18n.t("layers.translationPlaceholder")) +
       '"></textarea>' +
       "</div>";
   }

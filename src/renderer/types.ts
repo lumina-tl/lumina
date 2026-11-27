@@ -225,6 +225,11 @@ export interface Page {
   layers: PageLayer[];
   /** Inpaint patches — composited over the original image, one per mask layer */
   inpaintMasks: InpaintMask[];
+  /** Per-stage workflow completion markers; omitted for new/unprocessed pages. */
+  _pipelineDetectionDone?: boolean;
+  _pipelineOcrDone?: boolean;
+  _pipelineTranslationDone?: boolean;
+  _pipelineInpaintDone?: boolean;
   /** Clean Only completion state; undefined supports older project files. */
   _cleanOnlyProcessed?: boolean;
   /** Detection has completed for the current Clean Only pass. */

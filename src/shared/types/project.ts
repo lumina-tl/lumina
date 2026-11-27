@@ -16,6 +16,10 @@ export interface ProjectPageData {
   textDetections: unknown[];
   layers: unknown[];
   inpaintMasks: ProjectMaskData[];
+  _pipelineDetectionDone?: boolean;
+  _pipelineOcrDone?: boolean;
+  _pipelineTranslationDone?: boolean;
+  _pipelineInpaintDone?: boolean;
   _cleanOnlyProcessed?: boolean;
   _cleanOnlyDetectionDone?: boolean;
   cleanupMask?: {

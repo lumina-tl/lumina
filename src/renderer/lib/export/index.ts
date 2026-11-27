@@ -38,13 +38,31 @@ export function openAll(): void {
 /** Save recognized dialogue text in page and layer order. */
 export async function exportOcrText(): Promise<void> {
   const content = state.pages
-    .map((page) =>
-      page.layers
+    .map((page) => {
+      const dialogueLayers = page.layers
         .filter((layer) => layer.type === "text-dialogue")
-        .map((layer) => (layer.source || "").trim())
-        .filter(Boolean)
-        .join("\n"),
-    )
+      const entries = dialogueLayers.length
+        ? dialogueLayers.map((layer) => ({
+            source: layer.source || "",
+            translation: layer.translation || "",
+          }))
+        : page.textDetections.map((d) => ({
+            source: d.text || "",
+            translation: d.translated || "",
+          }));
+      const dialogue = entries
+        .map(({ source: rawSource, translation: rawTranslation }) => {
+          const source = rawSource.trim();
+          const translation = rawTranslation.trim();
+          if (!source && !translation) return "";
+          if (!translation) return source;
+          return `${i18n.t("export.originalText")}: ${source}\n${i18n.t("export.translatedText")}: ${translation}`;
+        })
+        .filter(Boolean);
+      return dialogue.length
+        ? `${page.fileName}\n${dialogue.join("\n\n")}`
+        : "";
+    })
     .filter(Boolean)
     .join("\n\n");
 

@@ -235,6 +235,12 @@ i18n.init().then(function () {
   });
 
   document
+    .getElementById("btn-translate")!
+    .addEventListener("click", function () {
+      pipeline.runTranslate();
+    });
+
+  document
     .getElementById("btn-inpaint")!
     .addEventListener("click", function () {
       pipeline.runInpaint();

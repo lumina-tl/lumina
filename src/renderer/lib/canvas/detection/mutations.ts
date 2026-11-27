@@ -12,6 +12,9 @@ canvas.deleteTextDetection = function (idx: number): void {
   const page = state.getActivePage();
   if (!page || idx < 0 || idx >= page.textDetections.length) return;
   page._cleanOnlyProcessed = false;
+  page._pipelineOcrDone = false;
+  page._pipelineTranslationDone = false;
+  page._pipelineInpaintDone = false;
   page.textDetections.splice(idx, 1);
   // Mirror deletion into the unified layer model
   const layer = dialogueLayerForTextIdx(page, idx);
@@ -40,6 +43,10 @@ canvas.deleteTextDetection = function (idx: number): void {
 canvas.deleteMultipleTextDetections = function (indices: number[]): void {
   const page = state.getActivePage();
   if (!page || !indices.length) return;
+  page._cleanOnlyProcessed = false;
+  page._pipelineOcrDone = false;
+  page._pipelineTranslationDone = false;
+  page._pipelineInpaintDone = false;
 
   const unique = Array.from(new Set(indices))
     .filter((i) => i >= 0 && i < page.textDetections.length)
@@ -98,6 +105,7 @@ canvas.setTextDetectionText = function (idx: number, text: string): void {
   const det = page.textDetections[idx];
   if (det.text === text) return;
   det.text = text;
+  page._pipelineTranslationDone = false;
   if (det.status === "auto") det.status = "adjusted";
   // Mirror into the unified layer model
   const layer = dialogueLayerForTextIdx(page, idx);

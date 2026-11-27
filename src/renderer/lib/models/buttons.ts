@@ -28,6 +28,7 @@ export function updateButtons(): void {
     selectedReady("detect"),
   );
   setBtn("btn-ocr", s.hasImage && selectedReady("ocr"), selectedReady("ocr"));
+  setBtn("btn-translate", s.hasImage, true);
   setBtn(
     "btn-inpaint",
     s.hasImage && selectedReady("inpaint"),

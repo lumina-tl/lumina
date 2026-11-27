@@ -313,6 +313,7 @@ async function doExport(goBtn: HTMLButtonElement): Promise<void> {
     const res: ExportResult = await window.lumina.exportImages({
       format,
       quality,
+      folderName: st.folderName,
       files,
     });
     ui.dismissToast(toast);

@@ -46,6 +46,10 @@ export function toDetection(): void {
       page.textDetections.push(det);
       page._cleanOnlyProcessed = false;
       page._cleanOnlyDetectionDone = true;
+      page._pipelineDetectionDone = true;
+      page._pipelineOcrDone = false;
+      page._pipelineTranslationDone = false;
+      page._pipelineInpaintDone = false;
 
       // Insert the mirrored dialogue layer right after the existing dialogue
       // block (before free-text layers), keeping layers[i] === detections[i]

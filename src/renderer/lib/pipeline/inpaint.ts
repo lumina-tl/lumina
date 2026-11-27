@@ -175,6 +175,8 @@ export const inpaint = {
       // Detection boxes stay in the page model but are no longer drawn —
       // see render.ts (overlays only while masks.length === 0).
       page.inpaintMasks = masks;
+      page._pipelineInpaintDone = true;
+      page._cleanOnlyProcessed = true;
       state._inpaintLoaded = true;
       invalidateComposite(page.fileName);
 
@@ -285,8 +287,14 @@ export const inpaint = {
 
         const original = mask.image ?? (await loadImage(mask.imagePath));
         const edited = document.createElement("canvas");
-        edited.width = original.naturalWidth || original.width;
-        edited.height = original.naturalHeight || original.height;
+        edited.width =
+          "naturalWidth" in original
+            ? original.naturalWidth
+            : original.width;
+        edited.height =
+          "naturalHeight" in original
+            ? original.naturalHeight
+            : original.height;
         const ctx = edited.getContext("2d");
         if (!ctx) throw new Error("Could not create mask editing canvas");
         ctx.drawImage(original, 0, 0, edited.width, edited.height);

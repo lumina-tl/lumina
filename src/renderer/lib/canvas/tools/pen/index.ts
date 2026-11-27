@@ -278,8 +278,8 @@ canvas.onToolChange = function (tool: string): void {
 };
 
 const origSwitchPage = canvas.switchPage;
-canvas.switchPage = function (idx: number): void {
-  origSwitchPage(idx);
+canvas.switchPage = async function (idx: number): Promise<void> {
+  await origSwitchPage(idx);
   resetPath();
   stopShapePathEdit();
 };

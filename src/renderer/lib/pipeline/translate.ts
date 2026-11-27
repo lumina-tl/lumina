@@ -73,7 +73,6 @@ export const translateSettings = {
           targetLang: cfg.targetLang,
           llmBaseUrl: cfg.llmBaseUrl,
           llmModel: cfg.llmModel,
-          llmStyle: cfg.llmStyle,
           llmInstruction: cfg.llmInstruction,
           openrouterModel: cfg.openrouterModel,
           grokModel: cfg.grokModel,
@@ -283,6 +282,7 @@ export const translate = {
           reflowVerticalLayerBbox(layer, page);
         }
       });
+      page._pipelineTranslationDone = true;
 
       canvas.render();
       sidebar.render();

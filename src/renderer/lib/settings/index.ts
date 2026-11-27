@@ -5,6 +5,7 @@ import * as i18n from "../i18n";
 import { createIcons } from "../ui/icons";
 import { generalTab } from "./general";
 import { shortcutsTab } from "./shortcuts-tab";
+import { translationTab } from "./translation";
 import { modelsTab } from "./models";
 import { applySettingsWindow, initSettingsWindow } from "./window";
 
@@ -33,6 +34,12 @@ const TABS: TabDef[] = [
     ...shortcutsTab,
   },
   {
+    id: "translation",
+    labelKey: "settings.tabTranslation",
+    icon: "languages",
+    ...translationTab,
+  },
+  {
     id: "models",
     labelKey: "settings.tabModels",
     icon: "package",
@@ -58,6 +65,7 @@ export const settings = {
       const icon = document.createElement("i");
       icon.dataset.lucide = tab.icon;
       const label = document.createElement("span");
+      label.dataset.i18n = tab.labelKey;
       label.textContent = i18n.t(tab.labelKey);
       btn.appendChild(icon);
       btn.appendChild(label);

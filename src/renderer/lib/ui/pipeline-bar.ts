@@ -17,6 +17,7 @@ import { state } from "../state";
 import { canvas } from "../canvas/index";
 import { createIcons } from "./icons";
 import { RECOMMENDED } from "../models/descriptions";
+import { translateSettings } from "../pipeline/translate";
 import type { ModelInfo } from "../../types";
 import { ui } from "./index";
 
@@ -294,7 +295,7 @@ function _toggleCleanOcrDropdown(): void {
 
 /** Render and toggle dropdown popover */
 function _toggleDropdown(
-  kind: "detect" | "ocr" | "inpaint",
+  kind: "detect" | "ocr" | "inpaint" | "translate",
   btn: HTMLElement,
 ): void {
   const dropdown = document.getElementById(`dropdown-${kind}`);
@@ -310,7 +311,11 @@ function _toggleDropdown(
   btn.classList.add("active");
   dropdown.classList.remove("hidden");
 
-  _renderModelDropdown(kind, dropdown);
+  if (kind === "translate") {
+    _renderTranslateDropdown(dropdown);
+  } else {
+    _renderModelDropdown(kind, dropdown);
+  }
 
   createIcons({ root: dropdown });
 }
@@ -449,7 +454,7 @@ function _renderTranslateDropdown(root: HTMLElement): void {
   <div class="pipeline-dropdown-footer">
     <button class="pipeline-dropdown-link" id="link-open-trans-settings">
       <i data-lucide="settings" class="w-3 h-3"></i>
-      <span>Translation Settings...</span>
+      <span>${_esc(i18n.t("pipeline.translationSettings"))}</span>
     </button>
   </div>`;
 
@@ -551,10 +556,11 @@ export const pipelineBar = {
     });
 
     // Model dropdown triggers
-    const kinds: Array<"detect" | "ocr" | "inpaint"> = [
+    const kinds: Array<"detect" | "ocr" | "inpaint" | "translate"> = [
       "detect",
       "ocr",
       "inpaint",
+      "translate",
     ];
     kinds.forEach((k) => {
       const chevron = _bar?.querySelector(

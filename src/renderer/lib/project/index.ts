@@ -150,6 +150,10 @@ function buildPayload(
           visible: m.visible,
           opacity: m.opacity,
         })),
+        _pipelineDetectionDone: p._pipelineDetectionDone,
+        _pipelineOcrDone: p._pipelineOcrDone,
+        _pipelineTranslationDone: p._pipelineTranslationDone,
+        _pipelineInpaintDone: p._pipelineInpaintDone,
         _cleanOnlyProcessed: p._cleanOnlyProcessed,
         _cleanOnlyDetectionDone: p._cleanOnlyDetectionDone,
         cleanupMask: p.cleanupMask
@@ -389,6 +393,10 @@ export const project = {
       const dims = isActive
         ? null
         : await _probeImage(pd.filePath).catch(() => null);
+      const detections = pd.textDetections as Page["textDetections"];
+      const detectionDone =
+        pd._pipelineDetectionDone ??
+        Boolean(pd._cleanOnlyDetectionDone || detections.length > 0);
       const page: Page = {
         filePath: pd.filePath,
         fileName: pd.fileName,
@@ -398,7 +406,7 @@ export const project = {
         naturalHeight: isActive
           ? pd.naturalHeight
           : (dims?.h ?? pd.naturalHeight),
-        textDetections: pd.textDetections as Page["textDetections"],
+        textDetections: detections,
         layers: (pd.layers as Page["layers"]).map((l) => {
           if (
             l.type === "image" &&
@@ -412,6 +420,22 @@ export const project = {
           return l;
         }),
         inpaintMasks: pd.inpaintMasks.map((m) => ({ ...m })),
+        _pipelineDetectionDone: detectionDone,
+        _pipelineOcrDone:
+          pd._pipelineOcrDone ??
+          (detectionDone &&
+            (detections.length === 0 ||
+              detections.every((d) => Boolean(d.text?.trim())))),
+        _pipelineTranslationDone:
+          pd._pipelineTranslationDone ??
+          (detectionDone &&
+            (detections.length === 0 ||
+              detections.every(
+                (d) => Boolean(d.text?.trim()) && Boolean(d.translated?.trim()),
+              ))),
+        _pipelineInpaintDone:
+          pd._pipelineInpaintDone ??
+          Boolean(pd._cleanOnlyProcessed || pd.inpaintMasks.length > 0),
         _cleanOnlyProcessed: pd._cleanOnlyProcessed,
         _cleanOnlyDetectionDone:
           pd._cleanOnlyDetectionDone || pd.textDetections.length > 0,
