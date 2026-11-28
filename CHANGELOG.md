@@ -19,12 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Layer locking.** Added a lock/unlock toggle on each layer to prevent accidental selection, movement, editing, or deletion.
 - **Project thumbnails on landing page.** Recent `.lmi` projects now display a viewport snapshot thumbnail captured on save.
 - **Folder import and page context menu.** Import entire folders of manga pages recursively and close individual, other, or all pages from the page strip context menu.
-- **Batch pipeline mode.** Added a Single Page / Batch mode selector to the pipeline bar with per-page stage completion markers so completed stages are skipped on subsequent batch runs.
-- **Tiled text detection.** Splits tall or high-resolution pages into overlapping tiles and merges detections with NMS for reliable detection on long strips.
-- **Direct inpaint mask editing.** Select an inpaint mask and use the brush or eraser to paint directly onto it with undo/redo support.
-- **Export OCR text.** Added **File → Export OCR text...** to save original and translated dialogue across all open pages to a `.txt` file.
-- **Spanish localization.** Added Spanish UI translations, model descriptions, release notes, and `README.es.md`.
-- **Dialogue group visibility toggle.** Added a virtual Dialogues row in the layer list to toggle all dialogue layers at once.
+- **Batch pipeline mode.** Added a Single Page / Batch mode selector to the pipeline bar with per-page stage completion markers so completed stages are skipped on subsequent batch runs (thanks @AlanSanchez06).
+- **Tiled text detection.** Splits tall or high-resolution pages into overlapping tiles and merges detections with NMS for reliable detection on long strips (thanks @AlanSanchez06).
+- **Direct inpaint mask editing.** Select an inpaint mask and use the brush or eraser to paint directly onto it with undo/redo support (thanks @AlanSanchez06).
+- **Export OCR text.** Added **File → Export OCR text...** to save original and translated dialogue across all open pages to a `.txt` file (thanks @AlanSanchez06).
+- **Spanish localization.** Added Spanish UI translations, model descriptions, release notes, and `README.es.md` (thanks @AlanSanchez06).
+- **Dialogue group visibility toggle.** Added a virtual Dialogues row in the layer list to toggle all dialogue layers at once (thanks @AlanSanchez06).
 
 ### Changed
 
