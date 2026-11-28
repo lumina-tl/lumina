@@ -4,7 +4,6 @@ export type RuntimeState =
   | "downloading"
   | "extracting"
   | "ready"
-  | "cancelled"
   | "error";
 
 export interface RuntimeInfo {

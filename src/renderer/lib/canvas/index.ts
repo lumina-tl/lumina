@@ -303,7 +303,8 @@ canvas.updateBoxToggle = function (): void {
   const page = state.getActivePage();
   const hasDet =
     !!page && !!page.textDetections && page.textDetections.length > 0;
-  btn.disabled = !hasDet;
+  const hasMask = !!page && !!page.inpaintMasks && page.inpaintMasks.length > 0;
+  btn.disabled = !hasDet || hasMask;
   btn.classList.toggle("active", !!state.showDetBoxes);
 };
 

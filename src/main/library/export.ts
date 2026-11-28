@@ -41,19 +41,20 @@ async function handleExport(
   });
   if (res.canceled || !res.filePaths[0])
     return { canceled: true, dir: null, count: 0 };
-  const folderName = payload.folderName
+  const folderName = (payload.folderName || "")
     .replace(/[<>:"/\\|?*\x00-\x1f]/g, " ")
     .replace(/[. ]+$/g, "")
     .trim();
-  if (!folderName || folderName === "." || folderName === "..")
-    throw new Error("A valid export folder name is required");
 
   const parentDir = res.filePaths[0];
-  let dir = path.join(parentDir, folderName);
-  for (let suffix = 2; fs.existsSync(dir); suffix++) {
-    dir = path.join(parentDir, `${folderName} (${suffix})`);
+  let dir = parentDir;
+  if (folderName && folderName !== "." && folderName !== "..") {
+    dir = path.join(parentDir, folderName);
+    for (let suffix = 2; fs.existsSync(dir); suffix++) {
+      dir = path.join(parentDir, `${folderName} (${suffix})`);
+    }
+    fs.mkdirSync(dir);
   }
-  fs.mkdirSync(dir);
   const ext = payload.format === "jpg" ? ".jpg" : ".png";
   let written = 0;
   const usedNames = new Set<string>();

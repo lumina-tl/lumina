@@ -66,19 +66,6 @@ export const translateSettings = {
     try {
       const raw = storage.getItem(STORAGE_KEY);
       if (raw) cfg = { ...cfg, ...(JSON.parse(raw) as StoredConfig) };
-      if (cfg.geminiModel === "gemini-2.0-flash") {
-        cfg.geminiModel = "gemini-2.5-flash";
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
-          provider: cfg.provider,
-          targetLang: cfg.targetLang,
-          llmBaseUrl: cfg.llmBaseUrl,
-          llmModel: cfg.llmModel,
-          llmInstruction: cfg.llmInstruction,
-          openrouterModel: cfg.openrouterModel,
-          grokModel: cfg.grokModel,
-          geminiModel: cfg.geminiModel,
-        } satisfies StoredConfig));
-      }
     } catch {
       /* keep defaults */
     }

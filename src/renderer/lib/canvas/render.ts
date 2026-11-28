@@ -375,9 +375,11 @@ function _render(): void {
     );
   }
 
-  // Detection overlays remain available after inpainting so boxes can be
-  // reviewed or adjusted.
-  if (state.showDetBoxes) {
+  // Detection overlays — shown only while boxes are toggled on, BEFORE the
+  // first inpaint run; once mask layers exist the patches themselves are the
+  // visual representation of the boxes. After OCR the boxes stay visible so
+  // the user can verify/adjust a box and re-run OCR.
+  if (state.showDetBoxes && page.inpaintMasks.length === 0) {
     page.textDetections.forEach((det, i) => {
       const g = canvas._createTextGroup(det, i, sr, off);
       addDetGroupToLayer(_layer!, g);
@@ -390,7 +392,7 @@ function _render(): void {
   renderLayerTextNodes();
 
   // Re-apply green detection selection after a full rebuild (zoom/toggle).
-  if (state.showDetBoxes) {
+  if (state.showDetBoxes && page.inpaintMasks.length === 0) {
     applyTextSelection(page._selectedTextIdx ?? null);
     // Badges are layer siblings added before text nodes — raise them so
     // T1/T2 labels stay clickable above dialogue text layers.

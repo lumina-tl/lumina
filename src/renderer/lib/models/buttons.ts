@@ -22,11 +22,6 @@ export function updateButtons(): void {
     s.hasImage && selectedReady("detect"),
     selectedReady("detect"),
   );
-  setBtn(
-    "btn-detect-all",
-    s.hasImage && selectedReady("detect"),
-    selectedReady("detect"),
-  );
   setBtn("btn-ocr", s.hasImage && selectedReady("ocr"), selectedReady("ocr"));
   setBtn("btn-translate", s.hasImage, true);
   setBtn(

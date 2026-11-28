@@ -14,10 +14,6 @@ export function getWindow(): BrowserWindow | null {
   return win;
 }
 
-export function setWindowCloseAllowed(allowed: boolean): void {
-  allowClose = allowed;
-}
-
 export function getPendingOpenPath(): string | null {
   return pendingOpenPath;
 }

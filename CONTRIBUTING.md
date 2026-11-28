@@ -1,7 +1,5 @@
 # Contributing to Lumina
 
-**Languages:** [English](CONTRIBUTING.md) | [Español](CONTRIBUTING.es.md)
-
 Thank you for your interest in contributing to Lumina. Lumina is a free, open-source desktop app for translating manga, manhwa, and manhua with local ONNX models.
 
 ## Development Setup

@@ -408,6 +408,11 @@
   "fontMarket.catInstalled": "Terpasang",
   "fontMarket.loading": "Memuat katalog font...",
   "fontMarket.noFonts": "Tidak ada font yang cocok",
+
+  "pipeline.mode": "Mode Pipeline",
+  "pipeline.modeSingle": "Halaman Saat Ini",
+  "pipeline.modeBatch": "Batch (Semua Halaman)",
+  "pipeline.allShort": "Semua",
   "fontMarket.statusSystem": "Sistem OS",
   "fontMarket.statusInApp": "Internal App",
   "fontMarket.statusNotInstalled": "Belum Terpasang",

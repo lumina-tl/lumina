@@ -24,6 +24,8 @@ export const PRESETS: PresetDef[] = [
 ];
 
 const PRESET_KEY = "lumina-pipeline-preset";
+const MODE_KEY = "lumina-pipeline-mode";
+export type PipelineMode = "single" | "batch";
 let _pipelineRunning = false;
 
 type PipelineStageKey =
@@ -175,11 +177,34 @@ export function savePreset(id: PresetId): void {
   }
 }
 
+/** Load saved pipeline mode (default: single). */
+export function loadMode(): PipelineMode {
+  try {
+    const raw = storage.getItem(MODE_KEY);
+    if (raw === "batch") return "batch";
+  } catch {
+    /* ignore */
+  }
+  return "single";
+}
+
+/** Persist pipeline mode selection. */
+export function saveMode(mode: PipelineMode): void {
+  try {
+    storage.setItem(MODE_KEY, mode);
+  } catch {
+    /* ignore */
+  }
+}
+
 export const pipeline = {
   runDetection: detection.run,
-  runDetectionAll: detection.runAll,
   runOcr: ocr.run,
   async runTranslate(): Promise<void> {
+    if (loadMode() === "single") {
+      await translate.run();
+      return;
+    }
     const pages = state.pages.filter((page) =>
       page.textDetections.some((d) => (d.text || "").trim().length > 0),
     );
@@ -191,31 +216,30 @@ export const pipeline = {
   },
   runInpaint: inpaint.run,
   async runAll(): Promise<void> {
-    await runPipelineForOpenPages([
-      DETECTION_STAGE,
-      OCR_STAGE,
-      TRANSLATION_STAGE,
-      INPAINT_STAGE,
-    ]);
+    await pipeline.runPreset("full");
   },
   /** Run the given preset by id. */
   async runPreset(
     id: PresetId,
-    options?: { includeOcr?: boolean },
+    options?: { includeOcr?: boolean; mode?: PipelineMode },
   ): Promise<void> {
+    const mode = options?.mode ?? loadMode();
+    const active = state.getActivePage();
+    const pagesToProcess =
+      mode === "batch" ? [...state.pages] : active ? [active] : [];
+    const skipCompleted = mode === "batch";
     try {
       if (id === "clean") {
         const stages = options?.includeOcr
           ? [DETECTION_STAGE, OCR_STAGE, TRANSLATION_STAGE, INPAINT_STAGE]
           : [DETECTION_STAGE, INPAINT_STAGE];
-        await runPipelineForOpenPages(stages);
+        await runPipelineForOpenPages(stages, pagesToProcess, skipCompleted);
       } else {
-        await runPipelineForOpenPages([
-          DETECTION_STAGE,
-          OCR_STAGE,
-          TRANSLATION_STAGE,
-          INPAINT_STAGE,
-        ]);
+        await runPipelineForOpenPages(
+          [DETECTION_STAGE, OCR_STAGE, TRANSLATION_STAGE, INPAINT_STAGE],
+          pagesToProcess,
+          skipCompleted,
+        );
       }
     } finally {
       if (id === "clean") {

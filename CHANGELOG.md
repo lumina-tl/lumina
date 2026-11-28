@@ -18,11 +18,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Nightly update channel.** Added a Stable/Nightly update channel selector in General settings and automated nightly builds on every `main` commit.
 - **Layer locking.** Added a lock/unlock toggle on each layer to prevent accidental selection, movement, editing, or deletion.
 - **Project thumbnails on landing page.** Recent `.lmi` projects now display a viewport snapshot thumbnail captured on save.
+- **Folder import and page context menu.** Import entire folders of manga pages recursively and close individual, other, or all pages from the page strip context menu.
+- **Batch pipeline mode.** Added a Single Page / Batch mode selector to the pipeline bar with per-page stage completion markers so completed stages are skipped on subsequent batch runs.
+- **Tiled text detection.** Splits tall or high-resolution pages into overlapping tiles and merges detections with NMS for reliable detection on long strips.
+- **Direct inpaint mask editing.** Select an inpaint mask and use the brush or eraser to paint directly onto it with undo/redo support.
+- **Export OCR text.** Added **File → Export OCR text...** to save original and translated dialogue across all open pages to a `.txt` file.
+- **Spanish localization.** Added Spanish UI translations, model descriptions, release notes, and `README.es.md`.
+- **Dialogue group visibility toggle.** Added a virtual Dialogues row in the layer list to toggle all dialogue layers at once.
 
 ### Changed
 
 - **Visible update installation progress.** App updates now show a visible progress bar during installation and provide in-app status feedback.
 - **Photoshop-style object rotation.** Replaced the dedicated rotation anchor handle with a rotation zone around the outside of selected bounding boxes (with Shift-snap to 15° increments).
+- **Clean Only OCR option.** Running the Clean Only preset now prompts whether to also run OCR and translation.
+- **Folder-grouped image export.** Pages imported from a folder are exported into a matching subfolder, while individually imported images export directly to the chosen directory.
+- **Selection-to-detection workflow.** Converting a rectangle or lasso selection to a detection box keeps the active drawing tool selected for faster multi-box creation.
 
 ### Fixed
 
@@ -33,6 +43,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Selection persistence on Select tool.** Fixed active selections not clearing when clicking on the canvas or objects with the Select tool.
 - **Tool cursor color inversion.** Fixed paint, selection, and pen tool cursors not inverting against bright/white canvas backgrounds.
 - **Image layer export failure.** Fixed export crashing with a `drawImage` error after reopening saved projects containing layered objects.
+- **AMD/Intel GPU provider selection.** Avoided selecting `CUDAExecutionProvider` on non-NVIDIA Windows GPUs so DirectML is chosen without a slow fallback.
+- **Stage recreation cursor handlers.** Rebound hover and selection handlers whenever the Konva stage is recreated after closing all pages.
+- **Backend startup error reporting.** Added Python interpreter validation (`LUMINA_PYTHON` support) and clearer startup/model-registry error messages.
 
 ## [0.6.0] - 23-11-2026
 
@@ -104,30 +117,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Anthropic compatible protocol.** Removed Anthropic Messages API client, dependencies, and settings switches in favor of the industry-standard OpenAI `/v1/chat/completions` protocol for all custom and self-hosted inference (Ollama, LM Studio, vLLM, etc.).
 - **Bubble detections.** Detection pipeline no longer returns or processes speech bubble boxes — only text boxes and the full-page text mask (RF-DETR-seg) are kept. This simplifies the pipeline and reduces unnecessary compute on unused classes.
-
-## [0.4.2] - 27-10-2026
-
-### Added
-
-- **Edit generated masks directly.** Select an inpaint mask and use the brush to add to that mask or the eraser to remove from it. Brush edits use the selected palette color and are saved with undo/redo support.
-- **Delete downloaded models.** The Models settings panel now lets you remove an installed model, including AngleNet, with confirmation.
-- **Cancel CUDA runtime installation.** The runtime progress notification can cancel both the download and extraction; a verified downloaded archive is kept when extraction is cancelled so it can be reused.
-- **Localized model descriptions.** Model descriptions are available in Spanish and update immediately when the app language changes. AngleNet’s role and fallback behavior are explained.
-
-### Changed
-
-- **Folder-based export.** Exported pages are grouped into a named folder, using the imported folder name when available and prompting for a name for individually imported images.
-- **Clean Only OCR choice.** The Clean Only preset lets you choose whether OCR should run.
-
-### Fixed
-
-- **CUDA extraction progress and reliability.** The installation notification now reports extraction progress, and the extractor drains process output to avoid pipe stalls.
-
-## [0.4.1] - 20-10-2026
-
-### Changed
-
-- **In-app updates install in place.** Click the update button once to download and install the differential update; Lumina restarts automatically when ready. Unsaved work is checked before installation, so reinstalling the full setup file is no longer needed.
 
 ## [0.4.0] - 13-09-2026
 

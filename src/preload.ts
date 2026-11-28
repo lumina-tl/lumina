@@ -89,7 +89,6 @@ const api: LuminaAPI = {
   },
   openUpdateUrl: (url) => invoke(IPC.openUpdateUrl, url),
   getRuntimeStatus: () => invoke(IPC.runtimeStatus),
-  cancelRuntime: () => invoke(IPC.runtimeCancel),
   onRuntimeProgress: (cb) => {
     on(IPC.runtimeProgress, cb);
   },

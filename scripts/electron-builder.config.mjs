@@ -30,7 +30,7 @@ const config = {
   // itself is disabled so the workflow keeps full control over drafts.
   publish: {
     provider: "github",
-    owner: "AlanSanchez06",
+    owner: "lumina-tl",
     repo: "lumina",
     channel: "dml",
   },
@@ -56,7 +56,6 @@ const config = {
   nsis: {
     oneClick: true,
     perMachine: false,
-    differentialPackage: true,
     artifactName: "Lumina-Setup-DML-${version}.exe",
   },
 };

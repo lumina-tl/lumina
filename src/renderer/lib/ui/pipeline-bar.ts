@@ -9,8 +9,11 @@ import {
   pipeline,
   loadPreset,
   savePreset,
+  loadMode,
+  saveMode,
   PRESETS,
   type PresetId,
+  type PipelineMode,
 } from "../pipeline";
 import { settings } from "../settings/index";
 import { state } from "../state";
@@ -202,9 +205,12 @@ const _presetLabelKeys: Record<string, string> = {
 function _updatePresetLabel(): void {
   const label = document.getElementById("btn-pipeline-all-label");
   const id = loadPreset();
+  const mode = loadMode();
   if (label) {
     label.dataset.i18n = _presetLabelKeys[id] || "pipeline.full";
-    label.textContent = i18n.t(label.dataset.i18n);
+    const base = i18n.t(label.dataset.i18n);
+    label.textContent =
+      mode === "batch" ? `${base} (${i18n.t("pipeline.allShort")})` : base;
   }
 }
 
@@ -223,6 +229,7 @@ function _togglePresetDropdown(btn: HTMLElement): void {
   dropdown.classList.remove("hidden");
 
   const current = loadPreset();
+  const currentMode = loadMode();
   let html = `<div class="pipeline-dropdown-header">
     <span>${_esc(i18n.t("pipeline.preset"))}</span>
   </div>
@@ -239,15 +246,47 @@ function _togglePresetDropdown(btn: HTMLElement): void {
       </div>`;
   }
 
+  html += `</div>
+  <div class="pipeline-dropdown-header">
+    <span>${_esc(i18n.t("pipeline.mode"))}</span>
+  </div>
+  <div class="pipeline-dropdown-list">`;
+
+  const modes: Array<{ id: PipelineMode; labelKey: string }> = [
+    { id: "single", labelKey: "pipeline.modeSingle" },
+    { id: "batch", labelKey: "pipeline.modeBatch" },
+  ];
+  for (const m of modes) {
+    const isSelected = m.id === currentMode;
+    html += `
+      <div class="pipeline-dropdown-item ${isSelected ? "selected" : ""}" data-pipeline-mode="${m.id}">
+        <div class="pipeline-item-check">
+          ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-lumina"></i>' : ""}
+        </div>
+        <div class="pipeline-item-name">${_esc(i18n.t(m.labelKey))}</div>
+      </div>`;
+  }
+
   html += `</div>`;
   dropdown.innerHTML = html;
 
-  dropdown.querySelectorAll(".pipeline-dropdown-item").forEach((item) => {
+  dropdown.querySelectorAll("[data-preset-id]").forEach((item) => {
     item.addEventListener("click", (e) => {
       e.stopPropagation();
       const presetId = item.getAttribute("data-preset-id") as PresetId | null;
       if (!presetId) return;
       savePreset(presetId);
+      _updatePresetLabel();
+      _closeDropdowns();
+    });
+  });
+
+  dropdown.querySelectorAll("[data-pipeline-mode]").forEach((item) => {
+    item.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const mode = item.getAttribute("data-pipeline-mode") as PipelineMode | null;
+      if (!mode) return;
+      saveMode(mode);
       _updatePresetLabel();
       _closeDropdowns();
     });

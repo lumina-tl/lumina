@@ -224,11 +224,6 @@ i18n.init().then(function () {
   document.getElementById("btn-detect")!.addEventListener("click", function () {
     pipeline.runDetection();
   });
-  document
-    .getElementById("btn-detect-all")!
-    .addEventListener("click", function () {
-      pipeline.runDetectionAll();
-    });
 
   document.getElementById("btn-ocr")!.addEventListener("click", function () {
     pipeline.runOcr();
