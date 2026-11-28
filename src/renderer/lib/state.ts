@@ -36,6 +36,8 @@ export interface AppState {
   sidebarWidth: number;
   /** Detection box overlays — auto-hidden after OCR; user can re-show */
   showDetBoxes: boolean;
+  /** Non-destructive Before/After preview toggle */
+  beforePreview: boolean;
 
   // ── Per-page viewport accessors ──
   _zoomLevel: number;
@@ -83,6 +85,7 @@ export const state: AppState = new (class implements AppState {
   sidebarCollapsed = false;
   sidebarWidth = 260;
   showDetBoxes = true;
+  beforePreview = false;
 
   _zoomLevel = 1;
   _panX = 0;

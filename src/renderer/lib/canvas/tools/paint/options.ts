@@ -53,6 +53,49 @@ function bindNumericInput(
       input.blur();
     }
   });
+  input.addEventListener(
+    "wheel",
+    function (e) {
+      e.preventDefault();
+      const cur = parseFloat(input.value);
+      const base = isNaN(cur) ? min : cur;
+      const step = e.shiftKey ? 5 : 1;
+      const delta = e.deltaY < 0 ? step : -step;
+      const clamped = Math.min(max, Math.max(min, Math.round(base + delta)));
+      input.value = String(clamped);
+      if (slider) {
+        slider.value = String(clamped);
+        setSliderFill(slider);
+      }
+      onChange(clamped);
+    },
+    { passive: false },
+  );
+}
+
+function wireSliderWheel(
+  slider: HTMLInputElement,
+  input: HTMLInputElement | null,
+  min: number,
+  max: number,
+  onChange: (val: number) => void,
+): void {
+  slider.addEventListener(
+    "wheel",
+    function (e) {
+      e.preventDefault();
+      const cur = parseInt(slider.value, 10);
+      const base = isNaN(cur) ? min : cur;
+      const step = e.shiftKey ? 5 : 1;
+      const delta = e.deltaY < 0 ? step : -step;
+      const clamped = Math.min(max, Math.max(min, base + delta));
+      slider.value = String(clamped);
+      setSliderFill(slider);
+      if (input) input.value = String(clamped);
+      onChange(clamped);
+    },
+    { passive: false },
+  );
 }
 
 export function initPaintOptions(): void {
@@ -77,6 +120,10 @@ export function initPaintOptions(): void {
       clearSprite();
     });
     wireSlider(size);
+    wireSliderWheel(size, sizeVal, 2, 300, function (v) {
+      setPaintSize(v);
+      clearSprite();
+    });
   }
   if (sizeVal) {
     bindNumericInput(sizeVal, size, 2, 300, function (v) {
@@ -95,6 +142,10 @@ export function initPaintOptions(): void {
       clearSprite();
     });
     wireSlider(opacity);
+    wireSliderWheel(opacity, opacityVal, 0, 100, function (v) {
+      setPaintOpacity(v / 100);
+      clearSprite();
+    });
   }
   if (opacityVal) {
     bindNumericInput(opacityVal, opacity, 0, 100, function (v) {
@@ -115,6 +166,10 @@ export function initPaintOptions(): void {
       clearSprite();
     });
     wireSlider(hardness);
+    wireSliderWheel(hardness, hardnessVal, 0, 100, function (v) {
+      setPaintHardness(v);
+      clearSprite();
+    });
   }
   if (hardnessVal) {
     bindNumericInput(hardnessVal, hardness, 0, 100, function (v) {
@@ -134,6 +189,9 @@ export function initPaintOptions(): void {
       if (toleranceVal) toleranceVal.value = String(v);
     });
     wireSlider(tolerance);
+    wireSliderWheel(tolerance, toleranceVal, 0, 255, function (v) {
+      setPaintTolerance(v);
+    });
   }
   if (toleranceVal) {
     bindNumericInput(toleranceVal, tolerance, 0, 255, function (v) {

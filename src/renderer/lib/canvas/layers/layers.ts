@@ -12,6 +12,123 @@ import {
   stopShapePathEdit,
 } from "../tools/pen/direct-select";
 
+import type { Page, PageLayer } from "../../../types";
+
+interface LayerClipboard {
+  sourcePage: Page;
+  pasteCount: number;
+  layers: PageLayer[];
+}
+
+let _clipboard: LayerClipboard | null = null;
+
+function cloneImageCanvas(src: HTMLCanvasElement): HTMLCanvasElement {
+  const c = document.createElement("canvas");
+  c.width = src.width;
+  c.height = src.height;
+  c.getContext("2d")?.drawImage(src, 0, 0);
+  return c;
+}
+
+function cloneLayerData(layer: PageLayer): PageLayer {
+  const copy: PageLayer = {
+    ...layer,
+    locked: false,
+    bbox: { ...layer.bbox },
+    typography: { ...layer.typography },
+    spans: layer.spans ? layer.spans.map((s) => ({ ...s })) : undefined,
+    pathNodes: layer.pathNodes
+      ? layer.pathNodes.map((n) => ({ ...n }))
+      : undefined,
+    shapeStyle: layer.shapeStyle ? { ...layer.shapeStyle } : undefined,
+  };
+  if (layer.type === "image" && layer.imageCanvas instanceof HTMLCanvasElement) {
+    copy.imageCanvas = cloneImageCanvas(layer.imageCanvas);
+  }
+  return copy;
+}
+
+function getSelectedLayerIds(page: {
+  _selectedLayerId: string | null;
+  _selectedLayerIds?: string[];
+}): string[] {
+  if (page._selectedLayerIds && page._selectedLayerIds.length > 0) {
+    return page._selectedLayerIds;
+  }
+  return page._selectedLayerId ? [page._selectedLayerId] : [];
+}
+
+canvas.copySelectedLayers = function (): void {
+  const page = state.getActivePage();
+  if (!page) return;
+  const ids = new Set(getSelectedLayerIds(page));
+  if (ids.size === 0) return;
+  const selected = page.layers.filter((l) => ids.has(l.id));
+  if (selected.length === 0) return;
+  _clipboard = {
+    sourcePage: page,
+    pasteCount: 0,
+    layers: selected.map(cloneLayerData),
+  };
+};
+
+canvas.cutSelectedLayers = function (): void {
+  const page = state.getActivePage();
+  if (!page) return;
+  const ids = getSelectedLayerIds(page);
+  if (ids.length === 0) return;
+  canvas.copySelectedLayers();
+  canvas.deleteMultipleLayers(ids);
+};
+
+canvas.pasteLayers = function (): void {
+  const page = state.getActivePage();
+  if (!page || !_clipboard || _clipboard.layers.length === 0) return;
+
+  const samePage = page === _clipboard.sourcePage;
+  const offset = samePage ? 16 * (++_clipboard.pasteCount) : 0;
+
+  const pasted: PageLayer[] = _clipboard.layers.map((src) => {
+    const copy = cloneLayerData(src);
+    copy.id = `${copy.type}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    // Detach dialogue link on paste so target page detections are never overwritten.
+    if (copy.type === "text-dialogue") {
+      copy.type = "text-free";
+    }
+
+    const oldX = copy.bbox.x;
+    const oldY = copy.bbox.y;
+    let nx = oldX + offset;
+    let ny = oldY + offset;
+    if (page.naturalWidth > 0 && page.naturalHeight > 0) {
+      const maxX = Math.max(0, page.naturalWidth - copy.bbox.w);
+      const maxY = Math.max(0, page.naturalHeight - copy.bbox.h);
+      nx = Math.max(0, Math.min(maxX, nx));
+      ny = Math.max(0, Math.min(maxY, ny));
+    }
+    const dx = nx - oldX;
+    const dy = ny - oldY;
+    copy.bbox.x = nx;
+    copy.bbox.y = ny;
+
+    if (copy.pathNodes && (dx !== 0 || dy !== 0)) {
+      copy.pathNodes = copy.pathNodes.map((n) => ({
+        x: n.x + dx,
+        y: n.y + dy,
+        inX: n.inX !== undefined ? n.inX + dx : undefined,
+        inY: n.inY !== undefined ? n.inY + dy : undefined,
+        outX: n.outX !== undefined ? n.outX + dx : undefined,
+        outY: n.outY !== undefined ? n.outY + dy : undefined,
+      }));
+    }
+    return copy;
+  });
+
+  page.layers = [...pasted, ...page.layers];
+  canvas.selectMultipleLayers(pasted.map((l) => l.id));
+  history.snapshot();
+};
+
 function _findLayer(
   page: { layers: Array<{ id: string }> } | null,
   id: string | null,

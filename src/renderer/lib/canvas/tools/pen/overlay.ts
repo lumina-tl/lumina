@@ -2,7 +2,8 @@
 import Konva from "konva";
 import { canvas } from "../../index";
 import { imgToStage } from "../select/shared";
-import { nodesToSvgPath } from "./path-math";
+import { getStrokeDashArray, nodesToSvgPath } from "./path-math";
+import { getPenMode, getPenShapeStyle } from "./options";
 import type { PathNode } from "../../../../types";
 
 let _layer: Konva.Layer | null = null;
@@ -50,8 +51,46 @@ export function renderPenOverlay(
   }
 
   const sNodes = toStageNodes(nodes);
+  const mode = getPenMode();
 
-  // Main path curve
+  // Live styled preview for Shape & Line modes (including rubber-band segment)
+  if (mode === "line" || mode === "shape") {
+    const isLine = mode === "line";
+    const style = getPenShapeStyle({ forceStroke: isLine, noFill: isLine });
+    const sr = canvas.getScaleRatio();
+    const styledNodes: PathNode[] = [...sNodes];
+    if (hoverImg && sNodes.length >= 1) {
+      const target = hoverClosing ? sNodes[0] : imgToStage(hoverImg.x, hoverImg.y);
+      styledNodes.push(
+        hoverClosing
+          ? { x: target.x, y: target.y, inX: sNodes[0].inX, inY: sNodes[0].inY }
+          : { x: target.x, y: target.y },
+      );
+    }
+    if (styledNodes.length >= 2) {
+      const closed = !isLine && styledNodes.length >= 3;
+      const sw = style.stroke ? (style.strokeWidth ?? 2) * sr : 0;
+      const cap = style.lineCap ?? "round";
+      const join = style.lineJoin ?? "round";
+      const dash = style.stroke
+        ? getStrokeDashArray(style.strokeDash, sw, cap)
+        : [];
+      layer.add(
+        new Konva.Path({
+          data: nodesToSvgPath(styledNodes, closed),
+          fill: closed && style.fill ? style.fill : undefined,
+          stroke: style.stroke || undefined,
+          strokeWidth: sw,
+          dash,
+          lineCap: cap,
+          lineJoin: join,
+          listening: false,
+        }),
+      );
+    }
+  }
+
+  // Main path curve guide
   if (sNodes.length >= 2) {
     layer.add(
       new Konva.Path({

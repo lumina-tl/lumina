@@ -336,13 +336,16 @@ function _render(): void {
     (page.inpaintMasks || []).some((m) => m.visible && m.image) ||
     (page.cleanupMask?.visible && !!page.cleanupMask.cleanupCanvas);
   const needBake =
+    !state.beforePreview &&
     hasRaster &&
     (!cur ||
       cur.pageId !== page.fileName ||
       cur.bgVisible !== (page.backgroundVisible ?? true) ||
       _dirtySources.size > 0);
   let comp: CanvasImageSource | null = null;
-  if (needBake) {
+  if (state.beforePreview) {
+    comp = page.image;
+  } else if (needBake) {
     const baked = _bakeComposite(page);
     if (baked) {
       comp = baked.canvas;
@@ -373,6 +376,15 @@ function _render(): void {
         listening: false,
       }),
     );
+  }
+
+  if (state.beforePreview) {
+    const tr = canvas._getTextTransformer();
+    if (tr) tr.nodes([]);
+    canvas._updateStatus();
+    canvas.updateBoxToggle();
+    _layer.draw();
+    return;
   }
 
   // Detection overlays — shown only while boxes are toggled on, BEFORE the

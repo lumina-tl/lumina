@@ -25,9 +25,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Export OCR text.** Added **File → Export OCR text...** to save original and translated dialogue across all open pages to a `.txt` file (thanks @AlanSanchez06).
 - **Spanish localization.** Added Spanish UI translations, model descriptions, release notes, and `README.es.md` (thanks @AlanSanchez06).
 - **Dialogue group visibility toggle.** Added a virtual Dialogues row in the layer list to toggle all dialogue layers at once (thanks @AlanSanchez06).
+- **Pen tool line mode and stroke styles.** Added a Line mode to the Pen tool for open paths with Shift-snap 45° angles, plus stroke dash presets (`Solid`, `Dashed`, `Dotted`, `Dash-Dot`), line cap/join options, and stroke width up to 200 px.
+- **Layer copy, cut, and paste across pages.** Copy (`Ctrl+C`), cut (`Ctrl+X`), and paste (`Ctrl+V`) selected text, shape, and image layers within a page or across different pages.
+- **Before / After preview toggle.** Added a non-destructive `Before` toggle button next to the zoom controls (shortcut `\`) to preview the original unedited page without altering layer visibility.
 
 ### Changed
 
+- **Inverted text tool cursor.** Replaced the default OS text cursor on the canvas with an inverted I-beam reticle for better visibility across light and dark pages.
+- **Scroll-wheel numeric controls.** Tool option inputs and sliders (stroke width, brush size, opacity, hardness, tolerance) now support mouse-wheel adjustments (hold `Shift` for larger steps).
 - **Visible update installation progress.** App updates now show a visible progress bar during installation and provide in-app status feedback.
 - **Photoshop-style object rotation.** Replaced the dedicated rotation anchor handle with a rotation zone around the outside of selected bounding boxes (with Shift-snap to 15° increments).
 - **Clean Only OCR option.** Running the Clean Only preset now prompts whether to also run OCR and translation.

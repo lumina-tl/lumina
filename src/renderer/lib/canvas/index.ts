@@ -44,6 +44,9 @@ export interface CanvasAPI {
   toggleAllDialogues(): void;
   deleteLayer(id: string): void;
   deleteMultipleLayers(ids: string[]): void;
+  copySelectedLayers(): void;
+  cutSelectedLayers(): void;
+  pasteLayers(): void;
   /** Insert layer `id` before `insertAt` (clamped to its type group) */
   moveLayerTo(id: string, insertAt: number): void;
   toggleMaskVisible(id: string): void;
@@ -78,6 +81,7 @@ export interface CanvasAPI {
   zoomIn(): void;
   zoomOut(): void;
   zoomReset(): void;
+  toggleBeforeAfter(force?: boolean): void;
   initBindings(): void;
   _initWheelZoom(): void;
   _initZoomControls(): void;
@@ -130,6 +134,9 @@ export const canvas: CanvasAPI = {
   toggleAllDialogues() {},
   deleteLayer() {},
   deleteMultipleLayers() {},
+  copySelectedLayers() {},
+  cutSelectedLayers() {},
+  pasteLayers() {},
   moveLayerTo() {},
   toggleMaskVisible() {},
   deleteMask() {},
@@ -160,6 +167,7 @@ export const canvas: CanvasAPI = {
   zoomIn() {},
   zoomOut() {},
   zoomReset() {},
+  toggleBeforeAfter() {},
   initBindings() {},
   _initWheelZoom() {},
   _initZoomControls() {},

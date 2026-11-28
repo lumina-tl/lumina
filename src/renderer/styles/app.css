@@ -2249,6 +2249,44 @@ body.resizing-row {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+.paint-opt-select {
+  color-scheme: dark;
+  height: 18px;
+  padding: 0 18px 0 6px;
+  background-color: #232328;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  border: 1px solid #3f3f46;
+  border-radius: 3px;
+  color: #e4e4e7;
+  font-size: 0.65rem;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s;
+}
+.paint-opt-select:hover:not(:disabled) {
+  border-color: #52525b;
+  background-color: #2a2a30;
+}
+.paint-opt-select:focus {
+  border-color: #e94560;
+  background-color: #18181b;
+  box-shadow: 0 0 0 1px rgba(233, 69, 96, 0.3);
+}
+.paint-opt-select:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.paint-opt-select option {
+  background-color: #18181c;
+  color: #f4f4f5;
+}
 .paint-opt-unit {
   font-size: 0.6rem;
   color: #71717a;
@@ -2325,6 +2363,41 @@ body.resizing-row {
   width: 1.5px;
   height: 16px;
   transform: translate(-50%, -50%);
+}
+.pc-ibeam {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: none;
+  pointer-events: none;
+}
+.pc-ibeam-v,
+.pc-ibeam-top,
+.pc-ibeam-mid,
+.pc-ibeam-bot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: #ffffff;
+  transform: translate(-50%, -50%);
+}
+.pc-ibeam-v {
+  width: 1.5px;
+  height: 18px;
+}
+.pc-ibeam-top {
+  width: 7px;
+  height: 1.5px;
+  transform: translate(-50%, calc(-50% - 9px));
+}
+.pc-ibeam-bot {
+  width: 7px;
+  height: 1.5px;
+  transform: translate(-50%, calc(-50% + 9px));
+}
+.pc-ibeam-mid {
+  width: 5px;
+  height: 1.5px;
 }
 .pc-circle {
   position: absolute;

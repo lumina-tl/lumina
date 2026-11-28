@@ -80,10 +80,17 @@ export interface PathNode {
   outY?: number;
 }
 
+export type StrokeDashPreset = "solid" | "dashed" | "dotted" | "dash-dot";
+export type StrokeLineCap = "round" | "butt" | "square";
+export type StrokeLineJoin = "round" | "miter" | "bevel";
+
 export interface ShapeStyle {
   fill: string | null;
   stroke: string | null;
   strokeWidth: number;
+  strokeDash?: StrokeDashPreset;
+  lineCap?: StrokeLineCap;
+  lineJoin?: StrokeLineJoin;
 }
 
 export interface Typography {

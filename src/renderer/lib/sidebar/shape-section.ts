@@ -6,7 +6,12 @@ import {
   getPenPrefs,
   updatePenPrefs,
 } from "../canvas/tools/pen/options";
-import type { PageLayer } from "../../types";
+import type {
+  PageLayer,
+  StrokeDashPreset,
+  StrokeLineCap,
+  StrokeLineJoin,
+} from "../../types";
 
 function selectedShapeLayer(): PageLayer | null {
   const page = state.getActivePage();
@@ -93,7 +98,41 @@ function mkNumInput(
     inp.value = String(v);
     onChange(v, true);
   });
+  inp.addEventListener(
+    "wheel",
+    (e) => {
+      if (inp.disabled) return;
+      e.preventDefault();
+      const cur = Number(inp.value) || 0;
+      const s = e.shiftKey ? step * 5 : step;
+      const delta = e.deltaY < 0 ? s : -s;
+      const v = Math.max(min, Math.min(max, cur + delta));
+      inp.value = String(v);
+      onChange(v, true);
+    },
+    { passive: false },
+  );
   return inp;
+}
+
+function mkSelect<T extends string>(
+  options: Array<[T, string]>,
+  value: T,
+  disabled: boolean,
+  onChange: (v: T) => void,
+): HTMLSelectElement {
+  const sel = document.createElement("select");
+  sel.className = "field-select w-full";
+  sel.disabled = disabled;
+  for (const [val, label] of options) {
+    const opt = document.createElement("option");
+    opt.value = val;
+    opt.textContent = label;
+    opt.selected = val === value;
+    sel.appendChild(opt);
+  }
+  sel.addEventListener("change", () => onChange(sel.value as T));
+  return sel;
 }
 
 export const shapeSection = {
@@ -112,8 +151,20 @@ export const shapeSection = {
     const strokeOn = lay ? !!lay.shapeStyle!.stroke : prefs.strokeOn;
     const strokeVal = lay ? lay.shapeStyle!.stroke || "#111111" : prefs.stroke;
     const strokeWVal = lay ? (lay.shapeStyle!.strokeWidth ?? 2) : prefs.strokeWidth;
+    const strokeDashVal: StrokeDashPreset = lay
+      ? (lay.shapeStyle!.strokeDash ?? "solid")
+      : prefs.strokeDash;
+    const lineCapVal: StrokeLineCap = lay
+      ? (lay.shapeStyle!.lineCap ?? "round")
+      : prefs.lineCap;
+    const lineJoinVal: StrokeLineJoin = lay
+      ? (lay.shapeStyle!.lineJoin ?? "round")
+      : prefs.lineJoin;
 
     let widthInp: HTMLInputElement | null = null;
+    let dashSel: HTMLSelectElement | null = null;
+    let capSel: HTMLSelectElement | null = null;
+    let joinSel: HTMLSelectElement | null = null;
 
     // Row 1: Fill + Stroke
     const row1 = mkGrid("minmax(0,1fr) minmax(0,1fr)");
@@ -152,6 +203,9 @@ export const shapeSection = {
           strokeVal,
           (checked, clr) => {
             if (widthInp) widthInp.disabled = !checked;
+            if (dashSel) dashSel.disabled = !checked;
+            if (capSel) capSel.disabled = !checked;
+            if (joinSel) joinSel.disabled = !checked;
             if (lay) {
               lay.shapeStyle!.stroke = checked ? clr.value : null;
               canvas.render();
@@ -176,7 +230,7 @@ export const shapeSection = {
 
     // Row 2: Width + Opacity
     const row2 = mkGrid("minmax(0,1fr) minmax(0,1fr)");
-    widthInp = mkNumInput(strokeWVal, 0, 50, 1, !strokeOn, (v, commit) => {
+    widthInp = mkNumInput(strokeWVal, 0, 200, 1, !strokeOn, (v, commit) => {
       if (lay) {
         lay.shapeStyle!.strokeWidth = v;
         canvas.render();
@@ -200,6 +254,70 @@ export const shapeSection = {
     );
     row2.append(mkField("Width (px)", widthInp), mkField("Opacity (%)", opInp));
     host.appendChild(row2);
+
+    // Row 3: Stroke Style + Cap + Join
+    const row3 = mkGrid("minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr)");
+    dashSel = mkSelect<StrokeDashPreset>(
+      [
+        ["solid", "Solid"],
+        ["dashed", "Dashed"],
+        ["dotted", "Dotted"],
+        ["dash-dot", "Dash-Dot"],
+      ],
+      strokeDashVal,
+      !strokeOn,
+      (v) => {
+        if (lay) {
+          lay.shapeStyle!.strokeDash = v;
+          canvas.render();
+          history.snapshot();
+        } else {
+          updatePenPrefs({ strokeDash: v });
+        }
+      },
+    );
+    capSel = mkSelect<StrokeLineCap>(
+      [
+        ["round", "Round"],
+        ["butt", "Butt"],
+        ["square", "Square"],
+      ],
+      lineCapVal,
+      !strokeOn,
+      (v) => {
+        if (lay) {
+          lay.shapeStyle!.lineCap = v;
+          canvas.render();
+          history.snapshot();
+        } else {
+          updatePenPrefs({ lineCap: v });
+        }
+      },
+    );
+    joinSel = mkSelect<StrokeLineJoin>(
+      [
+        ["round", "Round"],
+        ["miter", "Miter"],
+        ["bevel", "Bevel"],
+      ],
+      lineJoinVal,
+      !strokeOn,
+      (v) => {
+        if (lay) {
+          lay.shapeStyle!.lineJoin = v;
+          canvas.render();
+          history.snapshot();
+        } else {
+          updatePenPrefs({ lineJoin: v });
+        }
+      },
+    );
+    row3.append(
+      mkField("Style", dashSel),
+      mkField("Cap", capSel),
+      mkField("Join", joinSel),
+    );
+    host.appendChild(row3);
   },
 
   refresh(): void {

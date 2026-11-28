@@ -10,6 +10,9 @@ import * as exportModule from "./export";
 export type ActionId =
   | "undo"
   | "redo"
+  | "copy"
+  | "cut"
+  | "paste"
   | "openProject"
   | "save"
   | "saveAs"
@@ -28,12 +31,16 @@ export type ActionId =
   | "brushSizeUp"
   | "zoomIn"
   | "zoomOut"
-  | "zoomFit";
+  | "zoomFit"
+  | "toggleBeforeAfter";
 
 export const shortcuts = {
   defaults: {
     undo: "Ctrl+Z",
     redo: "Ctrl+Shift+Z",
+    copy: "Ctrl+C",
+    cut: "Ctrl+X",
+    paste: "Ctrl+V",
     openProject: "Ctrl+O",
     save: "Ctrl+S",
     saveAs: "Ctrl+Shift+S",
@@ -53,6 +60,7 @@ export const shortcuts = {
     zoomIn: "Ctrl+=",
     zoomOut: "Ctrl+-",
     zoomFit: "Ctrl+0",
+    toggleBeforeAfter: "\\",
   } as Record<ActionId, string>,
   _custom: {} as Partial<Record<ActionId, string>>,
 
@@ -133,6 +141,15 @@ export const shortcuts = {
         redo: function () {
           history.redo();
         },
+        copy: function () {
+          canvas.copySelectedLayers();
+        },
+        cut: function () {
+          canvas.cutSelectedLayers();
+        },
+        paste: function () {
+          canvas.pasteLayers();
+        },
         openProject: function () {
           project.open();
         },
@@ -189,6 +206,9 @@ export const shortcuts = {
         },
         zoomFit: function () {
           canvas.zoomReset();
+        },
+        toggleBeforeAfter: function () {
+          canvas.toggleBeforeAfter();
         },
       };
 

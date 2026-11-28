@@ -9,7 +9,10 @@ import {
 } from "../render";
 import * as pageImages from "../../project/page-images";
 import { mapLayerToPsdText } from "./text-map";
-import { nodesToSvgPath } from "../../canvas/tools/pen/path-math";
+import {
+  getStrokeDashArray,
+  nodesToSvgPath,
+} from "../../canvas/tools/pen/path-math";
 
 /** Render to offscreen canvas and return PixelData for ag-psd. */
 function renderToImageData(
@@ -227,11 +230,15 @@ function buildPageLayers(
                 ctx.fill(p2d);
               }
               if (st?.stroke) {
+                const sw = st.strokeWidth ?? 2;
+                const cap = st.lineCap ?? "round";
                 ctx.strokeStyle = st.stroke;
-                ctx.lineWidth = st.strokeWidth ?? 2;
-                ctx.lineJoin = "round";
-                ctx.lineCap = "round";
+                ctx.lineWidth = sw;
+                ctx.lineJoin = st.lineJoin ?? "round";
+                ctx.lineCap = cap;
+                ctx.setLineDash(getStrokeDashArray(st.strokeDash, sw, cap));
                 ctx.stroke(p2d);
+                ctx.setLineDash([]);
               }
             },
             w,

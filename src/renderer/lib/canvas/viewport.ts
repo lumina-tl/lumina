@@ -267,6 +267,29 @@ canvas._initZoomControls = function (): void {
     btnFit.addEventListener("click", function () {
       canvas.zoomReset();
     });
+
+  const btnBeforeAfter = document.getElementById("btn-before-after");
+  const syncBeforeAfterBtn = function (): void {
+    if (!btnBeforeAfter) return;
+    const on = state.beforePreview;
+    btnBeforeAfter.classList.toggle("bg-lumina", on);
+    btnBeforeAfter.classList.toggle("border-lumina", on);
+    btnBeforeAfter.classList.toggle("text-white", on);
+    btnBeforeAfter.classList.toggle("bg-surface-1", !on);
+    btnBeforeAfter.classList.toggle("border-surface-3", !on);
+    btnBeforeAfter.classList.toggle("text-text-secondary", !on);
+  };
+  canvas.toggleBeforeAfter = function (force?: boolean): void {
+    state.beforePreview =
+      typeof force === "boolean" ? force : !state.beforePreview;
+    syncBeforeAfterBtn();
+    canvas.render();
+  };
+  if (btnBeforeAfter) {
+    btnBeforeAfter.addEventListener("click", function () {
+      canvas.toggleBeforeAfter();
+    });
+  }
 };
 
 /** Sidebar resize */

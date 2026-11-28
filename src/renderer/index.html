@@ -530,8 +530,11 @@
             class="absolute top-2 right-2 z-20 text-[0.65rem] text-text-muted hidden"
           ></div>
 
-          <!-- Zoom controls -->
-          <div id="zoom-controls" class="absolute bottom-2 left-2 z-20 hidden">
+          <!-- Zoom controls + Before/After toggle -->
+          <div
+            id="zoom-controls"
+            class="absolute bottom-2 left-2 z-20 hidden flex items-center gap-1.5"
+          >
             <div
               class="flex items-center bg-surface-1 border border-surface-3 rounded overflow-hidden"
             >
@@ -562,6 +565,15 @@
                 <i data-lucide="plus" class="w-3 h-3"></i>
               </button>
             </div>
+            <button
+              id="btn-before-after"
+              type="button"
+              class="flex items-center gap-1 px-2 h-[22px] bg-surface-1 border border-surface-3 rounded text-[0.65rem] text-text-secondary hover:text-text-primary transition-colors select-none"
+              title="Toggle Before / After (\)"
+            >
+              <i data-lucide="split-square-horizontal" class="w-3 h-3"></i>
+              <span>Before</span>
+            </button>
           </div>
 
           <!-- Progress overlay -->

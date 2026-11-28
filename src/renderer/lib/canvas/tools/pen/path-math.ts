@@ -1,5 +1,30 @@
 /** Path geometry helpers — cubic Bezier flattening, SVG path string, bbox. */
-import type { BBox, PathNode } from "../../../../types";
+import type {
+  BBox,
+  PathNode,
+  StrokeDashPreset,
+  StrokeLineCap,
+} from "../../../../types";
+
+/** Compute Canvas/Konva dash array scaled by strokeWidth. */
+export function getStrokeDashArray(
+  preset: StrokeDashPreset | undefined,
+  strokeWidth: number,
+  lineCap: StrokeLineCap = "round",
+): number[] {
+  const w = Math.max(1, strokeWidth);
+  const dot = lineCap === "round" ? 0.1 : w;
+  switch (preset) {
+    case "dashed":
+      return [w * 3, w * 2];
+    case "dotted":
+      return [dot, w * 2.2];
+    case "dash-dot":
+      return [w * 3, w * 1.5, dot, w * 1.5];
+    default:
+      return [];
+  }
+}
 
 function cubicAt(
   p0: number,

@@ -7,7 +7,7 @@ import { imgToStage } from "./shared";
 import { fitTextToBox, selectPreset, wordWrap } from "./font-fit";
 import { resolveSpans } from "./spans";
 import { reflowVerticalLayerBbox } from "./vertical-reflow";
-import { nodesToSvgPath } from "../pen/path-math";
+import { getStrokeDashArray, nodesToSvgPath } from "../pen/path-math";
 
 function makeRichTextGlyphsNode(
   layer: PageLayer,
@@ -309,6 +309,12 @@ export function makeShapeLayerNode(layer: PageLayer): Konva.Group {
     layer.bbox.y,
   );
   if (pathData) {
+    const strokeWidth = style?.stroke ? (style.strokeWidth ?? 2) : 0;
+    const lineCap = style?.lineCap ?? "round";
+    const lineJoin = style?.lineJoin ?? "round";
+    const dash = style?.stroke
+      ? getStrokeDashArray(style.strokeDash, strokeWidth, lineCap)
+      : [];
     group.add(
       new Konva.Path({
         name: "layer-shape-path",
@@ -317,9 +323,11 @@ export function makeShapeLayerNode(layer: PageLayer): Konva.Group {
         scaleY: sr,
         fill: style?.fill || undefined,
         stroke: style?.stroke || undefined,
-        strokeWidth: style?.stroke ? (style.strokeWidth ?? 2) : 0,
-        lineJoin: "round",
-        lineCap: "round",
+        strokeWidth,
+        hitStrokeWidth: style?.stroke ? Math.max(strokeWidth, 12 / sr) : 0,
+        dash,
+        lineJoin,
+        lineCap,
         listening: true,
       }),
     );

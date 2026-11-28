@@ -26,8 +26,14 @@ function cursorEl(): HTMLDivElement | null {
     '<div class="pc-reticle">' +
     '<div class="pc-cross-h"></div>' +
     '<div class="pc-cross-v"></div>' +
+    '<div class="pc-ibeam">' +
+    '<div class="pc-ibeam-v"></div>' +
+    '<div class="pc-ibeam-top"></div>' +
+    '<div class="pc-ibeam-mid"></div>' +
+    '<div class="pc-ibeam-bot"></div>' +
+    "</div>" +
     '<div class="pc-circle"></div>' +
-    '</div>' +
+    "</div>" +
     '<div class="pc-icon"><i data-lucide="brush"></i></div>';
   container.appendChild(_cursor);
   return _cursor;
@@ -92,6 +98,7 @@ export function isCustomCursorTool(tool: string = state.activeTool): boolean {
     tool === "eraser" ||
     tool === "bucket" ||
     tool === "eyedropper" ||
+    tool === "text" ||
     CROSSHAIR_TOOLS.has(tool)
   );
 }
@@ -107,8 +114,12 @@ export function updateCursor(sx: number, sy: number, altKey = false): void {
     return;
   }
   const isCrosshairTool = CROSSHAIR_TOOLS.has(tool);
+  const isTextTool = tool === "text";
   // Alt held from any paint tool = momentary eyedropper look.
-  const effective = !isCrosshairTool && altKey && tool !== "eyedropper" ? "eyedropper" : tool;
+  const effective =
+    !isCrosshairTool && !isTextTool && altKey && tool !== "eyedropper"
+      ? "eyedropper"
+      : tool;
   const isStroke = effective === "brush" || effective === "eraser";
   const sr = canvas.getScaleRatio();
   const size = Math.max(2, paintSettings().size * sr);
@@ -118,11 +129,16 @@ export function updateCursor(sx: number, sy: number, altKey = false): void {
   el.style.top = sy + "px";
 
   // Crosshair lines: bucket/eyedropper and selection/pen crosshair tools.
-  const showLines = isCrosshairTool || effective === "bucket" || effective === "eyedropper";
+  const showLines =
+    isCrosshairTool || effective === "bucket" || effective === "eyedropper";
   const h = el.querySelector<HTMLElement>(".pc-cross-h");
   const v = el.querySelector<HTMLElement>(".pc-cross-v");
   if (h) h.style.display = showLines ? "block" : "none";
   if (v) v.style.display = showLines ? "block" : "none";
+
+  // Inverted I-beam reticle: text tool only.
+  const ibeam = el.querySelector<HTMLElement>(".pc-ibeam");
+  if (ibeam) ibeam.style.display = isTextTool ? "block" : "none";
 
   // Brush-size circle: brush/eraser only.
   const circle = el.querySelector<HTMLElement>(".pc-circle");
@@ -135,10 +151,10 @@ export function updateCursor(sx: number, sy: number, altKey = false): void {
     }
   }
 
-  // Tool icon: paint tools only (selection/pen use a clean inverted crosshair).
+  // Tool icon: paint tools only (selection/pen/text use a clean inverted reticle).
   const icon = el.querySelector<HTMLElement>(".pc-icon");
   if (icon) {
-    if (isCrosshairTool) {
+    if (isCrosshairTool || isTextTool) {
       icon.style.display = "none";
     } else {
       icon.style.display = "flex";

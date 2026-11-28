@@ -95,9 +95,9 @@
 - [x] fix tools cursor color not inverted
 - [x] better rotation anchor
 - [x] exclude readme and other for nightly build
-- [ ] before after toggle
+- [x] before after toggle
 - [x] project thumbnail in landing page
-- [ ] add line mode in pen tool
-- [ ] change texttool default cursor with inverted one
-- [ ] copying objects between pages
+- [x] add line mode in pen tool
+- [x] change texttool default cursor with inverted one
+- [x] copying objects between pages
 - [ ] testing and hunt another bugs

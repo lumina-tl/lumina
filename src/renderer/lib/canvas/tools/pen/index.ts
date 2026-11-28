@@ -36,9 +36,30 @@ function isPenTool(): boolean {
 }
 
 function isNearFirstNode(sx: number, sy: number): boolean {
-  if (_nodes.length < 3) return false;
+  if (getPenMode() === "line" || _nodes.length < 3) return false;
   const first = imgToStage(_nodes[0].x, _nodes[0].y);
   return Math.hypot(sx - first.x, sy - first.y) <= CLOSE_RADIUS_PX;
+}
+
+function snapTo45Deg(
+  prev: { x: number; y: number },
+  cur: { x: number; y: number },
+): { x: number; y: number } {
+  const dx = cur.x - prev.x;
+  const dy = cur.y - prev.y;
+  const dist = Math.hypot(dx, dy);
+  if (dist < 1e-3) return cur;
+  const angle = Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) * (Math.PI / 4);
+  return {
+    x: prev.x + Math.cos(angle) * dist,
+    y: prev.y + Math.sin(angle) * dist,
+  };
+}
+
+function refreshOverlay(): void {
+  if (isPenTool() && _nodes.length > 0) {
+    renderPenOverlay(_nodes, _hoverImg, false);
+  }
 }
 
 function resetPath(): void {
@@ -48,7 +69,7 @@ function resetPath(): void {
   _hoverImg = null;
   _modifier = null;
   clearPenOverlay();
-  syncPenOptionsBar(0, commitPath, resetPath);
+  syncPenOptionsBar(0, commitPath, resetPath, refreshOverlay);
 }
 
 function commitPathAsSelection(): void {
@@ -70,7 +91,8 @@ function commitPathAsShape(): void {
     resetPath();
     return;
   }
-  const closed = _nodes.length >= 3;
+  const isLine = getPenMode() === "line";
+  const closed = isLine ? false : _nodes.length >= 3;
   const nodes = _nodes.map((n) => ({ ...n }));
   const bbox = computePathBBox(nodes, closed);
   const shapeCount = page.layers.filter((l) => l.type === "shape").length;
@@ -84,7 +106,7 @@ function commitPathAsShape(): void {
     opacity: 1,
     pathNodes: nodes,
     pathClosed: closed,
-    shapeStyle: getPenShapeStyle(),
+    shapeStyle: getPenShapeStyle({ forceStroke: isLine, noFill: isLine }),
   };
   page.layers.unshift(layer);
   resetPath();
@@ -95,8 +117,8 @@ function commitPathAsShape(): void {
 }
 
 function commitPath(): void {
-  if (getPenMode() === "shape") commitPathAsShape();
-  else commitPathAsSelection();
+  if (getPenMode() === "selection") commitPathAsSelection();
+  else commitPathAsShape();
 }
 
 export function resetPenStage(): void {
@@ -136,11 +158,19 @@ export function bindPenStage(): void {
       return;
     }
 
+    if (e.evt.detail >= 2 && getPenMode() !== "selection" && _nodes.length >= 2) {
+      commitPath();
+      return;
+    }
+
     if (_nodes.length === 0) {
       _modifier = e.evt.shiftKey ? "add" : e.evt.altKey ? "subtract" : null;
     }
 
-    const imgPt = stageToImg(pos.x, pos.y);
+    let imgPt = stageToImg(pos.x, pos.y);
+    if (e.evt.shiftKey && _nodes.length > 0 && getPenMode() !== "selection") {
+      imgPt = snapTo45Deg(_nodes[_nodes.length - 1], imgPt);
+    }
     _nodes.push({ x: imgPt.x, y: imgPt.y });
     _redoNodes = [];
     _dragging = true;
@@ -153,7 +183,10 @@ export function bindPenStage(): void {
     if (!isPenTool()) return;
     const pos = stage.getPointerPosition();
     if (!pos) return;
-    const imgPt = stageToImg(pos.x, pos.y);
+    let imgPt = stageToImg(pos.x, pos.y);
+    if (e.evt.shiftKey && !_dragging && _nodes.length > 0 && getPenMode() !== "selection") {
+      imgPt = snapTo45Deg(_nodes[_nodes.length - 1], imgPt);
+    }
     _hoverImg = imgPt;
 
     if (_dragging && _nodes.length > 0) {
@@ -273,7 +306,7 @@ const origOnToolChange = canvas.onToolChange;
 canvas.onToolChange = function (tool: string): void {
   origOnToolChange(tool);
   if (tool !== "pen") resetPath();
-  else syncPenOptionsBar(_nodes.length, commitPath, resetPath);
+  else syncPenOptionsBar(_nodes.length, commitPath, resetPath, refreshOverlay);
   if (tool !== "select" && tool !== "pen") stopShapePathEdit();
 };
 

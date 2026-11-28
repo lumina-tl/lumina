@@ -16,9 +16,8 @@ export function bindHoverCursor(): void {
   _cursorBound = true;
 
   const toolCursor = function (): string {
-    if (state.activeTool === "text") return "text";
-    // Paint, selection, and pen tools hide the OS cursor — #paint-cursor
-    // renders an inverted crosshair / brush circle instead.
+    // Paint, selection, pen, and text tools hide the OS cursor — #paint-cursor
+    // renders an inverted reticle / brush circle instead.
     if (isCustomCursorTool()) return "none";
     return "default";
   };
@@ -94,10 +93,15 @@ export function bindHoverCursor(): void {
       if (
         state.activeTool === "lasso" ||
         state.activeTool === "rect" ||
-        state.activeTool === "pen"
+        state.activeTool === "pen" ||
+        state.activeTool === "text"
       ) {
-        const rect = container.getBoundingClientRect();
-        updateCursor(e.evt.clientX - rect.left, e.evt.clientY - rect.top);
+        if (e.evt.target instanceof HTMLTextAreaElement) {
+          hideCursor();
+        } else {
+          const rect = container.getBoundingClientRect();
+          updateCursor(e.evt.clientX - rect.left, e.evt.clientY - rect.top);
+        }
       }
     });
     // Mouse leaving the canvas entirely → drop any stale resize cursor.
