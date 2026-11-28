@@ -41,6 +41,7 @@ jobs:
   build-windows:
     needs: prepare
     runs-on: windows-latest
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v4
@@ -49,6 +50,14 @@ jobs:
         with:
           node-version: 22
           cache: npm
+
+      - name: Cache electron-builder binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/AppData/Local/electron-builder/Cache
+          key: electron-builder-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            electron-builder-${{ runner.os }}-
 
       - name: Install dependencies
         run: npm ci
