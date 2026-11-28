@@ -3,6 +3,7 @@ export const IPC = {
   // Image import
   importImage: "import-image",
   importImages: "import-images",
+  importImageFolder: "import-image-folder",
 
   // Backend proxy
   apiPost: "api-post",
@@ -15,8 +16,8 @@ export const IPC = {
   // Models
   checkModel: "check-model",
   downloadModel: "download-model",
-  cancelDownload: "cancel-download",
   deleteModel: "delete-model",
+  cancelDownload: "cancel-download",
   modelDownloadProgress: "model-download-progress",
 
   // Fonts / i18n
@@ -63,6 +64,7 @@ export const IPC = {
 
   // Export
   exportImages: "export-images",
+  exportOcrText: "export-ocr-text",
 
   // Save as PSD
   showSaveDialog: "show-save-dialog",

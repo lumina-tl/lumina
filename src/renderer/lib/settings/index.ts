@@ -65,6 +65,7 @@ export const settings = {
       const icon = document.createElement("i");
       icon.dataset.lucide = tab.icon;
       const label = document.createElement("span");
+      label.dataset.i18n = tab.labelKey;
       label.textContent = i18n.t(tab.labelKey);
       btn.appendChild(icon);
       btn.appendChild(label);

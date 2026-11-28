@@ -9,15 +9,18 @@ import {
   pipeline,
   loadPreset,
   savePreset,
+  loadMode,
+  saveMode,
   PRESETS,
   type PresetId,
+  type PipelineMode,
 } from "../pipeline";
-import { translateSettings } from "../pipeline/translate";
 import { settings } from "../settings/index";
 import { state } from "../state";
 import { canvas } from "../canvas/index";
 import { createIcons } from "./icons";
 import { RECOMMENDED } from "../models/descriptions";
+import { translateSettings } from "../pipeline/translate";
 import type { ModelInfo } from "../../types";
 import { ui } from "./index";
 
@@ -194,15 +197,21 @@ function _closeDropdowns(): void {
 
 /* ── Pipeline Preset ── */
 
-const _presetLabels: Record<string, string> = {
-  full: "Full Pipeline",
-  clean: "Clean Only",
+const _presetLabelKeys: Record<string, string> = {
+  full: "pipeline.full",
+  clean: "pipeline.cleanOnly",
 };
 
 function _updatePresetLabel(): void {
   const label = document.getElementById("btn-pipeline-all-label");
   const id = loadPreset();
-  if (label) label.textContent = _presetLabels[id] || "Full Pipeline";
+  const mode = loadMode();
+  if (label) {
+    label.dataset.i18n = _presetLabelKeys[id] || "pipeline.full";
+    const base = i18n.t(label.dataset.i18n);
+    label.textContent =
+      mode === "batch" ? `${base} (${i18n.t("pipeline.allShort")})` : base;
+  }
 }
 
 function _togglePresetDropdown(btn: HTMLElement): void {
@@ -220,8 +229,9 @@ function _togglePresetDropdown(btn: HTMLElement): void {
   dropdown.classList.remove("hidden");
 
   const current = loadPreset();
+  const currentMode = loadMode();
   let html = `<div class="pipeline-dropdown-header">
-    <span>Pipeline Preset</span>
+    <span>${_esc(i18n.t("pipeline.preset"))}</span>
   </div>
   <div class="pipeline-dropdown-list">`;
 
@@ -232,14 +242,35 @@ function _togglePresetDropdown(btn: HTMLElement): void {
         <div class="pipeline-item-check">
           ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-lumina"></i>' : ""}
         </div>
-        <div class="pipeline-item-name">${_esc(p.label)}</div>
+        <div class="pipeline-item-name">${_esc(i18n.t(_presetLabelKeys[p.id] || "pipeline.full"))}</div>
+      </div>`;
+  }
+
+  html += `</div>
+  <div class="pipeline-dropdown-header">
+    <span>${_esc(i18n.t("pipeline.mode"))}</span>
+  </div>
+  <div class="pipeline-dropdown-list">`;
+
+  const modes: Array<{ id: PipelineMode; labelKey: string }> = [
+    { id: "single", labelKey: "pipeline.modeSingle" },
+    { id: "batch", labelKey: "pipeline.modeBatch" },
+  ];
+  for (const m of modes) {
+    const isSelected = m.id === currentMode;
+    html += `
+      <div class="pipeline-dropdown-item ${isSelected ? "selected" : ""}" data-pipeline-mode="${m.id}">
+        <div class="pipeline-item-check">
+          ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-lumina"></i>' : ""}
+        </div>
+        <div class="pipeline-item-name">${_esc(i18n.t(m.labelKey))}</div>
       </div>`;
   }
 
   html += `</div>`;
   dropdown.innerHTML = html;
 
-  dropdown.querySelectorAll(".pipeline-dropdown-item").forEach((item) => {
+  dropdown.querySelectorAll("[data-preset-id]").forEach((item) => {
     item.addEventListener("click", (e) => {
       e.stopPropagation();
       const presetId = item.getAttribute("data-preset-id") as PresetId | null;
@@ -250,12 +281,60 @@ function _togglePresetDropdown(btn: HTMLElement): void {
     });
   });
 
+  dropdown.querySelectorAll("[data-pipeline-mode]").forEach((item) => {
+    item.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const mode = item.getAttribute("data-pipeline-mode") as PipelineMode | null;
+      if (!mode) return;
+      saveMode(mode);
+      _updatePresetLabel();
+      _closeDropdowns();
+    });
+  });
+
   createIcons({ root: dropdown });
+}
+
+function _toggleCleanOcrDropdown(): void {
+  const dropdown = document.getElementById("dropdown-preset");
+  if (!dropdown) return;
+
+  if (_activeDropdown === "clean-ocr") {
+    _closeDropdowns();
+    return;
+  }
+
+  _closeDropdowns();
+  _activeDropdown = "clean-ocr";
+  dropdown.classList.remove("hidden");
+  dropdown.innerHTML = `
+    <div class="pipeline-dropdown-header">
+      <span>${_esc(i18n.t("pipeline.cleanOcrPrompt"))}</span>
+    </div>
+    <div class="pipeline-dropdown-list">
+      <div class="pipeline-dropdown-item" data-run-clean-ocr="true">
+        <div class="pipeline-item-check"></div>
+        <div class="pipeline-item-name">${_esc(i18n.t("pipeline.cleanWithOcr"))}</div>
+      </div>
+      <div class="pipeline-dropdown-item" data-run-clean-ocr="false">
+        <div class="pipeline-item-check"></div>
+        <div class="pipeline-item-name">${_esc(i18n.t("pipeline.cleanWithoutOcr"))}</div>
+      </div>
+    </div>`;
+
+  dropdown.querySelectorAll<HTMLElement>("[data-run-clean-ocr]").forEach((item) => {
+    item.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const includeOcr = item.dataset.runCleanOcr === "true";
+      _closeDropdowns();
+      await pipeline.runPreset("clean", { includeOcr });
+    });
+  });
 }
 
 /** Render and toggle dropdown popover */
 function _toggleDropdown(
-  kind: "detect" | "ocr" | "translate" | "inpaint",
+  kind: "detect" | "ocr" | "inpaint" | "translate",
   btn: HTMLElement,
 ): void {
   const dropdown = document.getElementById(`dropdown-${kind}`);
@@ -280,19 +359,16 @@ function _toggleDropdown(
   createIcons({ root: dropdown });
 }
 
-/** Render Model Picker Dropdown (Detect, OCR, Inpaint) */
-function _renderModelDropdown(
-  kind: "detect" | "ocr" | "inpaint",
-  root: HTMLElement,
-): void {
+/** Render model picker dropdown. */
+function _renderModelDropdown(kind: "detect" | "ocr" | "inpaint", root: HTMLElement): void {
   const list = models.list().filter((m) => m.kind === kind);
   const current = models.selectedModel(kind);
   const recId = RECOMMENDED[kind] || "";
 
   const titleMap: Record<string, string> = {
-    detect: i18n.t("models.tabDetect") || "Detection Models",
-    ocr: i18n.t("models.tabOcr") || "OCR Models",
-    inpaint: i18n.t("models.tabInpaint") || "Inpainting Models",
+    detect: i18n.t("models.tabDetect"),
+    ocr: i18n.t("models.tabOcr"),
+    inpaint: i18n.t("models.tabInpaint"),
   };
 
   let html = `<div class="pipeline-dropdown-header">
@@ -301,7 +377,7 @@ function _renderModelDropdown(
   <div class="pipeline-dropdown-list">`;
 
   if (list.length === 0) {
-    html += `<div class="pipeline-dropdown-empty">No models available</div>`;
+    html += `<div class="pipeline-dropdown-empty">${_esc(i18n.t("models.noneAvailable"))}</div>`;
   } else {
     for (const m of list) {
       const isSelected = m.id === current;
@@ -320,8 +396,8 @@ function _renderModelDropdown(
           <div class="pipeline-item-status">
             ${
               isReady
-                ? '<span class="pipeline-badge pipeline-badge-ready">Ready</span>'
-                : '<span class="pipeline-badge pipeline-badge-dl"><i data-lucide="download" class="w-3 h-3"></i> Get</span>'
+                ? `<span class="pipeline-badge pipeline-badge-ready">${_esc(i18n.t("models.ready"))}</span>`
+                : `<span class="pipeline-badge pipeline-badge-dl"><i data-lucide="download" class="w-3 h-3"></i> ${_esc(i18n.t("models.download"))}</span>`
             }
           </div>
         </div>
@@ -333,7 +409,7 @@ function _renderModelDropdown(
   <div class="pipeline-dropdown-footer">
     <button class="pipeline-dropdown-link" id="link-open-model-settings">
       <i data-lucide="settings" class="w-3 h-3"></i>
-      <span>Manage Models...</span>
+      <span>${_esc(i18n.t("models.manage"))}</span>
     </button>
   </div>`;
 
@@ -417,7 +493,7 @@ function _renderTranslateDropdown(root: HTMLElement): void {
   <div class="pipeline-dropdown-footer">
     <button class="pipeline-dropdown-link" id="link-open-trans-settings">
       <i data-lucide="settings" class="w-3 h-3"></i>
-      <span>Translation Settings...</span>
+      <span>${_esc(i18n.t("pipeline.translationSettings"))}</span>
     </button>
   </div>`;
 
@@ -447,7 +523,6 @@ function _renderTranslateDropdown(root: HTMLElement): void {
       settings.open("translation");
     });
 }
-
 /** Wire auto-hide / dimming when user interacts with canvas */
 function _initAutoHide(): void {
   const canvasContainer = document.getElementById("canvas-container");
@@ -520,11 +595,11 @@ export const pipelineBar = {
     });
 
     // Model dropdown triggers
-    const kinds: Array<"detect" | "ocr" | "translate" | "inpaint"> = [
+    const kinds: Array<"detect" | "ocr" | "inpaint" | "translate"> = [
       "detect",
       "ocr",
-      "translate",
       "inpaint",
+      "translate",
     ];
     kinds.forEach((k) => {
       const chevron = _bar?.querySelector(
@@ -541,8 +616,13 @@ export const pipelineBar = {
     // Run pipeline preset button
     const allBtn = _bar.querySelector("#btn-pipeline-all");
     allBtn?.addEventListener("click", async () => {
-      _closeDropdowns();
-      await pipeline.runPreset(loadPreset());
+      const preset = loadPreset();
+      if (preset === "clean") {
+        _toggleCleanOcrDropdown();
+      } else {
+        _closeDropdowns();
+        await pipeline.runPreset(preset);
+      }
     });
 
     // Preset dropdown chevron

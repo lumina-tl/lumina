@@ -8,6 +8,7 @@ import pkg from "../../../../package.json";
 import * as i18n from "../i18n";
 import {
   developerNotices,
+  changelogEs,
   resolveLocalized,
   type DeveloperNotice,
 } from "../../release-notes";
@@ -109,14 +110,25 @@ export function closeChangelog(): void {
   storage.setItem(LAST_SEEN_KEY, pkg.version);
 }
 
-function renderBadge(type: string): string {
+function renderBadge(type: string, lang: string): string {
   const t = type.toLowerCase();
   let cls = "badge-other";
   if (t === "added") cls = "badge-added";
   else if (t === "fixed") cls = "badge-fixed";
   else if (t === "changed") cls = "badge-changed";
   else if (t === "removed") cls = "badge-removed";
-  return `<span class="changelog-type-badge ${cls}">${_esc(type)}</span>`;
+  const label =
+    lang === "es"
+      ? ({
+          added: "Añadido",
+          changed: "Cambiado",
+          deprecated: "Obsoleto",
+          removed: "Eliminado",
+          fixed: "Corregido",
+          security: "Seguridad",
+        }[t] ?? type)
+      : type;
+  return `<span class="changelog-type-badge ${cls}">${_esc(label)}</span>`;
 }
 
 function renderNotice(notice: DeveloperNotice, lang: string): string {
@@ -187,14 +199,19 @@ export function openChangelogModal(initialTab: "changelog" | "notices" = "change
         if (!g.items.length) return "";
         const items = g.items
           .map(
-            (it) =>
-              `<li>${it.title ? `<strong>${_esc(it.title)}</strong> ` : ""}${_esc(it.desc)}</li>`,
+            (it) => {
+              const localized =
+                currentLang === "es" ? changelogEs[it.title] : undefined;
+              const title = localized?.title ?? it.title;
+              const desc = localized?.desc ?? it.desc;
+              return `<li>${title ? `<strong>${_esc(title)}</strong> ` : ""}${_esc(desc)}</li>`;
+            },
           )
           .join("");
         return `
           <div class="changelog-group">
             <div class="changelog-group-header">
-              ${renderBadge(g.type)}
+              ${renderBadge(g.type, currentLang)}
             </div>
             <ul class="changelog-list">
               ${items}
@@ -204,23 +221,55 @@ export function openChangelogModal(initialTab: "changelog" | "notices" = "change
       })
       .join("");
   } else {
-    contentHtml = '<div class="text-text-muted text-center py-4">No release entries found.</div>';
+    contentHtml =
+      currentLang === "es"
+        ? '<div class="text-text-muted text-center py-4">No hay notas de esta versión.</div>'
+        : '<div class="text-text-muted text-center py-4">No release entries found.</div>';
   }
 
   const verDisplay =
     activeRelease?.version.toLowerCase() === "unreleased"
-      ? `v${pkg.version} (Latest)`
+      ? currentLang === "es"
+        ? `v${pkg.version} (Más reciente)`
+        : `v${pkg.version} (Latest)`
       : `v${activeRelease?.version || pkg.version}`;
 
   const headerTitle =
-    currentLang === "id" ? "Catatan Rilis & Yang Baru" : "What's New & Release Notes";
-  const tabChangelogTitle = currentLang === "id" ? "Yang Baru" : "What's New";
-  const tabNoticesTitle = currentLang === "id" ? "Catatan Pengembang" : "Developer Notes";
+    currentLang === "es"
+      ? "Novedades y notas de versión"
+      : currentLang === "id"
+        ? "Catatan Rilis & Yang Baru"
+        : "What's New & Release Notes";
+  const tabChangelogTitle =
+    currentLang === "es"
+      ? "Novedades"
+      : currentLang === "id"
+        ? "Yang Baru"
+        : "What's New";
+  const tabNoticesTitle =
+    currentLang === "es"
+      ? "Avisos del desarrollador"
+      : currentLang === "id"
+        ? "Catatan Pengembang"
+        : "Developer Notes";
   const emptyNoticesText =
-    currentLang === "id"
-      ? "Tidak ada catatan pengembang saat ini."
-      : "No developer notices at this time.";
-  const gotItText = currentLang === "id" ? "Mengerti" : "Got it";
+    currentLang === "es"
+      ? "No hay avisos del desarrollador por ahora."
+      : currentLang === "id"
+        ? "Tidak ada catatan pengembang saat ini."
+        : "No developer notices at this time.";
+  const gotItText =
+    currentLang === "es"
+      ? "Entendido"
+      : currentLang === "id"
+        ? "Mengerti"
+        : "Got it";
+  const closeText =
+    currentLang === "es"
+      ? "Cerrar"
+      : currentLang === "id"
+        ? "Tutup"
+        : "Close";
 
   overlay.innerHTML = `
     <div class="custom-dialog-card changelog-card" role="dialog" aria-modal="true">
@@ -234,7 +283,7 @@ export function openChangelogModal(initialTab: "changelog" | "notices" = "change
             <span class="text-[0.68rem] text-text-muted">${_esc(verDisplay)}${activeRelease?.date ? ` &bull; ${_esc(activeRelease.date)}` : ""}</span>
           </div>
         </div>
-        <button class="btn p-1.5" id="btn-changelog-close" title="Close"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+        <button class="btn p-1.5" id="btn-changelog-close" title="${_esc(closeText)}"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
       </div>
 
       <div class="changelog-tabs-bar">

@@ -92,6 +92,15 @@ export const tools = {
     if (canvas && canvas.onToolChange) canvas.onToolChange(toolId);
   },
 
+  refreshTitles(): void {
+    this._items.forEach((item) => {
+      const button = document.querySelector<HTMLElement>(
+        `.tool-btn[data-tool="${item.id}"]`,
+      );
+      if (button) button.title = i18n.t(item.titleKey);
+    });
+  },
+
   /** [ and ] — resize the brush ±1px (Photoshop behavior). */
   adjustBrushSize(dir: number): void {
     if (

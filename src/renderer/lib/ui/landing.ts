@@ -7,6 +7,8 @@ import type { RecentsData } from "../../types";
 export interface LandingHandlers {
   /** Open the native multi-image import dialog (page-strip "+" flow) */
   importImages: () => Promise<void>;
+  /** Import all supported images from a selected folder */
+  importFolder: () => Promise<void>;
   /** Open a .lmi project — no path → native Open dialog */
   openProject: (path?: string) => Promise<void>;
   /** Load an image path directly (clicking a recent image) */
@@ -98,6 +100,9 @@ function _html(data: RecentsData): string {
     '<button class="btn primary" id="landing-import">' +
     _esc(i18n.t("landing.import")) +
     "</button>" +
+    '<button class="btn" id="landing-import-folder">' +
+    _esc(i18n.t("landing.importFolder")) +
+    "</button>" +
     '<button class="btn" id="landing-open">' +
     _esc(i18n.t("landing.openProject")) +
     "</button>" +
@@ -153,6 +158,11 @@ function _onClick(e: MouseEvent): void {
   const importBtn = target.closest("#landing-import");
   if (importBtn) {
     void _handlers.importImages();
+    return;
+  }
+  const importFolderBtn = target.closest("#landing-import-folder");
+  if (importFolderBtn) {
+    void _handlers.importFolder();
     return;
   }
   const openBtn = target.closest("#landing-open");

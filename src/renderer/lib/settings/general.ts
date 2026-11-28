@@ -2,6 +2,7 @@
 import * as i18n from "../i18n";
 import { canvas } from "../canvas/index";
 import { sidebar } from "../sidebar";
+import { tools } from "../ui/tools";
 import { shortcutsTab } from "./shortcuts-tab";
 import * as autosave from "../project/autosave";
 import {
@@ -38,8 +39,12 @@ export const generalTab = {
     const id = document.createElement("option");
     id.value = "id";
     id.textContent = "Bahasa Indonesia";
+    const es = document.createElement("option");
+    es.value = "es";
+    es.textContent = "Español";
     sel.appendChild(en);
     sel.appendChild(id);
+    sel.appendChild(es);
 
     row.appendChild(label);
     row.appendChild(sel);
@@ -182,7 +187,9 @@ export const generalTab = {
     sel.addEventListener("change", function () {
       i18n.setLang(this.value);
       sidebar.render();
+      canvas.renderPageStrip();
       if (canvas && canvas._updateStatus) canvas._updateStatus();
+      tools.refreshTitles();
       shortcutsTab.refreshTitles();
       shortcutsTab.refresh();
     });

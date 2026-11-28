@@ -1,6 +1,6 @@
 /** Cursor management — hover + transformer anchor cursors. */
 import { state } from "../state";
-import { canvas } from "./index";
+import { registerStageCreatedHandler } from "./index";
 import { updateCursor, hideCursor, isCustomCursorTool } from "./tools/paint/cursor";
 import {
   ROTATE_CURSOR,
@@ -38,23 +38,16 @@ export function bindHoverCursor(): void {
     rotater: "crosshair",
   };
 
-  const setCursor = function (cursor: string): void {
-    // Konva writes its (stale) cursor to stage.content — the element that
-    // actually paints over the canvas — so re-assert there, not just on the
-    // container, otherwise the inline style keeps winning.
-    const stage = canvas.getStage();
+  registerStageCreatedHandler(function (stage) {
     const container = document.getElementById("canvas-container");
-    if (container) container.style.cursor = cursor;
-    if (stage && stage.content) stage.content.style.cursor = cursor;
-  };
+    if (!container) return;
 
-  const bind = function (): void {
-    const stage = canvas.getStage();
-    const container = document.getElementById("canvas-container");
-    if (!stage || !container) {
-      setTimeout(bind, 500);
-      return;
-    }
+    const setCursor = function (cursor: string): void {
+      // Konva writes its cursor to stage.content, so update it with the container.
+      container.style.cursor = cursor;
+      if (stage.content) stage.content.style.cursor = cursor;
+    };
+
     stage.on("mousemove", function (e) {
       // Panning owns the cursor
       if (container.style.cursor === "grabbing") {
@@ -112,6 +105,5 @@ export function bindHoverCursor(): void {
       hideCursor();
       if (stage.content) stage.content.style.cursor = "";
     });
-  };
-  bind();
+  });
 }

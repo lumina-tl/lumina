@@ -112,7 +112,14 @@ export const modelsTab = {
       items: list.filter((m) => m.kind === kind),
     })).filter((s) => s.items.length > 0);
 
-    if (!sections.length) return;
+    if (!sections.length) {
+      const emptyState = hintEl();
+      emptyState.textContent = models.checkError()
+        ? i18n.t("models.loadError", { error: models.checkError() })
+        : i18n.t("models.noModels");
+      pane.appendChild(emptyState);
+      return;
+    }
 
     // Preserve the previously active panel, else default to the first.
     if (!sections.some((s) => s.kind === _activeKind)) {

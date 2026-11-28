@@ -17,6 +17,13 @@ export const DETECT_DESCS: ModelDescMap = {
 • Bekerja andal pada halaman bersih maupun halaman berscreentone.
 • Inpainting memakai masking heuristik (Otsu) di dalam setiap kotak.
 • Sumber: huggingface.co/ogkalu/comic-text-and-bubble-detector`,
+    es: `RT-DETR v2 r50vd ajustado para cómics (por ogkalu) — detecta cuadros de texto y bocadillos en páginas de manga con alta precisión.
+
+• Detector predeterminado — licencia Apache-2.0, seguro para cualquier uso.
+• Detección rápida de cuadros, sin máscara de segmentación.
+• Funciona en páginas limpias y en páginas con tramado.
+• El inpainting usa una máscara heurística (Otsu) dentro de cada cuadro.
+• Fuente: huggingface.co/ogkalu/comic-text-and-bubble-detector`,
   },
   rfdetr_seg: {
     en: `Koharu Layout RF-DETR Seg 2XL (1152px, FP16) — segmentation model that outputs precise per-text instance masks.
@@ -33,5 +40,12 @@ export const DETECT_DESCS: ModelDescMap = {
 • Onomatope/SFX sengaja dipertahankan sebagai artwork, hanya teks yang dihapus.
 • Lebih lambat di CPU (~10-30 detik/halaman).
 • Sumber: huggingface.co/Kiznavierr/koharu-layout-rfdetr-seg-2xl-1152-onnx-fp16`,
+    es: `Koharu Layout RF-DETR Seg 2XL (1152 px, FP16) — modelo de segmentación que produce máscaras precisas para cada instancia de texto.
+
+• La mejor calidad de segmentación, pero entrenado con Manga109 — únicamente para uso académico o de investigación.
+• Produce una máscara binaria de texto para toda la página.
+• Las onomatopeyas y los efectos de sonido se conservan como arte.
+• Es más lento en CPU (~10-30 s por página).
+• Fuente: huggingface.co/Kiznavierr/koharu-layout-rfdetr-seg-2xl-1152-onnx-fp16`,
   },
 };

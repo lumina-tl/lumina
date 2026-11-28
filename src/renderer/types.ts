@@ -189,7 +189,7 @@ export interface InpaintMask {
   visible: boolean;
   opacity: number; // 0-1
   /** Loaded patch image (runtime only — not serialized in history) */
-  image?: HTMLImageElement;
+  image?: HTMLImageElement | HTMLCanvasElement;
 }
 
 /** Full-page raster paint layer (brush/eraser/bucket). One per page,
@@ -211,6 +211,8 @@ export interface CleanupMask {
 export interface Page {
   filePath: string;
   fileName: string;
+  /** Source folder name for keeping folder imports grouped on export. */
+  sourceFolderName?: string;
   /** Decoded page bitmap — null while unloaded (see pageImages.ts LRU).
    *  Only the active page (and a small cache) holds a decoded image. */
   image: HTMLImageElement | null;
@@ -223,6 +225,15 @@ export interface Page {
   layers: PageLayer[];
   /** Inpaint patches — composited over the original image, one per mask layer */
   inpaintMasks: InpaintMask[];
+  /** Per-stage workflow completion markers; omitted for new/unprocessed pages. */
+  _pipelineDetectionDone?: boolean;
+  _pipelineOcrDone?: boolean;
+  _pipelineTranslationDone?: boolean;
+  _pipelineInpaintDone?: boolean;
+  /** Clean Only completion state; undefined supports older project files. */
+  _cleanOnlyProcessed?: boolean;
+  /** Detection has completed for the current Clean Only pass. */
+  _cleanOnlyDetectionDone?: boolean;
   /** Full-page raster paint layer (brush/eraser/bucket), null = not created */
   cleanupMask: CleanupMask | null;
   /** Full-page binary text mask from /detect — passed to /inpaint to skip Otsu */

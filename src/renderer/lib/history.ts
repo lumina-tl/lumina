@@ -19,7 +19,10 @@ function _fileUrl(p: string): string {
 const MAX_STACK = 50;
 
 /** In-memory cache of mask images across undo/redo to avoid reload failure or flicker. */
-const _maskImageCache = new Map<string, HTMLImageElement>();
+const _maskImageCache = new Map<
+  string,
+  HTMLImageElement | HTMLCanvasElement
+>();
 /** In-memory cache of image layer canvases across undo/redo. */
 const _layerImageCache = new Map<string, HTMLCanvasElement>();
 const _layerCanvasCache = new Map<string, HTMLCanvasElement>();
@@ -88,6 +91,12 @@ function _serializePage(p: Page): string {
 
   return JSON.stringify({
     textDetections: p.textDetections,
+    _pipelineDetectionDone: p._pipelineDetectionDone,
+    _pipelineOcrDone: p._pipelineOcrDone,
+    _pipelineTranslationDone: p._pipelineTranslationDone,
+    _pipelineInpaintDone: p._pipelineInpaintDone,
+    _cleanOnlyProcessed: p._cleanOnlyProcessed,
+    _cleanOnlyDetectionDone: p._cleanOnlyDetectionDone,
     _selectedTextIdx: p._selectedTextIdx,
     _selectedTextIndices: p._selectedTextIndices,
     layers: serializedLayers,
@@ -115,6 +124,12 @@ function _serializePage(p: Page): string {
 
 interface PageSnapshot {
   textDetections: unknown;
+  _pipelineDetectionDone?: boolean;
+  _pipelineOcrDone?: boolean;
+  _pipelineTranslationDone?: boolean;
+  _pipelineInpaintDone?: boolean;
+  _cleanOnlyProcessed?: boolean;
+  _cleanOnlyDetectionDone?: boolean;
   _selectedTextIdx: number | null;
   _selectedTextIndices?: number[];
   layers: unknown;
@@ -226,6 +241,20 @@ export const history = {
     this._updateButtons();
   },
 
+  /** Push a snapshot for a page that may not be active. */
+  snapshotPage(page: Page, opts?: { dirty?: boolean }): void {
+    if (this._restoring) return;
+    const e = _entry(page);
+    const data = _serializePage(page);
+    if (e.stack[e.idx] === data) return;
+    e.stack.length = e.idx + 1;
+    e.stack.push(data);
+    if (e.stack.length > MAX_STACK) e.stack.shift();
+    e.idx = e.stack.length - 1;
+    if (!opts || opts.dirty !== false) markDirty();
+    this._updateButtons();
+  },
+
   /** Overwrite newest snapshot to merge async steps into one undo. */
   replace(): void {
     if (this._restoring) return;
@@ -305,6 +334,12 @@ export const history = {
 
     const dets = (snap.textDetections as TextDetection[]) || [];
     page.textDetections = dets;
+    page._pipelineDetectionDone = snap._pipelineDetectionDone;
+    page._pipelineOcrDone = snap._pipelineOcrDone;
+    page._pipelineTranslationDone = snap._pipelineTranslationDone;
+    page._pipelineInpaintDone = snap._pipelineInpaintDone;
+    page._cleanOnlyProcessed = snap._cleanOnlyProcessed;
+    page._cleanOnlyDetectionDone = snap._cleanOnlyDetectionDone;
     const detCount = dets.length;
     const rawTextIndices =
       snap._selectedTextIndices ||

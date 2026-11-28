@@ -34,6 +34,7 @@ export function el(id: string): HTMLElement | null {
 /** Mutable shared state across the models module. */
 export const s = {
   models: [] as ModelInfo[],
+  checkError: null as string | null,
   hasImage: false,
   downloading: false,
   runtimeBusy: false,

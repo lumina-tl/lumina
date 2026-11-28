@@ -10,11 +10,18 @@ export interface ProjectMaskData {
 export interface ProjectPageData {
   fileName: string;
   filePath: string;
+  sourceFolderName?: string;
   naturalWidth: number;
   naturalHeight: number;
   textDetections: unknown[];
   layers: unknown[];
   inpaintMasks: ProjectMaskData[];
+  _pipelineDetectionDone?: boolean;
+  _pipelineOcrDone?: boolean;
+  _pipelineTranslationDone?: boolean;
+  _pipelineInpaintDone?: boolean;
+  _cleanOnlyProcessed?: boolean;
+  _cleanOnlyDetectionDone?: boolean;
   cleanupMask?: {
     id: string;
     visible: boolean;

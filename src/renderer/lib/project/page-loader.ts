@@ -8,6 +8,8 @@ import { history } from "../history";
 import { project } from ".";
 import * as landing from "../ui/landing";
 import { models } from "../models";
+import { log } from "../logger";
+import * as i18n from "../i18n";
 import type { Page } from "../../types";
 
 /** Convert a raw Windows/POSIX file path into a valid file:// URL */
@@ -19,13 +21,17 @@ function _toFileUrl(p: string): string {
   return "file://" + encodeURI(norm).replace(/#/g, "%23").replace(/\?/g, "%3F");
 }
 
-function _loadImageAsPage(filePath: string): Promise<Page | null> {
+function _loadImageAsPage(
+  filePath: string,
+  sourceFolderName?: string,
+): Promise<Page | null> {
   return new Promise(function (resolve) {
     const img = new Image();
     img.onload = function () {
       const page: Page = {
         filePath: filePath,
         fileName: filePath.split(/[/\\]/).pop() as string,
+        sourceFolderName,
         image: img,
         naturalWidth: img.naturalWidth,
         naturalHeight: img.naturalHeight,
@@ -65,12 +71,35 @@ export async function importImages(): Promise<void> {
   await openImagePaths(filePaths);
 }
 
+/** Import every supported image under a selected folder. */
+export async function importImageFolder(): Promise<void> {
+  try {
+    const imported = await window.lumina.importImageFolder();
+    if (!imported) return;
+    if (imported.filePaths.length === 0) {
+      ui.toast(i18n.t("toast.importFolderEmpty"), "warn", 4000);
+      return;
+    }
+    await openImagePaths(imported.filePaths, imported.folderName);
+  } catch (err) {
+    log.error("fe", `Folder import failed: ${err}`);
+    ui.toast(
+      err instanceof Error ? err.message : i18n.t("toast.importFailed"),
+      "error",
+    );
+  }
+}
+
 /** Import path: eager-decodes only the FIRST image, rest are lazy. */
-export async function openImagePaths(filePaths: string[]): Promise<void> {
+export async function openImagePaths(
+  filePaths: string[],
+  sourceFolderName?: string,
+): Promise<void> {
+  const firstImportedIdx = L.state.pages.length;
   for (let i = 0; i < filePaths.length; i++) {
     const fp = filePaths[i];
     if (i === 0) {
-      const page = await _loadImageAsPage(fp);
+      const page = await _loadImageAsPage(fp, sourceFolderName);
       if (page) L.state.addPage(page);
     } else {
       // Non-active pages: register immediately, decode lazily on first
@@ -81,6 +110,7 @@ export async function openImagePaths(filePaths: string[]): Promise<void> {
       L.state.addPage({
         filePath: fp,
         fileName: fp.split(/[/\\]/).pop() as string,
+        sourceFolderName,
         image: null,
         naturalWidth: 0,
         naturalHeight: 0,
@@ -97,11 +127,11 @@ export async function openImagePaths(filePaths: string[]): Promise<void> {
     }
   }
 
-  // Set active to first if none selected
-  if (L.state.activePageIdx === null && L.state.pages.length > 0) {
-    L.state.setActivePage(0);
-    // Eager-decode the active page now (it must render immediately).
-    await pageImages.ensurePageImage(L.state.pages[0]);
+  // Activate the first newly imported image, not the previously active page.
+  if (L.state.pages.length > firstImportedIdx) {
+    L.state.showDetBoxes = true;
+    models.setHasImage(true);
+    await canvas.switchPage(firstImportedIdx);
   }
 
   // Fill strip thumbnails cheaply (decode at thumb size, never full-res).
@@ -112,8 +142,6 @@ export async function openImagePaths(filePaths: string[]): Promise<void> {
   landing.hide();
   models.setHasImage(true);
 
-  canvas._clearGroups();
-  canvas.render();
   canvas.renderPageStrip();
   ui.updatePageIndicator();
   sidebar.render();

@@ -85,13 +85,14 @@ function resolveLaunch(): PythonLaunch {
     };
   }
   const dir = path.join(PROJECT_ROOT, "python");
+  const venvPython =
+    process.platform === "win32"
+      ? path.join(PROJECT_ROOT, "venv", "Scripts", "python.exe")
+      : path.join(PROJECT_ROOT, "venv", "bin", "python");
   return {
     dir,
     entry: path.join(dir, "main.py"),
-    executable:
-      process.platform === "win32"
-        ? path.join(PROJECT_ROOT, "venv", "Scripts", "python.exe")
-        : path.join(PROJECT_ROOT, "venv", "bin", "python"),
+    executable: process.env.LUMINA_PYTHON || venvPython,
     pythonPath: null,
   };
 }
@@ -122,6 +123,14 @@ function waitForHealth(
 export function spawnBackend(): Promise<void> {
   return new Promise((resolve, reject) => {
     const launch = resolveLaunch();
+    if (!fs.existsSync(launch.executable)) {
+      reject(
+        new Error(
+          `Python interpreter not found: ${launch.executable}. Create the project virtual environment or set LUMINA_PYTHON to a valid interpreter path.`,
+        ),
+      );
+      return;
+    }
     const modelsDir = resolveModelsDir().path;
     log.info(`Starting Python backend at ${launch.entry}`);
     const childEnv: NodeJS.ProcessEnv = {
@@ -137,14 +146,32 @@ export function spawnBackend(): Promise<void> {
       delete childEnv.PYTHONHOME;
       delete childEnv.PYTHONPATH;
     }
-    pythonProcess = spawn(
-      launch.executable,
-      [launch.entry, "--port", String(BACKEND_PORT)],
-      {
-        cwd: launch.dir,
-        env: childEnv,
-      },
-    );
+    let ready = false;
+    let settled = false;
+    const resolveOnce = () => {
+      if (settled) return;
+      settled = true;
+      ready = true;
+      resolve();
+    };
+    const rejectOnce = (err: Error) => {
+      if (settled) return;
+      settled = true;
+      reject(err);
+    };
+    try {
+      pythonProcess = spawn(
+        launch.executable,
+        [launch.entry, "--port", String(BACKEND_PORT)],
+        {
+          cwd: launch.dir,
+          env: childEnv,
+        },
+      );
+    } catch (err) {
+      rejectOnce(err instanceof Error ? err : new Error(String(err)));
+      return;
+    }
 
     pythonProcess.stdout?.on("data", (data: Buffer) => {
       forwardPyLine(data.toString().trim());
@@ -154,13 +181,22 @@ export function spawnBackend(): Promise<void> {
     });
     pythonProcess.on("error", (err) => {
       log.error(`Failed to start Python backend: ${err.message}`);
-      reject(err);
+      pythonProcess = null;
+      rejectOnce(err);
     });
     pythonProcess.on("exit", (code) => {
       log.info(`Python backend exited with code ${code}`);
+      if (!ready) {
+        pythonProcess = null;
+        rejectOnce(
+          new Error(
+            `Python backend exited before becoming ready (code ${code ?? "unknown"}). Check that its dependencies are installed.`,
+          ),
+        );
+      }
     });
 
-    waitForHealth(resolve, reject, 30);
+    waitForHealth(resolveOnce, rejectOnce, 30);
   });
 }
 

@@ -1,7 +1,11 @@
 /** Stage & render — composite: bg image → inpaint patches → text layers. */
 import Konva from "konva";
 import { state } from "../state";
-import { canvas, resetDeselectBinding } from "./index";
+import {
+  canvas,
+  notifyStageCreated,
+  resetDeselectBinding,
+} from "./index";
 import { bindPanWhenStageReady, resetPanBinding } from "./viewport";
 import { renderLayerTextNodes } from "./tools/text";
 import { addDetGroupToLayer } from "./detection/groups";
@@ -102,6 +106,7 @@ function _getOrCreateStage(): Konva.Stage | null {
   });
   _layer = new Konva.Layer();
   _stage.add(_layer);
+  notifyStageCreated(_stage);
 
   return _stage;
 }
@@ -149,13 +154,17 @@ function _bakeComposite(
   if (page.backgroundVisible !== false) ctx.drawImage(img, 0, 0, cw, ch);
   for (const m of page.inpaintMasks || []) {
     if (!m.visible || !m.image) continue;
+    const imageWidth =
+      "naturalWidth" in m.image ? m.image.naturalWidth : m.image.width;
+    const imageHeight =
+      "naturalHeight" in m.image ? m.image.naturalHeight : m.image.height;
     ctx.globalAlpha = m.opacity;
     ctx.drawImage(
       m.image,
       0,
       0,
-      m.image.naturalWidth || m.image.width,
-      m.image.naturalHeight || m.image.height,
+      imageWidth || m.image.width,
+      imageHeight || m.image.height,
       Math.round(m.bbox.x),
       Math.round(m.bbox.y),
       Math.round(m.bbox.w),
@@ -230,13 +239,17 @@ export function recompositeCleanupRegion(
   // 2. inpaint masks
   for (const m of page.inpaintMasks || []) {
     if (!m.visible || !m.image) continue;
+    const imageWidth =
+      "naturalWidth" in m.image ? m.image.naturalWidth : m.image.width;
+    const imageHeight =
+      "naturalHeight" in m.image ? m.image.naturalHeight : m.image.height;
     ctx.globalAlpha = m.opacity;
     ctx.drawImage(
       m.image,
       0,
       0,
-      m.image.naturalWidth || m.image.width,
-      m.image.naturalHeight || m.image.height,
+      imageWidth || m.image.width,
+      imageHeight || m.image.height,
       Math.round(m.bbox.x),
       Math.round(m.bbox.y),
       Math.round(m.bbox.w),

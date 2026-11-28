@@ -18,11 +18,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Nightly update channel.** Added a Stable/Nightly update channel selector in General settings and automated nightly builds on every `main` commit.
 - **Layer locking.** Added a lock/unlock toggle on each layer to prevent accidental selection, movement, editing, or deletion.
 - **Project thumbnails on landing page.** Recent `.lmi` projects now display a viewport snapshot thumbnail captured on save.
+- **Folder import and page context menu.** Import entire folders of manga pages recursively and close individual, other, or all pages from the page strip context menu.
+- **Batch pipeline mode.** Added a Single Page / Batch mode selector to the pipeline bar with per-page stage completion markers so completed stages are skipped on subsequent batch runs (thanks @AlanSanchez06).
+- **Tiled text detection.** Splits tall or high-resolution pages into overlapping tiles and merges detections with NMS for reliable detection on long strips (thanks @AlanSanchez06).
+- **Direct inpaint mask editing.** Select an inpaint mask and use the brush or eraser to paint directly onto it with undo/redo support (thanks @AlanSanchez06).
+- **Export OCR text.** Added **File → Export OCR text...** to save original and translated dialogue across all open pages to a `.txt` file (thanks @AlanSanchez06).
+- **Spanish localization.** Added Spanish UI translations, model descriptions, release notes, and `README.es.md` (thanks @AlanSanchez06).
+- **Dialogue group visibility toggle.** Added a virtual Dialogues row in the layer list to toggle all dialogue layers at once (thanks @AlanSanchez06).
 
 ### Changed
 
 - **Visible update installation progress.** App updates now show a visible progress bar during installation and provide in-app status feedback.
 - **Photoshop-style object rotation.** Replaced the dedicated rotation anchor handle with a rotation zone around the outside of selected bounding boxes (with Shift-snap to 15° increments).
+- **Clean Only OCR option.** Running the Clean Only preset now prompts whether to also run OCR and translation.
+- **Folder-grouped image export.** Pages imported from a folder are exported into a matching subfolder, while individually imported images export directly to the chosen directory.
+- **Selection-to-detection workflow.** Converting a rectangle or lasso selection to a detection box keeps the active drawing tool selected for faster multi-box creation.
 
 ### Fixed
 
@@ -33,6 +43,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Selection persistence on Select tool.** Fixed active selections not clearing when clicking on the canvas or objects with the Select tool.
 - **Tool cursor color inversion.** Fixed paint, selection, and pen tool cursors not inverting against bright/white canvas backgrounds.
 - **Image layer export failure.** Fixed export crashing with a `drawImage` error after reopening saved projects containing layered objects.
+- **AMD/Intel GPU provider selection.** Avoided selecting `CUDAExecutionProvider` on non-NVIDIA Windows GPUs so DirectML is chosen without a slow fallback.
+- **Stage recreation cursor handlers.** Rebound hover and selection handlers whenever the Konva stage is recreated after closing all pages.
+- **Backend startup error reporting.** Added Python interpreter validation (`LUMINA_PYTHON` support) and clearer startup/model-registry error messages.
 
 ## [0.6.0] - 23-11-2026
 

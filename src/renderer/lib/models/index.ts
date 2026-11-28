@@ -14,6 +14,7 @@ import {
 import { resolveSelected, selectedReady, allReady } from "./selection";
 import { updateButtons } from "./buttons";
 import { initProgressHandlers } from "./progress";
+import { log } from "../logger";
 
 // Wire progress handlers once at import time.
 initProgressHandlers();
@@ -23,6 +24,11 @@ export const models = {
   async check(): Promise<ModelInfo[]> {
     try {
       const res = await window.lumina.checkModel();
+      s.checkError = res.error || null;
+      if (s.checkError) {
+        log.error("fe", `Model registry: ${s.checkError}`);
+        return s.models;
+      }
       s.models = res.models || [];
       const lang = i18n.lang();
       s.models.forEach((m) => {
@@ -30,20 +36,21 @@ export const models = {
         if (desc) m.description = desc;
       });
       updateButtons();
-    } catch {
-      /* backend not ready yet — keep last state */
+    } catch (err) {
+      s.checkError = String(err);
+      log.error("fe", `Model registry: ${s.checkError}`);
     }
     return s.models;
+  },
+
+  checkError(): string | null {
+    return s.checkError;
   },
 
   /** Fetch device/GPU info once and notify subscribers. */
   async refreshDevice(): Promise<DeviceInfo | null> {
     try {
-      if (!useGpuSetting()) {
-        s.device = await window.lumina.setUseGpu(false);
-      } else {
-        s.device = await window.lumina.getDevice();
-      }
+      s.device = await window.lumina.setUseGpu(useGpuSetting());
       for (const cb of s.deviceCbs) cb(s.device);
     } catch {
       s.device = null;
@@ -171,7 +178,8 @@ export const models = {
   async refreshRuntime(): Promise<void> {
     try {
       const st = await window.lumina.getRuntimeStatus();
-      s.runtimeBusy = st.state === "downloading";
+      s.runtimeBusy =
+        st.state === "downloading" || st.state === "extracting";
     } catch {
       s.runtimeBusy = false;
     }

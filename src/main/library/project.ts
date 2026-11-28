@@ -46,6 +46,7 @@ async function handleSave(
     const imageEntry = `pages/${String(i).padStart(3, "0")}${ext(p.fileName)}`;
     return {
       fileName: p.fileName,
+      sourceFolderName: p.sourceFolderName,
       naturalWidth: p.naturalWidth,
       naturalHeight: p.naturalHeight,
       textDetections: p.textDetections,

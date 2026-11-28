@@ -1,5 +1,5 @@
 /** App entry — boot, window, backend, handlers. */
-import { app, BrowserWindow, Menu } from "electron";
+import { app, BrowserWindow, dialog, Menu } from "electron";
 import { loadEnvFile } from "./backend/env";
 
 loadEnvFile();
@@ -55,7 +55,7 @@ import { registerRecentHandlers } from "./library/recents";
 import { registerProjectHandlers } from "./library/project";
 import { registerExportHandlers } from "./library/export";
 import { registerTempCacheHandlers } from "./library/temp-cache";
-import { registerLogHandler } from "./core/logger";
+import { log, registerLogHandler } from "./core/logger";
 
 /** Wire all IPC handlers for a new window. */
 function registerAll(win: BrowserWindow): void {
@@ -100,13 +100,31 @@ app.whenReady().then(async () => {
   setPendingOpenPath(findLumiPath(process.argv.slice(1)));
 
   prepareCache();
-  await spawnBackend();
+  try {
+    await spawnBackend();
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    dialog.showErrorBox(
+      "Lumina could not start",
+      `${detail}\n\nFor a source checkout, create the Python virtual environment and install the backend dependencies as described in README.md. You can also set LUMINA_PYTHON to the path of an existing Python interpreter.`,
+    );
+    log.error(detail);
+    app.quit();
+    return;
+  }
   bootWindow();
 
   if (installerVariant() === "cuda" && !isCudaRuntimeReady()) {
-    await ensureCudaRuntime();
-    await stopBackend();
-    await spawnBackend();
+    try {
+      await ensureCudaRuntime();
+      await stopBackend();
+      await spawnBackend();
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : String(err);
+      dialog.showErrorBox("Lumina backend failed", detail);
+      app.quit();
+      return;
+    }
     send(getWindow(), IPC.checkModel);
   }
 });

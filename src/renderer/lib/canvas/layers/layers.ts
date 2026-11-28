@@ -134,6 +134,7 @@ canvas.setLayerText = function (id, field, text): void {
   const layer = page.layers[i];
   if (field === "source") {
     layer.source = text;
+    page._pipelineTranslationDone = false;
   } else {
     layer.translation = text;
     reflowVerticalLayerBbox(layer, page);
@@ -158,6 +159,21 @@ canvas.toggleLayerVisible = function (id): void {
   const i = _findLayer(page, id);
   if (!page || i < 0) return;
   page.layers[i].visible = !page.layers[i].visible;
+  canvas.render();
+  sidebar.render();
+  history.snapshot();
+};
+
+// Virtual "Dialogues" row — one toggle that flips every dialogue layer.
+canvas.toggleAllDialogues = function (): void {
+  const page = state.getActivePage();
+  if (!page) return;
+  const dialogues = page.layers.filter((layer) => layer.type === "text-dialogue");
+  if (dialogues.length === 0) return;
+  const show = !dialogues.some((layer) => layer.visible);
+  dialogues.forEach((layer) => {
+    layer.visible = show;
+  });
   canvas.render();
   sidebar.render();
   history.snapshot();

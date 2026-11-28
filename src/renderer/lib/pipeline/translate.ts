@@ -234,6 +234,18 @@ export const translate = {
       });
       if (!result || !result.results)
         throw new Error(result?.detail || "Translation failed");
+      if (
+        !result.results.length ||
+        result.results.length !== withText.length ||
+        result.results.some((item) => !item.text?.trim()) ||
+        withText.some(
+          (_, index) => !result.results?.some((item) => item.index === index),
+        )
+      ) {
+        throw new Error(
+          "The translation provider returned empty text. Check the selected model and API settings.",
+        );
+      }
 
       log.debug(
         "fe",
@@ -257,6 +269,7 @@ export const translate = {
           reflowVerticalLayerBbox(layer, page);
         }
       });
+      page._pipelineTranslationDone = true;
 
       canvas.render();
       sidebar.render();
@@ -339,6 +352,11 @@ export const translate = {
       });
       if (!result || !result.results || !result.results[0])
         throw new Error(result?.detail || "Translation failed");
+      if (result.results[0].index !== 0 || !result.results[0].text?.trim()) {
+        throw new Error(
+          "The translation provider returned empty text. Check the selected model and API settings.",
+        );
+      }
 
       const translated = normalizeAutoText(result.results[0].text || "");
       layer.translation = translated;

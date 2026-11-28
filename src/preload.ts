@@ -16,6 +16,7 @@ function on<T>(channel: string, cb: (msg: T) => void): () => void {
 const api: LuminaAPI = {
   importImage: () => invoke(IPC.importImage),
   importImages: () => invoke(IPC.importImages),
+  importImageFolder: () => invoke(IPC.importImageFolder),
   apiPost: <T>(endpoint: string, body: unknown) =>
     invoke<T>(IPC.apiPost, endpoint, body),
   apiPostStream: <T>(
@@ -36,8 +37,8 @@ const api: LuminaAPI = {
   setUseGpu: (useGpu) => invoke(IPC.deviceConfigure, useGpu),
   checkModel: () => invoke(IPC.checkModel),
   downloadModel: (models) => invoke(IPC.downloadModel, models ?? []),
-  cancelDownload: () => invoke(IPC.cancelDownload),
   deleteModel: (modelId) => invoke(IPC.deleteModel, modelId),
+  cancelDownload: () => invoke(IPC.cancelDownload),
   onDownloadProgress: (cb) => {
     on(IPC.modelDownloadProgress, cb);
   },
@@ -75,6 +76,7 @@ const api: LuminaAPI = {
   },
   confirmClose: (ok) => invoke(IPC.confirmClose, ok),
   exportImages: (payload) => invoke(IPC.exportImages, payload),
+  exportOcrText: (content) => invoke(IPC.exportOcrText, content),
   showSaveDialog: (opts) => invoke(IPC.showSaveDialog, opts),
   writePsdFile: (payload) => invoke(IPC.writePsdFile, payload),
   writeTempPng: (payload) => invoke(IPC.writeTempPng, payload),

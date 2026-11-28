@@ -83,6 +83,8 @@ export const ocr = {
           alignDialogueLayerToDet(page, r.index);
         }
       });
+      page._pipelineOcrDone = true;
+      page._pipelineTranslationDone = false;
 
       // Boxes stay visible after OCR (toggle in the header) — they only
       // disappear once inpainting produces masks.
@@ -187,6 +189,7 @@ export const ocr = {
           alignDialogueLayerToDet(page, detIdx);
         }
       });
+      page._pipelineTranslationDone = false;
 
       canvas.render();
       sidebar.render();

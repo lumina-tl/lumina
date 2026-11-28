@@ -10,6 +10,7 @@ import type {
 import type { DownloadProgress, ModelCheck } from "./model";
 import type {
   ExportPayload,
+  ExportOcrTextResult,
   ExportResult,
   ShowSaveDialogOptions,
   ShowSaveDialogResult,
@@ -39,6 +40,10 @@ export interface StreamProgress {
 export interface LuminaAPI {
   importImage(): Promise<string | null>;
   importImages(): Promise<string[] | null>;
+  importImageFolder(): Promise<{
+    filePaths: string[];
+    folderName: string;
+  } | null>;
   apiPost<T = unknown>(endpoint: string, body: unknown): Promise<T>;
   apiPostStream<T = unknown>(
     endpoint: string,
@@ -86,6 +91,7 @@ export interface LuminaAPI {
   onRequestCloseCheck(cb: () => void): void;
   confirmClose(ok: boolean): Promise<void>;
   exportImages(payload: ExportPayload): Promise<ExportResult>;
+  exportOcrText(content: string): Promise<ExportOcrTextResult>;
   showSaveDialog(opts?: ShowSaveDialogOptions): Promise<ShowSaveDialogResult>;
   writePsdFile(payload: WritePsdFilePayload): Promise<void>;
   writeTempPng(payload: TempPngWritePayload): Promise<TempPngWriteResult>;

@@ -41,6 +41,7 @@ export interface CanvasAPI {
   setLayerText(id: string, field: "source" | "translation", text: string): void;
   toggleLayerVisible(id: string): void;
   toggleLayerLocked(id: string): void;
+  toggleAllDialogues(): void;
   deleteLayer(id: string): void;
   deleteMultipleLayers(ids: string[]): void;
   /** Insert layer `id` before `insertAt` (clamped to its type group) */
@@ -63,8 +64,9 @@ export interface CanvasAPI {
   onToolChange(tool: string): void;
 
   renderPageStrip(): void;
-  switchPage(idx: number): void;
+  switchPage(idx: number): Promise<void>;
   removePage(idx: number): void;
+  closePages(indices: number[], keepPage?: import("../../types").Page): Promise<void>;
   reorderPage(fromIdx: number, toIdx: number): void;
   generateThumbnail(
     page: import("../../types").Page,
@@ -125,6 +127,7 @@ export const canvas: CanvasAPI = {
   setLayerText() {},
   toggleLayerVisible() {},
   toggleLayerLocked() {},
+  toggleAllDialogues() {},
   deleteLayer() {},
   deleteMultipleLayers() {},
   moveLayerTo() {},
@@ -145,8 +148,9 @@ export const canvas: CanvasAPI = {
   onToolChange() {},
 
   renderPageStrip() {},
-  switchPage() {},
+  async switchPage() {},
   removePage() {},
+  async closePages() {},
   reorderPage() {},
   generateThumbnail() {
     return null;
@@ -163,6 +167,20 @@ export const canvas: CanvasAPI = {
   _initSidebarResize() {},
   _initDeselectClick() {},
 };
+
+const _stageCreatedHandlers = new Set<(stage: Konva.Stage) => void>();
+
+export function registerStageCreatedHandler(
+  handler: (stage: Konva.Stage) => void,
+): void {
+  _stageCreatedHandlers.add(handler);
+  const stage = canvas.getStage();
+  if (stage) handler(stage);
+}
+
+export function notifyStageCreated(stage: Konva.Stage): void {
+  _stageCreatedHandlers.forEach((handler) => handler(stage));
+}
 
 /** Keyboard shortcuts for canvas */
 canvas._initKeyboard = function (): void {

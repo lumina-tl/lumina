@@ -106,17 +106,16 @@ function renderDynamicIsland(msg: string, type: ToastType): void {
   if (type === "error") {
     const copyBtn = document.createElement("button");
     copyBtn.className = "dynamic-island-btn copy-btn";
-    copyBtn.title = "Copy error message";
-    copyBtn.innerHTML = '<i data-lucide="copy"></i><span>Copy</span>';
+    copyBtn.title = i18n.t("toast.copyErrorMessage");
+    copyBtn.innerHTML = `<i data-lucide="copy"></i><span>${i18n.t("toast.copy")}</span>`;
     copyBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       if (navigator.clipboard) {
         navigator.clipboard.writeText(msg).then(() => {
-          copyBtn.innerHTML =
-            '<i data-lucide="check" class="text-emerald-400"></i><span>Copied!</span>';
+          copyBtn.innerHTML = `<i data-lucide="check" class="text-emerald-400"></i><span>${i18n.t("toast.copied")}</span>`;
           createIcons({ nameAttr: "data-lucide", attrs: {}, root: copyBtn });
           setTimeout(() => {
-            copyBtn.innerHTML = '<i data-lucide="copy"></i><span>Copy</span>';
+            copyBtn.innerHTML = `<i data-lucide="copy"></i><span>${i18n.t("toast.copy")}</span>`;
             createIcons({ nameAttr: "data-lucide", attrs: {}, root: copyBtn });
           }, 1500);
         });
@@ -126,7 +125,7 @@ function renderDynamicIsland(msg: string, type: ToastType): void {
 
     const closeBtn = document.createElement("button");
     closeBtn.className = "dynamic-island-btn close-btn";
-    closeBtn.title = "Dismiss";
+    closeBtn.title = i18n.t("toast.dismiss");
     closeBtn.innerHTML = '<i data-lucide="x"></i>';
     closeBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -136,7 +135,7 @@ function renderDynamicIsland(msg: string, type: ToastType): void {
   } else if (type !== "running") {
     const closeBtn = document.createElement("button");
     closeBtn.className = "dynamic-island-btn close-btn";
-    closeBtn.title = "Dismiss";
+    closeBtn.title = i18n.t("toast.dismiss");
     closeBtn.innerHTML = '<i data-lucide="x"></i>';
     closeBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -179,7 +178,7 @@ function renderPipelineSubCapsule(msg: string, type: ToastType): void {
   if (type === "error") {
     const copyBtn = document.createElement("button");
     copyBtn.className = "sub-capsule-btn";
-    copyBtn.title = "Copy error";
+    copyBtn.title = i18n.t("toast.copyError");
     copyBtn.innerHTML = '<i data-lucide="copy"></i>';
     copyBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -199,7 +198,7 @@ function renderPipelineSubCapsule(msg: string, type: ToastType): void {
 
     const closeBtn = document.createElement("button");
     closeBtn.className = "sub-capsule-btn";
-    closeBtn.title = "Dismiss";
+    closeBtn.title = i18n.t("toast.dismiss");
     closeBtn.innerHTML = '<i data-lucide="x"></i>';
     closeBtn.addEventListener("click", (e) => {
       e.stopPropagation();

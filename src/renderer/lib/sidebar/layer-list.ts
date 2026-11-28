@@ -98,8 +98,20 @@ export function layerListHTML(page: Page | null): string {
   });
 
   // Virtual rows (NOT part of page.layers — that array maps 1:1 to
-  // textDetections): a group Mask row that toggles every inpaint patch at
-  // once, and the Background row = the imported page image.
+  // textDetections): group toggles and the Background row = the imported page image.
+  const dialogueCount = page.layers.filter(
+    (layer) => layer.type === "text-dialogue",
+  ).length;
+  if (dialogueCount > 0) {
+    html += virtualRowHTML(
+      "dialogues",
+      i18n.t("layers.dialogueGroup"),
+      i18n.t("layers.dialogueGroupCount", { count: dialogueCount }),
+      page.layers.some(
+        (layer) => layer.type === "text-dialogue" && layer.visible,
+      ),
+    );
+  }
   if (page.inpaintMasks.length > 0) {
     html += virtualRowHTML(
       "mask",
@@ -124,7 +136,7 @@ export function layerListHTML(page: Page | null): string {
 
 /** Virtual rows act on whole groups, not single layers — no select/move/delete. */
 function virtualRowHTML(
-  kind: "mask" | "background",
+  kind: "dialogues" | "mask" | "background",
   name: string,
   sub: string,
   visible: boolean,
@@ -135,7 +147,11 @@ function virtualRowHTML(
     '">' +
     '<div class="layer-row-main">' +
     '<i data-lucide="' +
-    (kind === "mask" ? "eraser" : "image") +
+    (kind === "dialogues"
+      ? "message-square"
+      : kind === "mask"
+        ? "eraser"
+        : "image") +
     '" class="layer-icon"></i>' +
     '<div class="layer-name-wrap">' +
     '<span class="layer-name">' +
@@ -571,8 +587,9 @@ export function wireEvents(): void {
         const eye = target.closest(".layer-eye") as HTMLButtonElement | null;
         if (eye) {
           e.stopPropagation();
-          if (el.getAttribute("data-virtual") === "mask")
-            canvas.toggleAllMasks();
+          const kind = el.getAttribute("data-virtual");
+          if (kind === "dialogues") canvas.toggleAllDialogues();
+          else if (kind === "mask") canvas.toggleAllMasks();
           else canvas.toggleBackgroundVisible();
           return;
         }

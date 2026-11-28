@@ -7,6 +7,7 @@ export interface ExportImageFile {
 export interface ExportPayload {
   format: "png" | "jpg" | "pdf";
   quality: number;
+  folderName: string;
   files: ExportImageFile[];
 }
 
@@ -14,6 +15,11 @@ export interface ExportResult {
   canceled: boolean;
   dir: string | null;
   count: number;
+}
+
+export interface ExportOcrTextResult {
+  canceled: boolean;
+  filePath?: string;
 }
 
 // ── PSD save-as ──
